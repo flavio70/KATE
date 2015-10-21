@@ -1,0 +1,43 @@
+README for KATE
+==========================================
+
+
+KATE require Python 3.4 and DJANGO Framework package 1.8
+
+
+* https://bitbucket.org/logilab/astroid
+* https://www.python.org
+
+Installation
+-------------------------
+for installation symply clone the project in yout local folder
+
+git clone git@151.98.52.73:Automation/KATE.git
+
+
+
+Configuration
+------------
+
+Django settings must be change according with your system configuration
+in particular
+
+*LDAP Settings
+*DATABASE Settings
+
+See Django official documentation about settings.py customization
+
+Deployment
+-------------
+
+Deployment has been realized into Apache server:
+
+copy the wsgi.conf file into /etc/httpd/conf.d (we are referring to CentoOS Apache installation
+
+the <Directory> sections must be modified according to your local folder
+
+Documentation
+-------------
+
+Look in the doc/ subdirectory
+
