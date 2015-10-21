@@ -1,0 +1,158 @@
+{% extends "taws/development_template.html" %}
+{% block body %}
+{% load static %}
+
+<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
+	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Test Development</h2>
+</div>
+
+<script>
+	addLoadEvent(function() {doAccess('localBrowsing');});
+	owner='{{ login }}';
+	var myURL = "{% url 'accesso' %}";
+	OK_GIF="{% static 'images/OK.gif' %}";
+	KO_GIF="{% static 'images/KO.gif' %}";
+
+</script>
+
+<form name="selectTest" action="" method="post" >{% csrf_token %}
+<input type="hidden" value="" name="targetFile" id="targetFile">
+<input type="hidden" value="" name="saveBody" id="saveBody">
+<input type="hidden" value="" name="tuningBundle" id="tuningBundle">
+
+<div id="bigWhite" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:600px;margin-top:60px;z-index:5;background-color:white;">
+</div>
+<div id="testContainer" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:550px;margin-top:60px;z-index:10;">
+	<table align="center" style="table-layout:fixed;">
+		<tr style="height:25px">
+			<td bgcolor="#D6E0F4" align="left" style="width:150px;">
+				<input type="button" value="Development Folder" onclick="document.getElementById('testContainer').style.zIndex=10;document.getElementById('testBundleContainer').style.zIndex=-1;">
+			</td>
+			<td>
+				<table id="selectedStats" style="width:100%;">
+					<tr style="background-color:#660099;color:white;">
+						<th>Total Test</th>
+						<th>Total TPS</th>
+						<th>Total Time</th>
+						<th>Total Metric</th>
+					</tr>
+					<tr bgcolor="#D6E0F4" align="center">
+						<td style="width:25%;" id="selectedNumber">0</td>
+						<td style="width:25%;" id="selectedTPS">0</td>
+						<td style="width:25%;" id="selectedTime">0</td>
+						<td style="width:25%;" id="selectedMetric">0</td>
+					</tr>
+				</table>
+			<td bgcolor="#D6E0F4" align="right" style="width:150px;">
+				<input type="button" value="Execution List" onclick="document.getElementById('testBundleContainer').style.zIndex=10;document.getElementById('testContainer').style.zIndex=-1;">
+			</td>
+		</tr>
+		<tr height="500px">
+			<td bgcolor="#D6E0F4" align="left" valign="top">&nbsp;
+			</td>	
+			<td  valign="top" colspan="2" rowspan="2">
+				<table class="sortable" id="testTable" border="1">
+					<tr>
+						<th style="width:20px" id="0">N.</th>
+						<th style="width:115px" id="5">TPS</th>
+						<th id="6">Test</th>
+						<th style="width:33px" id="19">Lab</th>
+						<th style="width:50px" id="18">Rev</th>
+						<th style="width:40px" id="7">Time</th>
+						<th style="width:30px" id="9">Tpgy</th>
+						<th style="width:120px" id="17" colspan="5">Sect</th>
+						<!--<th style="width:15px" name="17" title="Test Status">S</th>-->
+						<!--<th style="width:15px" name="12" title="Dependency">D</th>-->
+						<!--<th style="width:15px" name="10" title="Assignment">A</th>-->
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#D6E0F4" align="center" colspan="3">
+				<input type="button" class="stylishButton" style="width:30px" value=">>" title="ADD ALL TCs TO SUITE" onclick="insertAllBundleList();" />
+				<input type="button" class="stylishButton" style="width:30px" value=">" title="ADD SELECTED TCs TO SUITE" onclick="insertBundleList(1,'');" />
+				<input type="button" class="stylishButton" style="width:30px" value=">N" title="ADD SELECTED TCs N-times TO SUITE" onclick="numAdd=prompt('Insert Multiplier','');if(numAdd!=null){insertBundleList(numAdd,'');}" />
+				<input type="button" class="stylishButton" style="width:30px" value=">@" title="ADD SELECTED TCs AT SUITE POSITION" onclick="insertBundleList(1,prompt('Insert Position',''));" />
+				<input type="button" class="stylishButton" style="width:90px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="DELETE" id="deleteBtn" onclick="deleteTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/>
+				<!--<input type="button" class="stylishButton" style="width:50px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="EDIT" id="deleteBtn" onclick="editTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/>-->
+				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+			</td>
+		</tr>
+	</table>
+</div>
+<div id="testBundleContainer" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;z-index:-1;">
+	<table align="center" style="table-layout:fixed;width:100%;">
+		<tr style="height:25px">
+			<td bgcolor="#D6E0F4" align="left" style="width:150px;">
+				<input type="button" value="Development Folder" onclick="document.getElementById('testContainer').style.zIndex=10;document.getElementById('testBundleContainer').style.zIndex=-1;">
+			</td>
+			<td>
+				<table id="bundleStats" style="width:100%;">
+					<tr style="background-color:#660099;color:white;">
+						<th>Total Test</th>
+						<th>Total TPS</th>
+						<th>Total Time</th>
+						<th>Total Metric</th>
+					</tr>
+					<tr bgcolor="#D6E0F4" align="center">
+						<td style="width:25%;" id="bundleNumber">0</td>
+						<td style="width:25%;" id="bundleTPS">0</td>
+						<td style="width:25%;" id="bundleTime">0</td>
+						<td style="width:25%;" id="bundleMetric">0</td>
+					</tr>
+				</table>
+			</td>
+			<td bgcolor="#D6E0F4" align="right" style="width:150px;">
+				<input type="button" value="Execution List" onclick="document.getElementById('testBundleContainer').style.zIndex=10;document.getElementById('testContainer').style.zIndex=-1;">
+			</td>
+		</tr>
+		<tr height="500px">
+			<td bgcolor="#D6E0F4" valign="top">
+				Development:
+				<IMG onclick="newwindow=window.open('helpMe.asp#chapter4','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+				<input type="button" style="font-size : 7pt;" class="stylishButton" id="createTest" value="CREATE TEST" onclick="newwindow=window.open('/taws/createNewTest/','createTest','height=600,width=800,resizable=no');">
+				<!--<input type="button" style="font-size : 7pt;" class="stylishButton" id="localFolder" value="DEVELOPMENT" onclick="doAccess('localBrowsing');">-->
+				<input type="button" style="font-size : 7pt;" class="stylishButton" id="localFolder" value="SAVE SUITE" onclick="saveLocalSuite();">
+				<!--<button class="stylishButton" style="height:20px;width:22;" title="LOAD"  onclick="if(owner!='LOCAL'){emptyTable('testTable');owner='LOCAL';}if(loadBundle.value!=''){owner='LOCAL';parent.accesso.location.href='accesso.asp?azione=loadListDB&load=' + loadBundle.value.replace('&','%26') + '&owner=LOCAL';}"><img style="height:21px;" src="../images/load.png"></button>-->
+				<!--<input id="saveLocal" disabled type="button" title="SAVE" id="saveLocal" onclick="saveLocalSuite();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/save.png' %})">-->
+			</td>				
+			<td valign="top" colspan="2">
+				<table class="sortable" id="testBundleTable">
+					<tr>
+						<th style="width:20px" id="0">N.</th>
+						<th style="width:45px" id="1">Product</th>
+						<th style="width:20px" id="2">Rel.</th>
+						<th style="width:115px" id="5">TPS</th>
+						<th id="6">Test</th>
+						<th style="width:50px" id="18">Rev</th>
+						<th style="width:40px" id="7">Time</th>
+						<th style="width:33px" id="9">Tpgy</th>
+						<th style="width:120px" id="17" colspan="5">Sect</th>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#D6E0F4" style="font-size : 8pt;" align="center" colspan="3">
+				<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" />
+				<input type="button" class="stylishButton" style="width:30px" value="<<" title="REMOVE ALL TCs FROM SUITE" onclick="removeAllBundleList();" />
+				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+			</td>
+		</tr>
+	</table>
+</div>
+<!--<script>typeStart()</script>
+<input type="button" class="stylishButton" style="width:30px" value=">>" title="ADD ALL TCs TO SUITE" onclick="insertAllBundleList();" /><br>
+<input type="button" class="stylishButton" style="width:30px" value=">" title="ADD SELECTED TCs TO SUITE" onclick="insertBundleList(1,'');" /><br>
+<input type="button" class="stylishButton" style="width:30px" value=">N" title="ADD SELECTED TCs N-times TO SUITE" onclick="numAdd=prompt('Insert Multiplier','');if(numAdd!=null){insertBundleList(numAdd,'');}" /><br>
+<input type="button" class="stylishButton" style="width:30px" value=">@" title="ADD SELECTED TCs AT SUITE POSITION" onclick="insertBundleList(1,prompt('Insert Position',''));" /><br>
+<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" /><br>
+<input type="button" class="stylishButton" style="width:30px" value="<<" title="REMOVE ALL TCs FROM SUITE" onclick="removeAllBundleList();" /><br>
+<input type="button" class="stylishButton" style="width:30px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="DELETE" id="deleteBtn" onclick="deleteTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/><br>
+<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+<script>typeEnd()</script>-->
+</form>
+
+{% endblock %}
+

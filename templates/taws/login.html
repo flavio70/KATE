@@ -1,0 +1,27 @@
+{% extends "taws/template_menu.html" %}
+{% block body %}
+<div style="width:390px; height:380px; position:absolute; margin-top:180px; left:50%; margin-left:-180px; z-index:3; background:url(/static/images/restricted.jpg);">
+	<form name="login" method="post" action="/taws/check_login/">{% csrf_token %}
+
+		<input type="hidden" id="url" name="url" value="{{ fromPage }}">
+
+		<div style="margin-top:145px; height:15px; margin-left:34px; width:220px;color:#fff; font-size:13px;">
+			<p align="left"><strong>Username</strong></p>
+		</div>
+
+		<div style="margin-top:6px; height:27px; margin-left:36px; width:320px;color:#fff; font-size:13px;padding:0px;">
+			<input type="text" name="username" id="username" style="position:absolute;width:314px;height:23px;background-color:#ffffff;font-size:20px; color:#000;border:0px;">
+		</div>
+
+		<div style="margin-top:15px; height:15px; margin-left:34px; width:220px;color:#fff; font-size:13px;">
+			<p align="left"><strong>Password</strong></p>
+		</div>
+
+		<div style="margin-top:8px; height:27px; margin-left:36px; width:320px;color:#fff; font-size:13px;padding:0px;">
+			<input type="password" name="password" id="password" style="position:absolute;width:314px;height:23px;background-color:#ffffff;font-size:20px; color:#000;border:0px;">
+		</div>
+
+		<div style="margin-top:35px; height:34px; margin-left:150px; width:90px;">
+			<input type="submit" value="LOGIN" style="position:absolute;width:90px;height:34px;;font-size:20px; color:#000;">
+		</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "taws/development_template.html" %}
+{% block body %}
+{% load static %}
+<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
+	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Job Details</h2>
+</div>
+<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
+	<h3>/<a href="/taws/runJenkins/"><u>Jobs</u></a>/{{ job_name }}/<h3>
+</div>
+<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:90px;">
+<h3><center><i>Available Builds</i></center></h3>
+<form name="jobDetails" method="post" target="_self" action="/taws/viewBuildDetails/">{% csrf_token %}
+	<input type="hidden" name="jobName">
+	<input type="hidden" name="buildId">
+	<table cellspacing='0' width="100%">
+		<tr>
+			<td colspan="7" align="center">
+				<!--<input type="button" title='First' onclick="jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum=1';jobDetails.submit();" value="<<">-->
+				<!--<input type="button" title='Previous' onclick="if({{ pageNum }}-1>1){jobDetails.action='/taws/viewJobDetails/jobName={{ job_name }}&pageNum={{ pageNum }}-1';jobDetails.submit();}" value="<">-->
+					{% for i in pageList %}
+						<input type="button" onclick="jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum={{ i }}';jobDetails.submit();" {% if i == pageNum %}style="background-color: #660099;color:white;"{% endif %} value="{{ i }}">
+					{% endfor %}
+				<!--<input type="button" title='Next' onclick="if({{ pageNum }}+1>{{ buildNumber }}){jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum={{ pageNum }}+1';jobDetails.submit();}" value=">">-->
+				<!--<input type="button" title='Last' onclick="jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum={{ buildNumber }}';jobDetails.submit();" value=">>">-->
+			</td>
+		</tr>
+		<tr style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#999999;' align="center">
+			<td style="width:15px;"></td>
+			<td style="width:30px;text-align:center;">Id</td>
+			<td style="width:120px;text-align:center;">Status</td>
+			<td style="width:120px;text-align:center;">Starting Date</td>
+			<td style="width:50px;text-align:center;">Passed</td>
+			<td style="width:50px;text-align:center;">Failed</td>
+			<td style="width:50px;text-align:center;">Total</td>
+		</tr>
+		{% for build in buildMatrix %}
+			<tr bgcolor='{{ build.bgcolor }}'>
+				<td style="width:15px;"><input type="button" id='{{ build.instance }}' onclick="jobDetails.action='/taws/viewBuildDetails/';jobDetails.jobName.value='{{ job_name }}';jobDetails.buildId.value=this.id;jobDetails.submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-color:{{ build.bgcolor }};background-image: url({% static 'images/lente.png' %})"></td>
+				<td style='width:30px;text-align:center;'>#{{ build.instance }}</td>
+				<td style='width:120px;text-align:center;'>{{ build.status }}</td>
+				<td style='width:120px;text-align:center;'>{{ build.timeStamp }}</td>
+				<td style='width:50px;text-align:center;'>{{ build.passed }}</td>
+				<td style='width:50px;text-align:center;'>{{ build.failed }}</td>
+				<td style='width:50px;text-align:center;'>{{ build.total }}</td>
+			</tr>
+		{% endfor %}
+	</table>
+</form>
+</div>
+{% endblock %}
+

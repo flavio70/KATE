@@ -1,0 +1,69 @@
+#!/usr/bin/env python  
+'''
+TestCase template for K@TE test developers
+
+<METAINFO>
+	<DESCRIPTION>
+		Put your test decription here	
+	<DESCRIPTION>
+	<TOPOLOGY> Insert Test Topology Id <TOPOLOGY>	
+	<DEPENDENCY>
+		Insert Test dependencies
+	<DEPENDENCY>
+	<LAB> Insert the lab referneces i.e. SW,SVT <LAB>
+	<TPS>
+		insert here the Test mapping
+	<TPS>
+	<RUNSECTIONS>
+		Insert here the sections developed in this test i.e. 
+		DUTSet,testSet,testBody,testClean,DutClean,all
+	<RUNSECTIONS>
+	<AUTHOR> your name here <AUTHOR>
+<METAINFO>
+'''
+
+from KateLibs.TestCase import *
+
+class Test(TestCase):
+	'''
+	this class implements the current test case behaviour by using
+	the five methods (runSections):
+		DUTSetUp: used for DUT configuration
+		testSetup: used for Test Configuration
+		testBody: used for main test pourposes
+		testCleanUp: used to finalize test and clear the configuration
+		DUTCleanUp: used for DUT cleanUp
+
+	all these runSections can be either run or skipped using inline optional input parameters
+
+	  --DUTSet     Run the DUTs SetUp
+	  --testSet    Run the Test SetUp
+	  --testBody   Run the Test Main Body
+	  --testClean  Run the Test Clean Up
+	  --DUTClean   Run the DUTs Clean Up
+	  --all        Run all Test Sections
+
+	runSections can't be ran without input parameters
+	'''
+
+	def DUTSetUp(self):
+		#insert DUT SetUp code for your test here
+	def testSetUp(self):
+		#insert general SetUp code for your test here
+	def testBody(self):
+		#insert Main body code for your test here
+	def testCleanUp(self):
+		#insert CleanUp code for your test here
+	def DUTCleanUp(self):
+		#insert DUT CleanUp code for your test here
+
+
+
+
+#Please don't change the code below#
+if __name__ == "__main__":	
+	'initializing the Test object istance and run the main flow'	
+	cTest=Test(__file__)	
+	cTest.run()
+	
+

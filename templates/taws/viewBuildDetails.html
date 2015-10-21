@@ -1,0 +1,144 @@
+{% extends "taws/development_template.html" %}
+{% block body %}
+{% load static %}
+<script>
+	function goToJob(){
+		report.action='/taws/viewJobDetails/?jobName={{ job_name }}';
+		report.submit();
+	}
+</script>
+<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
+	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Job Details</h2>
+</div>
+<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
+	<h3>/<a href="/taws/runJenkins/"><u>Jobs</u></a>/<a href="#" onclick="goToJob()"><u>{{ job_name }}</u></a>/{{ instance }}<h3>
+</div>
+<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:90px;">
+	<center>
+	<form name="report" action="" method="post" target="_self">{% csrf_token %}
+		<input type="hidden" name="jobName" value="{{ job_name }}">
+		<input type="hidden" name="buildId" value="{{ instance }}">
+		<input type="hidden" name="testName" value="">
+			<table align="center" id="reportTable" style="empty-cells: show;font-size : 8pt;width:100%;border-collapse: collapse;border-color:#999999;table-layout: fixed;">
+				<tr style="height:20px;font-size :8pt;text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;">
+					<td align="center">Test Result Table</td>
+				</tr>
+				<tr style="height:205px;">
+					<td valign="top" height="100%">
+						<table align="center" id="runListTable" border='1'style="font-size : 8pt;width:100%;border-collapse: collapse;">
+							<tr BGCOLOR="#BFEAEE">
+								<td valign="top">
+									<table align="center" valign="middle" id="statusTable" border="1" style="font-size : 8pt;border-collapse: collapse;width:100%;">
+										<tr align='center' style="font-size :8pt;text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;">
+											<td style="width:70px;">Status</td>
+											<td>Name</td>
+											<td style="width:50px;">Owner</td>
+											<td style="width:120px;">Target</td>
+											<td style="width:65px;">SWP</td>
+											<td style="width:90px;">Start</td>
+											<td style="width:90px;">Duration</td>
+											<td style="width:90px;">TAWS DB</td>
+										</tr>
+										<tr align='center' style="font-size :8pt;text-decoration:none; font-family:verdana, sans-serif; color:#000000; font-weight: bold;background-color:#D6E0F4;">
+											<td style="height:40px;" id='ATMStatus'>{{ status }}</td>
+											<td id='suite'>Job {{ job_name }} Build # {{ build_name }}</td>
+											<td id='owner'>NA</td>
+											<td id='targetBench'>{{ target }}</td>
+											<td id='SWP'>NA</td>
+											<td id='start'>{{ timeStamp }}</td>
+											<td id='end'>{{ duration }}</td>
+											<td id='tawsdb'>NA</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							<tr style="height:18px;">
+								<td>
+									<table align="center" style="font-size : 8pt;border-collapse: collapse;table-layout: fixed;width:100%;">
+										<tr style="font-size :8pt;text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;">
+											<th style="width:15px;"></th>
+											<th style="width:25px;text-align:center;">N.</th>
+											<th>Test List</th>
+											<th style="width:50px;">Report</th>
+											<th style="width:110px;">Duration</th>
+											<th style="width:70px;">Story</th>
+											<th style="width:60px;">Task</th>
+											<th style="width:15px;"></th>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							<tr style="height:100%;">
+								<td valign="top">
+									<div style="height:100%;overflow:scroll;">
+									<table align="center" id="reportSummary" style="border-collapse: collapse;font-size :8pt;text-decoration:none; font-family:verdana, sans-serif;; table-layout: fixed;width:100%;">
+										{% for build in buildMatrix %}
+											<tr bgcolor='{{ build.bgcolor }}' style='color:{{ build.fontcolor }};border-bottom:1px;'>
+												<td style="width:15px;"><input type="button" id="{{ build.testName }}" onclick="report.action='/taws/viewReport/';report.testName.value=this.id;submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-color:{{ build.bgcolor }};background-image: url({% static 'images/lente.png' %})"></td>
+												<td style='width:25px;text-align:center;'>{{ build.counter }}</td>
+												<td style="text-align:left;margin-left:20px;">{{ build.testName }}</td>
+												<td style='width:50px;'>{{ build.testStatus }}</td>
+												<td style='width:110px;text-align:center;'>{{ build.testDuration }}</td>
+												<td style='width:130px;'><table style="border-collapse:collapse;">
+												{% for tps in build.tpsList %}
+													<tr style="text-align:center;">
+														<td bgcolor='{{ tps.tpsBgcolor }}' style='color:{{ tps.tpsFontcolor }};width:70px;'>{{ tps.tpsArea }}</td>
+														<td bgcolor='{{ tps.tpsBgcolor }}' style='color:{{ tps.tpsFontcolor }};width:60px;'>{{ tps.tpsName }}</td>
+													</tr>
+												{% endfor %}
+												</table></td>
+											</tr>
+										{% endfor %}
+									</table>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr style="height:25px;">
+					<td align="center" border="1" style="font-size :10pt;" bgcolor="#D6E0F4"><b>Export to : </b>
+						<IMG onclick="newwindow=window.open('helpMe.asp#chapter11','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static 'images/info.png' %}" ALT="Home">
+						<input type="button" class="stylishButton" value="XLS" onclick="if(excelValues.value!=''){report.target='connection';report.action='accesso.asp?azione=exportExcel';submit();}">
+						<!--<input type="button" class="stylishButton" value="TSRT" onclick="if(excelValues.value!=''){report.target='principale';report.action='tsrtForm.asp';submit();}">-->
+						<!--<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" onclick="if(excelValues.value!=''){tempValue=excelValues.value.split('#');if(isNaN(tempValue[0])){alert('Results Belonging to Local Testing Suite.\nImpossible to upload results on Server...\n');}else{top.linkFrame.TPS=excelValues.value;extractTCFromExcelValues(excelValues.value,productList.value);}}">-->
+						<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" disabled onclick="if(excelValues.value!=''){report.target='principale';report.action='tawsreport.asp?azione=process';submit();}">
+						<input type="button" class="stylishButton" id="updateDur" value="Update Durations" onclick="if(excelValues.value!=''){updateTimes();}">
+						<!--<input type="button" class="stylishButton" disabled id="RecoveryBtn" disabled value="Recovery Suite" onclick="recoverSuite('');">-->
+						<!--<input type="button" class="stylishButton" disabled id="LatencyBtn" value="Conformance Report" onclick="LtcyReport.value='';report.target='principale';report.action='conformance.asp?update=none';submit();">-->
+						<!--<input type="button" class="stylishButton" disabled id="LoggingBtn" value="DCI Certification" onclick="parent.topPage.connection.location.href='pythonAccess.asp?azione=1830Certification&savingStringValue=';">-->
+					</td>
+				</tr>
+		</table>
+	</form>
+</center>
+</div>
+<script>
+function recoverSuite(mySuite){
+	if(report.saveBody.value!=''){
+		tempSuite=mySuite.split('-TUNED-');
+		suffix=tempSuite[tempSuite.length-1].split('_');
+		report.action='pythonAccess.asp?azione=savesuite';
+		report.target='connection';
+		report.targetFile.value=tempSuite[0]+'-RECOVERY-'+suffix[0]+'.mlt';
+		report.submit();
+	}
+}
+
+function loadReport(reportName,reportType){
+	if(reportName!=''&&reportType!=''){
+		if(reportType=='RT'){
+			//top.tsrtReport=reportName;
+			parent.topPage.connection.location.href='accesso.asp?azione=getReportRT&reportName=' + reportName;
+		}else{
+			//top.tsrtReport=reportName;
+			parent.topPage.connection.location.href='pythonAccess.asp?azione=analyzeATMReport&reportName=' + reportName;
+			}
+	}
+}
+
+</script>
+
+{% endblock %}
+
+

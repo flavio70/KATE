@@ -1,0 +1,119 @@
+{% load static %}
+<HTML>
+<HEAD>
+<TITLE>Run Creator</TITLE>
+<LINK rel="stylesheet" type="text/css" href='{% static "css/style.css" %}'>
+<link rel='stylesheet' type='text/css' href='{% static "css/datepicker_vista/datepicker_vista.css" %}' />
+<script type='text/javascript' src='{% static "js/bundle.js" %}'></script>
+<script type='text/javascript' src='{% static "js/datepicker.js" %}'></script>
+<script>
+	function fitText(){
+		mytable=document.getElementByID('createRun');
+		if(mytable.rows[1].cells[0].innerHTML.length > maxLength)
+        {
+            mytable.rows[1].cells[0].style.fontSize = "8px";
+        }
+	}
+</script>
+</HEAD>
+<script type="text/javascript" src='{% static "js/TCA_scripts.js" %}'></script>
+<BODY BGCOLOR="#eeeeee" onload="runTest.selectBench.selectedIndex=-1;">
+<form name="runTest" action="/taws/createRunJenkins/?azione=runTest&jobName={{ job_name }}" method="post" target="_self">{% csrf_token %}
+	<input type="hidden" name="target">
+	<input type="hidden" name="gowr" value='CONTINUE'>
+	<input type="hidden" value="{{ job_name }}" name="jobName">
+	<input type="hidden" value="" name="suiteTime">
+	<table align="center" id="createRun" style="font-size : 8pt;width:100%" border="0" style="border-collapse: collapse;border-color:#D6E0F4;table-layout:fixed;">
+		<tr><td colspan="2" align="center" height="20px"><h2>Run Settings For Suite</h2></td></tr>
+		<tr><td colspan="2" align="center" height="60px"><h1>{{ job_name }}</h1></td></tr>
+		<tr height="30px" align='center' bgcolor="#660099" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif;color=#ffffff; font-weight: bold;">
+			<td colspan="2" style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;">Suite Parameters</td>
+		<tr>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;">SW Package</td>
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;"><input type="text" name="SWRelease" style="width:80px" onchange="if((SWRelease.value!='')&&(document.getElementById('benchLabel').innerHTML!='')){RUNbtn.disabled=false}else{RUNbtn.disabled=true;}"></td>
+		</tr>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
+			<td style="padding-top:20px;border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;">Target Node</td>
+			<td rowspan="2" style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;">
+				<select multiple size="8" id="selectBench" style="font-size : 7pt;" style="width:133px" onchange="document.getElementById('benchLabel').innerHTML='';for(i=0;i<selectBench.options.length;i++){if(selectBench.options[i].selected){document.getElementById('benchLabel').innerHTML+=selectBench.options[i].value;}};if(SWRelease.value!=''){RUNbtn.disabled=false}else{RUNbtn.disabled=true;}">
+			</td>
+		</tr>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
+			<td style="padding-top:20px;border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;" id="benchLabel">No Benches Selected</td>
+		</tr>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;"><b>Stop on Error<b></td>
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;"><input type="checkbox" name="gowrBox" onclick="if(this.checked){gowr.value='STOP';}else{gowr.value='CONTINUE';}">Enable</td>
+		</tr>
+		<tr height="30px" align='center' bgcolor="#660099" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif;color=#ffffff; font-weight: bold;">
+			<td colspan="2">Scheduling Options</td>
+		<tr>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif;font-weight: bold;">
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;">Starting Time</td>
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;"><input name='date_B' type='text' value='' class='date demo_time' style="width:150px;text-align:center;" /></td>
+			<script type='text/javascript'>
+				window.addEvent('load', function() {
+					new DatePicker('.demo_time', { 
+					pickerClass: 'datepicker_vista',
+					inputOutputFormat: 'Y-m-d H:i',
+					timePicker: true, 
+					format: 'd-m-Y @ H:i', 
+					minDate: { date: '{{ myTimeMin }}', format: 'd-m-Y' },
+					maxDate: { date: '{{ myTimeMax }}', format: 'd-m-Y' },
+					positionOffset: { x: -190, y: -90 }
+					});
+				});
+			</script>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;" rowspan="2">Reserve Bench For : </td>
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;"><input type="checkbox" onclick="if(document.getElementById('benchLabel').innerHTML!='No Benches Selected'&&SWRelease.value!=''&&runTest.date_B.value!=''&&runTest.date_B.value!=''&&this.checked==true){duration.selectedIndex=0;suiteTime.value=time2Seconds('{{ duration }}');document.getElementById('SCHEDULEbtn').disabled=false;}else{document.getElementById('SCHEDULEbtn').disabled=true;}">Suite Duration ({{ duration }})</td>
+		</tr>
+		<tr height="30px" align='center' bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
+			<td style="border-right:1px #660099 solid;border-top:1px #660099 solid;border-left:1px #660099 solid;"><select id="duration" onchange="if(document.getElementById('benchLabel').innerHTML!='No Benches Selected'&&SWRelease.value!=''&&runTest.date_B.value!=''&&runTest.date_B.value!=''&&duration.value!=''){document.getElementById('SCHEDULEbtn').disabled=false;suiteTime.value=this.value;}"></select></td>
+				<script>
+					var addTest = document.createElement('option');
+					var maxLength = 50;
+					addTest.text = "Select Time...";
+					addTest.value = "";
+					document.getElementById('duration').add(addTest);
+					for(i=0;i<72;i++){
+						padding='';
+						if(i<10){padding='0';}
+						if(i>0){
+							var addTest = document.createElement('option');
+							addTest.text = padding+i+':00';
+							addTest.value = i*60;
+							document.getElementById('duration').add(addTest);
+						}
+						var addTest = document.createElement('option');
+						addTest.text = padding+i+':15';
+						addTest.value = i*60+15;
+						document.getElementById('duration').add(addTest);
+						var addTest = document.createElement('option');
+						addTest.text = padding+i+':30';
+						addTest.value = i*60+30;
+						document.getElementById('duration').add(addTest);
+						var addTest = document.createElement('option');
+						addTest.text = padding+i+':45';
+						addTest.value = i*60+45;
+						document.getElementById('duration').add(addTest);
+					}
+				</script>
+		</tr>
+		<tr height="40px">
+			<td style="border:1px #660099 solid;" align="center"><input type="button" class="stylishButton" value="RUN" style="font-size : 8pt;" id="RUNbtn" onclick="submit();"></td>
+			<td style="border:1px #660099 solid;" align="center"><input type="button" disabled class="stylishButton" value="SCHEDULE" style="font-size : 8pt;width:114px;" id="SCHEDULEbtn" onclick="alert(SWRelease.value);runTest.action='accesso.asp?azione=scheduleSuite';target.value=document.getElementById('benchLabel').innerHTML;submit();window.close();"></td>
+		</tr>
+	</table>
+</form>
+</BODY>
+{% if action == '' %}
+  <script language='javascript'>
+    window.opener.top.principale.location.href='runJenkins.asp';
+		window.close();
+  </script>
+{% endif %}
+
+</HTML>
+

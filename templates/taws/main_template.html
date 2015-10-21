@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html>
+
+    <head>
+	{% include "taws/header.txt" %}
+    </head>
+
+    <body>
+	{% include "taws/login.txt" %}
+	<div id="smoothmenu1" class="ddsmoothmenu" style="width:1024px;position:absolute;left:50%;margin-left:-512px;margin-top:60px;z-index:100;">
+		<ul>
+			<li>
+				<a href="http://www.dynamicdrive.com">Registration</a>
+				<ul>
+					<li><a href="request_account.asp">New Sphynx Account</a></li>
+					<li><a href="add_bench.asp">New Bench</a></li>
+				</ul>
+			</li>
+			<li><a href="#">Resource Overview</a>
+  				<ul>
+  					<li><a href="list_account.asp">Account List</a></li>
+	  				<!--<li><a href="atm.asp">ATManager List</a></li>-->
+ 					<li><a href="bench.asp">Bench List</a></li>
+	  				<li><a href="topology.asp">Toplology Usage</a></li>
+  	  				<li><a href="#" onclick="javascript:window.open('development/frames/topologyViewer.asp','name','height=600,width=1000,resizable=1,scrollbars=1');">Topology Viewer</a></li>
+	  				<li><a href="#" onclick="javascript:window.open('development/frames/sharedPresetCreator.asp','name','height=770,width=1024,resizable=1,scrollbars=1');">Presets Manager</a></li>
+  				</ul>
+			</li>
+			<li><a href="#">Statistics</a>
+  				<ul>
+					<!--<li><a href="released.asp">Test Development</a></li>
+					<li><a href="statistics_sw_executed.asp">Sw Executed</a></li>
+					<li><a href="viewReport.asp">Execution Summary</a></li>
+					<li><a href="statistics_tps_executed.asp">Tps History Execution</a></li>-->
+					<li><a href="tps_coverage.asp">TPS Coverage</a></li>
+					<li><a href="user_skill.asp">Automation Skill</a></li>
+					<li><a href="tasks.asp">Tasks</a></li>
+					<li><a href="task_evolution.asp">Feature Reporting</a></li>
+  				</ul>
+			</li>
+			<li><a href="conformanceMatrix.asp">Conformances</a>
+  				<ul>
+  				</ul>
+			</li>
+			<li><a href="download.asp">Downloads</a></li>
+			<li><a href="#">Administration</a>
+				<ul>
+					<li><a href="admin.asp">Test Management</a></li>
+					<li><a href="avviso.asp">Newsletter</a></li>
+				</ul>
+			</li>
+			<li><a href="/taws/development_index/">Development</a></li>
+		</ul>
+
+		<br style="clear: left" />
+	</div>
+	<div style="position:absolute; width:1024px; margin-top:180px; margin-left:-512px; left:50%; height:500px; z-index:3">
+		{% block body %}{% endblock %}
+	</div>
+	</body>
+</html>

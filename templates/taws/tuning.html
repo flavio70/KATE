@@ -1,0 +1,354 @@
+{% extends "taws/development_template.html" %}
+{% block body %}
+{% load static %}
+
+<script>
+var suiteowner='{{ suiteOwner }}';
+tuneFile='{{ fileName }}';
+if(topologies){topologies.length=0;}
+	else{var topologies = new Array();}
+
+popBoxWaitImage.src = "{% static 'images/spinner40.gif' %}";
+popBoxRevertImage = "{% static 'images/magminus.gif' %}";
+popBoxPopImage = "{% static 'images/magplus.gif' %}";
+var personalPreset = new Array();
+var sharedPreset = new Array();
+
+{% autoescape off %}
+	{{ topoAry }}
+{% endautoescape %}
+</script> 
+
+<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
+	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Suite Manager</h2>
+</div>
+<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
+
+<script>
+	owner='{{ login }}';
+	var myURL = "{% url 'accesso' %}";
+</script>
+
+<h2><center><span id="myTitle"></span><IMG onclick="newwindow2=window.open('helpMe.asp#chapter21','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home"></center></h2>
+
+<form name='changeScript' method='post' target='_blank'>{% csrf_token %}
+<table border='1' align='center' id='tuningTable' style='font-size : 8pt;width:100%;height=85%;border-collapse: collapse;table-layout:fixed;'>
+	<tr style='height:50;' align='center'>
+		<td style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#eeeeee;width:100px;'>
+			<input type='button' id='prevBtn' value='<<' class='stylishButton' onclick="">
+			<input type='button' id='nextBtn' value='>>' class='stylishButton' onclick="">
+		</td>
+		<td style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#eeeeee;'>
+			<input type='button' value='Tune Test Cases for Running' class='stylishButton' onclick="document.getElementById('localTesting').value='off';jsendTuning();">
+			<input type='button' value='Download TCs for developing' class='stylishButton' onclick="document.getElementById('localTesting').value='on';jsendTuning();" id="tuneToLocalTesting">
+			<input type="hidden" id='localTesting' name="localTesting" value="">
+			<input type="checkbox" id='shareBox' onchange="if(this.checked){sharedJob.value='on';}else{sharedJob.value='off';}">SHARED JOB
+		</td>
+		<td style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#eeeeee;color:#999999;' align="right">
+			<IMG onclick="newwindow2=window.open('helpMe.asp#chapter22','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+			User :
+			<select id="personalPreset" style="width:250px;font-size : 8pt;">
+				<option value=''>Select Here...</option>
+				{% for myItem in userPreset %}
+				    <option value='{{ myItem.userPresetID }}'>{{ myItem.userPresetName }}</option>
+				{% endfor %}
+			</select>
+			<input type="button" title="LOAD" id='loadBtn' onclick="doAccess('loadPreset');" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">
+			<input type="button" title="SAVE" id="saveBtn" onclick="checkSave();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/save.png' %})">
+			<input type="button" title="DELETE" id='deleteBtn' onclick="deletePreset(personalPreset,personalPresetAry,'{{ login }}');" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"><br>
+			<!--<button class='stylishButton' style='height:20px;width:22;' title='LOAD' id='loadBtn' onclick="if(personalPreset.value!=''){top.topPage.connection.location='accesso.asp?azione=getPreset&presetID='+personalPreset.value;}"><img style="height:21px;" src="../images/load.png"></button>-->
+			<!--<button class='stylishButton' style='height:20px;width:22;' title='SAVE' id='saveBtn' onclick="checkSave();"><img style="height:21px;" src="../images/save.png"></button>-->
+			<!--<button class='stylishButton' style='height:20px;width:22;' title='DELETE' id='deleteBtn'onclick="deletePreset(personalPreset,personalPresetAry,'<%=Session("login").upper()%>');"><img style="height:21px;" src="../images/delete.png"></button><br>-->
+			Shared :
+			<select id="sharedPreset" style="width:250px;font-size : 8pt;">
+				<option>Select Here...</option>
+				{% for myItem in sharedPreset %}
+				    <option value=''>{{ myItem.myTopology }}</option>
+				{% endfor %}
+			</select>
+			<button class='stylishButton' style='height:20px;width:22;' title='LOAD' id='loadBtn' onclick="if(sharedPreset.value!=''){top.topPage.connection.location='accesso.asp?azione=getPreset&presetID='+sharedPreset.value;}" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})"></button>
+			<button class='stylishButton' style='height:20px;width:22;' title='SAVE' id='saveBtn' disabled></button>
+			<button class='stylishButton' style='height:20px;width:22;' title='DELETE' id='deleteBtn' disabled></button>
+		</td>
+	</tr>
+	<tr>
+		<td id="tuningPicture" colspan="2" valign="top" align="center">
+		<br>
+		<img id="topologyImage" class="PopBoxImageSmall" onclick="Pop(this,50,'PopBoxImageLarge');" width="450px" height="450px">
+		</td>
+		<td id="labelTable" valign="top" align="center">
+			<h2 id='topoTitle'>Title</h2>
+			<IMG onclick="newwindow2=window.open('helpMe.asp#chapter23','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+			<table width="350px" class="sortable-new">
+				<tr>
+					<th><b>Label</b></th>
+					<th><b>Value</b></th>
+				</tr>
+			</table>
+			<div style="overflow:auto; height:520px;background-color:transparent;">
+			<table id="showedTable" border="1" width="350px" class="sortable-new">
+				<tr>
+					<th></th>
+					<th></th>
+				</tr>
+			</table>
+			</div>
+			
+		</td>
+	</tr>
+</table>
+<input type='hidden' name='changeValues'>
+<input type='hidden' name='tuningList'>
+<input type='hidden' name='tuningBundle' value="{{ suiteID }}">
+<input type='hidden' name='tuningLabel'>
+<input type='hidden' name='description'>
+<input type='hidden' name='owner'>
+<input type='hidden' name='presets'>
+<input type='hidden' name='presetBody'>
+<input type='hidden' name='newPreset'>
+<input type='hidden' name='sharedJob' value="off">
+</form>
+
+<script>
+window.onload=function(){showStartUp();}
+
+
+var tuningValues = new Array();
+var personalPresetAry = personalPreset;
+var sharedPresetAry = sharedPreset;
+var TAWSVersion = '1.0.0';
+var availableTopology='';
+var currentTopology='';
+
+function showStartUp(){
+	if(suiteowner=='LOCAL'){document.getElementById("localTesting").disabled=true;}
+	document.getElementById('myTitle').innerHTML = "Script Tuning for " + tuneFile;
+	show(0);
+}
+
+function show(topoIndex){
+	topoName=topologies[topoIndex][0];
+	removeAllChild();
+	myCell=document.getElementById('topoTitle');
+	myCell.innerText="Topology " + topoName;
+	currentTopology=topoIndex;
+	currentLabel='';
+	for(i=0;i<topologies[topoIndex][1].length;i++){
+		if(topologies[topoIndex][1][i].indexOf('#')<0){
+			if(i==topologies[topoIndex][1].length){
+				createElement(topologies[topoIndex][1][i],topologies[topoIndex][2][i],i,'bottom','',topologies[topoIndex][4][i]);
+			}else{
+				createElement(topologies[topoIndex][1][i],topologies[topoIndex][2][i],i,'none','',topologies[topoIndex][4][i]);
+			}
+		}else{
+			createElement(topologies[topoIndex][6][i],topologies[topoIndex][2][i],i,'top',topologies[topoIndex][1][i].replace('#',''),topologies[topoIndex][4][i]);
+			currentLabel=topologies[topoIndex][6][i];
+		}
+	}
+	document.getElementById('prevBtn').onclick = function(){show(topoIndex-1);}
+	document.getElementById('nextBtn').onclick = function(){show(topoIndex+1);}
+	if(topoIndex==0){document.getElementById('prevBtn').onclick = function(){show(topologies.length-1);}}
+	if(topoIndex==topologies.length-1){document.getElementById('nextBtn').onclick = function(){show(0);}}
+	if(topoName.isNaN){document.getElementById('topologyImage').src='http://151.98.52.73:8000/static/images/' + topoName.substr(0,topoName.length-1) + '.jpg';}
+	else{document.getElementById('topologyImage').src='http://151.98.52.73:8000/static/images/' + topoName + '.jpg';}
+	colorTable('showedTable');
+}
+
+function createElement(name,description,progressiveID,borderType,eqptType,idEntity){
+	myTable=document.getElementById('showedTable');
+	var myRow=myTable.insertRow();
+	if(borderType=='top'){myRow.style.borderTop='3px solid black';}
+	if(borderType=='bottom'){myRow.style.borderBottom='3px solid black';}
+	var myCell = myRow.insertCell();
+	textNode = document.createElement ('p');
+	textNode.setAttribute("title",description)
+	textNode.appendChild (document.createTextNode (name));
+	myCell.appendChild(textNode);
+	var flagsInput = document.createElement("input");
+	if(borderType=='top'){
+		buttonText='...';
+		if(topologies[currentTopology][3][progressiveID]!=''){buttonText=topologies[currentTopology][3][progressiveID]}
+		flagsInput.id=progressiveID+'$'+eqptType+'$'+idEntity;
+		flagsInput.type="button";
+		flagsInput.value=buttonText;
+		flagsInput.onclick=function(){newwindow=window.open('/taws/selectEqpt/?myVars='+flagsInput.id,'viewReportTrunk','height=600,width=1000,resizable=1');}
+		flagsInput.style.fontSize="6pt";
+	}else{
+		flagsInput.id=progressiveID;
+		flagsInput.setAttribute("type","text");
+		if(topologies[currentTopology][3][progressiveID]!=''){flagsInput.value=topologies[currentTopology][3][progressiveID];}
+			else{flagsInput.value="";}
+		flagsInput.style.fontSize="7pt";
+		flagsInput.onchange=function(){
+			topologies[currentTopology][3][this.id]=this.value;
+		}
+	}
+	myCell = myRow.insertCell();
+	myCell.appendChild(flagsInput);
+}
+
+function removeAllChild(){
+	myTable=document.getElementById('showedTable');
+	numRows=myTable.rows.length;
+	for(i=1;i<numRows;i++){
+		myTable.deleteRow(1);
+	}
+}
+
+function jsendTuning(){
+	//alert(document.getElementById('localTesting').value);
+	changeScript.action='/taws/tuningEngine/';
+	changeScript.target='_blank';
+	tuningFields = getTuningValues();
+	if(tuningFields!=''){
+		document.changeScript.changeValues.value=tuningFields;
+		//document.changeScript.tuningList.value=tuneList;
+		//document.changeScript.tuningBundle.value=tuneFile;
+		if(document.getElementById('localTesting').value=='off'){
+			tuningLabelPrompt = prompt('Insert Tuning Label...','myTuning');
+			descriptionPrompt = prompt('Insert Job Description...','');
+			if((tuningLabelPrompt != null)&&(descriptionPrompt!=null)){
+				document.changeScript.tuningLabel.value=tuningLabelPrompt.replace(/'/g,"");
+				document.changeScript.description.value=descriptionPrompt.replace(/'/g,"");
+				document.changeScript.submit();
+			}else{
+				alert('Label Missing!');
+			}
+		}else{
+			document.changeScript.submit();
+		}
+	}
+}
+
+function getTuningValues(){
+	found=false;
+	tuningString='';
+	availableTopology='';
+	for(i=0;i<topologies.length;i++){
+		for(k=0;k<topologies[i][1].length;k++){
+			if(topologies[i][3][k]==''){
+				found=true;break;
+			}else{
+				//if(topologies[i][3][k].indexOf('$')>0){
+				//	temp=topologies[i][3][k].split('$');
+				//	topologies[i][3][k]=temp[0];
+				//}
+				if(tuningString!=''){tuningString+='?';}
+				tuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k];
+			}
+		}
+		if(found==false){availableTopology+='*'+topologies[i][0]+'*';}
+	}
+	if(found==true){
+		alert('Some fields are missing...');
+		tuningString='';
+	}
+	return tuningString;
+}
+
+function checkSave(presetSelect){
+	if(changeScript.personalPreset.value!=''){oldPreset=changeScript.personalPreset.value;}
+		else{oldPreset='newPreset';}
+	myValues=getTuningValues();
+	if(myValues){
+		mySelect=document.getElementById("personalPreset");
+		//changeScript.action='accesso.asp?azione=savePreset';
+		//changeScript.target='connection';
+		changeScript.presetBody.value=myValues;
+		if(mySelect.value==''){
+			presetName=prompt('Insert Preset Name...',oldPreset);
+			if(presetName!='Insert Preset'&&presetName!=null){confirmed=true;}
+			//if(presetName.substr((presetName.length - 4),(presetName.length - 1))!='.prs'){presetName+='.prs'};
+			changeScript.presets.value=presetName.replace(/'/g,"");
+		}else{
+			confirmed=confirm('Are you sure you want to overwrite '+mySelect.options[mySelect.selectedIndex].text+'?');
+			if(confirmed){
+        changeScript.presets.value=mySelect.options[mySelect.selectedIndex].value;
+        changeScript.newPreset.value='off';
+      }else{
+        changeScript.presets.value=prompt('Insert Preset Name...','newPreset');
+        confirmed=true;
+        //changeScript.presets.value=mySelect.options[mySelect.selectedIndex].text;
+        changeScript.newPreset.value='on';
+      }
+		}
+		//if(confirmed){changeScript.submit();}
+		if(confirmed){doAccess('savePreset');}
+	}
+}
+
+function updatePresetList(preset,target,currentPreset){
+	tempPresetVersion = preset.split('?');
+	mySelect=document.getElementById(target);
+	mySelect.options.length=0;
+	var addTest = document.createElement('option');
+	addTest.text = "Select Here...";
+	addTest.value = "";
+	mySelect.add(addTest);
+	obsoletePreset='';
+	for(i=0;i<preset.length;i++){
+		tempValue=tempPresetVersion[i].split('|');
+		var addTest = document.createElement('option');
+		addTest.text = tempValue[0];
+		addTest.value = tempValue[1];
+		mySelect.add(addTest);
+		if(tempValue[1]==currentPreset){mySelect.selectedIndex = i+1;}
+	}
+}
+
+function loadPreset(target,preset){
+	tempPreset = preset.split('?');
+	for(i=0;i<tempPreset.length;i++){
+		tempPresetValue = tempPreset[i].split('|');
+		//found=false;
+		for(k=0;k<topologies.length;k++){
+			for(z=0;z<topologies[k][1].length;z++){
+				if(tempPresetValue[0]==topologies[k][4][z]){
+					topologies[k][3][z]=tempPresetValue[2];
+					topologies[k][5][z]=tempPresetValue[1];
+					//found=true;
+					//break;
+				}
+			}
+			//if(found==true){break;}
+		}
+	}
+	show(0);
+	if(target!='SHARED'){changeScript.sharedPreset.selectedIndex=0;}
+		else{changeScript.personalPreset.selectedIndex=0;}
+}
+
+function deletePreset(selectObj,preset,ownership){
+	if(selectObj.value!=''){
+		presetStr=selectObj[selectObj.selectedIndex].text;
+		presetValue=selectObj.value;
+		if(confirm('Are you sure you want to delete '+presetStr+'?')){
+			window.opener.pivot.action='accesso.asp?azione=deletePreset&presetID='+presetValue;
+			window.opener.pivot.submit();
+		}
+	}
+}
+
+function sharePreset(selectObj,preset,ownership){
+	if(selectObj.value!=''){
+		tempPreset=preset[selectObj.value].split('\D1');
+		oldPreset=tempPreset[tempPreset.length-1];
+		if(confirm('Are you sure you want to share '+oldPreset+'?')){
+			window.opener.location.href='accesso.asp?azione=shareSuite&suiteName='+oldPreset+'&suiteCreator='+ownership+'&target=preset';
+		}
+	}
+}
+
+function colorTable(tableName){
+	var myRows = document.getElementById(tableName).rows;
+	for(k = 0;k < myRows.length-1;k++){
+		if (k%2){myRows[k+1].style.background='#eeeeee';}
+			else{myRows[k+1].style.background='white';}
+	}
+}
+
+</script>
+
+
+{% endblock %}
+

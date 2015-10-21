@@ -1,0 +1,65 @@
+{% load static %}
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="{% static "css/sortable.css" %}" />
+	<script type="text/javascript" src="{% static "js/sorttable.js" %}"> </script>
+	<script>
+		function selectEquip(myID,myName,myVars){
+			myObj=myVars.split('$')
+			window.opener.document.getElementById(myVars).value=myName;
+			myTopologyID='null';
+			for(i=0;i<window.opener.topologies.length;i++){
+				for(k=0;k<window.opener.topologies[i][1].length;k++){
+					if(window.opener.topologies[i][4][k]==myObj[2]){
+						window.opener.topologies[i][3][myObj[0]]=myName;
+						window.opener.topologies[i][5][myObj[0]]=myID;
+						myTopologyID=i;
+						myEntity=window.opener.topologies[i][6][myObj[0]];
+						break;
+						//window.close();
+					}
+				}
+				if(myTopologyID!='null'){break;}
+			}
+			if(myTopologyID!='null'){
+				for(k=0;k<window.opener.topologies[myTopologyID][1].length;k++){
+					if(window.opener.topologies[myTopologyID][6][k]==myEntity){
+						window.opener.topologies[myTopologyID][5][k]=myID;
+					}
+				}
+				window.close();
+			}
+		}
+	</script>
+</head>
+<table class="sortable" id="selectedStats" style="font-size : 10pt" border=1>
+	<tr>
+		<th>Name</th>
+		<th>Owner</th>
+		<th>Description</th>
+		<th>Domain</th>
+		<th>Location</th>
+		<th>Net</th>
+	</tr>
+	{% for myItem in eqptAry %}
+		<tr style="font-size : 10pt;" align="center" id="" onclick="selectEquip({{ myItem.eqptID }},'{{ myItem.eqptName }}','{{ myItem.myVars }}');">
+			<td align="center" style="font-size : 10pt">{{ myItem.eqptName }}</td>
+			<td align="center" style="font-size : 10pt">{{ myItem.owner }}</td>
+			<td align="center" style="font-size : 10pt">{{ myItem.equipDescription }}</td>
+			<td align="center" style="font-size : 10pt">{{ myItem.scopeDescription }}</td>
+			<td align="left" style="font-size : 10pt">
+				Site: {{ myItem.site }}<br>
+				Room: {{ myItem.room }}<br>
+				Row:  {{ myItem.row }}<br>
+				Rack: {{ myItem.rack }}<br>
+				Pos:  {{ myItem.pos }}<br>
+			</td>
+			<td align="left" style="font-size : 10pt">
+				IP: {{ myItem.IP }}<br>
+				NM: {{ myItem.NM }}<br>
+				GW: {{ myItem.GW }}<br>
+			</td>
+		<tr>
+	{% endfor %}
+</table>
+</html>

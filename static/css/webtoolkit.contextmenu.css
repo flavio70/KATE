@@ -1,0 +1,29 @@
+ul.SimpleContextMenu {
+	display: none;
+	position: absolute;
+	margin: 0px;
+	padding: 0px;
+	font-family: verdana;
+	font-size: 8px;
+	list-style-type: none;
+
+}
+
+	ul.SimpleContextMenu li {
+		border-bottom: 1px solid #000000;
+	}
+
+		ul.SimpleContextMenu li a {
+
+			width: 100px;
+
+			text-decoration: none;
+			color: #ff0000;
+			background: #eeeeee;
+		}
+
+		ul.SimpleContextMenu li a:hover {
+			text-decoration: none;
+			color: #ffffff;
+			background: #ff0000;
+		}

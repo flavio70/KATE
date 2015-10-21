@@ -1,0 +1,206 @@
+BODY {
+	FONT-SIZE: 10px; MARGIN: 0px; COLOR: #565c5e; LINE-HEIGHT: 1.35em; FONT-FAMILY: verdana, sans-serif; BACKGROUND-COLOR: #ffffff
+}
+
+A {
+	COLOR: #565c5e; TEXT-DECORATION: none
+}
+
+A:visited {
+	COLOR: #565c5e; TEXT-DECORATION: none
+}
+
+A:hover {
+	COLOR: #0000ff; TEXT-DECORATION: underline
+}
+
+BODY TD {
+	FONT-SIZE: 10px; LINE-HEIGHT: 1.35em; FONT-FAMILY: verdana, Arial, Helvetica, sans-serif; padding-left:0px; padding-right:0px; overflow:hidden;
+}
+
+.title {
+	FONT-SIZE: 11px; LINE-HEIGHT: 1.35em; FONT-FAMILY: verdana, Arial, Helvetica, sans-serif
+}
+
+.text {
+	FONT-SIZE: 10px; LINE-HEIGHT: 1.35em; FONT-FAMILY: verdana, Arial, Helvetica, sans-serif
+}
+
+
+
+BODY TH {
+	FONT-SIZE: 10px; LINE-HEIGHT: 1.35em; FONT-FAMILY: verdana, Arial, Helvetica, sans-serif
+}
+
+
+h2 {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 24px; PADDING-BOTTOM: 3px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 24px; PADDING-TOP: 0px; FONT-FAMILY: trebuchet MS
+}
+
+h3 {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 20px; PADDING-BOTTOM: 3px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 20px; PADDING-TOP: 0px; FONT-FAMILY: trebuchet MS
+}
+
+
+h4 {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 14px; PADDING-BOTTOM: 3px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 20px; PADDING-TOP: 0px; FONT-FAMILY: trebuchet MS
+}
+
+.red {
+	COLOR:#FF0000;
+}
+
+
+/**************** FORM ***************************/
+
+#selecttype {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 12px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 12px; PADDING-TOP: 0px; FONT-FAMILY: trebuchet MS; border:1px solid #999999; height:12px;
+}
+
+#count{
+	PADDING-RIGHT: 0px; PADDING-LEFT: 2px; FONT-SIZE: 14px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 2px; FONT-FAMILY: trebuchet MS; border:1px solid #999999; height:22px;
+}
+
+.input {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 14px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 1px; FONT-FAMILY: trebuchet MS; border:1px solid #999999;
+}
+
+.button_stat{
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; PADDING-TOP: 1px; border:1px solid #999999; background-image:url(torta.png); background-color:#FFFFFF; background-position:center; background-repeat:no-repeat; width:30px; height:25px;
+}
+
+.button_stat:hover {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; PADDING-TOP: 1px; border:1px solid #999999; background-image:url(torta.png); background-color:#666666; background-position:center; background-repeat:no-repeat; width:30px; height:25px;
+	cursor:pointer
+}
+
+.button_xls{
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; PADDING-TOP: 1px; background-image:url(../images/xls.png); background-color:#fff;background-position:center; background-repeat:no-repeat; width:28px; height:28px;
+}
+
+.button_xls:hover {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; PADDING-TOP: 1px; border:1px solid #999999; background-image:url(xls.gif); background-color:#ffffff; background-position:center; background-repeat:no-repeat; width:50px; height:28px;
+	cursor:pointer
+}
+
+
+.multi_input {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 14px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 1px; FONT-FAMILY: trebuchet MS; border:1px solid #999999; width:100px;
+}
+
+.select_sw {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 14px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 1px; FONT-FAMILY: trebuchet MS; border:1px solid #999999; width:100px;
+}
+
+.select_product {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 14px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 1px; FONT-FAMILY: trebuchet MS; border:1px solid #999999; width:100px;
+}
+
+.select{
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 14px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 1px; FONT-FAMILY: trebuchet MS; border:1px solid #999999; width:200px;
+}
+
+.button {
+	PADDING-RIGHT: 3px; PADDING-LEFT: 3px; FONT-SIZE: 10px; background-color:#554295; PADDING-BOTTOM: 4px; VERTICAL-ALIGN: middle; TEXT-TRANSFORM: uppercase; COLOR: #ffffff; LINE-HEIGHT: 11px; PADDING-TOP: 4px; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif; border:1px solid #999999;
+}
+
+.button :hover{
+	background-color:#999999; COLOR: #000000;
+}
+
+textarea {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 11px; PADDING-BOTTOM: 0px; MARGIN: 0px; COLOR: #666666; LINE-HEIGHT: 14px; PADDING-TOP: 1px; FONT-FAMILY: trebuchet MS; border:1px solid #999999;
+}
+
+
+
+.ac_input{
+	FONT-SIZE: 14px; 
+	COLOR: #666666; 
+	LINE-HEIGHT: 14px; 
+	FONT-FAMILY: trebuchet MS; 
+	border:1px solid #999999;
+	width:60px;
+	PADDING-TOP: 5px;
+}
+
+.ac_results {
+	padding: 0px;
+	border: 1px solid black;
+	background-color: white;
+	overflow: hidden;
+	z-index: 99999;
+	width:100px;
+}
+
+.ac_results ul {
+	width: 100%;
+	list-style-position: outside;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.ac_results li {
+	margin: 0px;
+	padding: 2px 5px;
+	cursor: default;
+	display: block;
+	/* 
+	if width will be 100% horizontal scrollbar will apear 
+	when scroll mode will be used
+	*/
+	/*width: 100%;*/
+	font: menu;
+	font-size: 12px;
+	/* 
+	it is very important, if line-height not setted or setted 
+	in relative units scroll will be broken in firefox
+	*/
+	line-height: 16px;
+	overflow: hidden;
+}
+
+.ac_loading {
+	background: white url('indicator.gif') right center no-repeat;
+}
+
+.ac_odd {
+	background-color: #eee;
+}
+
+.ac_over {
+	background-color: #0A246A;
+	color: white;
+}
+
+
+
+
+/**************** MENU ***************************/
+
+.topnav {
+	PADDING-RIGHT: 12px; PADDING-LEFT: 12px; FONT-SIZE: 10px; BACKGROUND-IMAGE: url(../images/icon_grad2.gif); PADDING-BOTTOM: 4px; VERTICAL-ALIGN: middle; TEXT-TRANSFORM: uppercase; COLOR: #ffffff; LINE-HEIGHT: 11px; PADDING-TOP: 4px; BACKGROUND-REPEAT: repeat-x; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+
+.topnavselect {
+	PADDING-RIGHT: 12px; PADDING-LEFT: 12px; FONT-SIZE: 10px; BACKGROUND-IMAGE: url(../images/icon_grad3.gif); PADDING-BOTTOM: 4px; VERTICAL-ALIGN: middle; TEXT-TRANSFORM: uppercase; COLOR: #ffffff; LINE-HEIGHT: 11px; PADDING-TOP: 4px; BACKGROUND-REPEAT: repeat-x; FONT-FAMILY: Verdana, Arial, Helvetica, sans-serif
+}
+
+.atopnav {
+	COLOR: #ffffff; WHITE-SPACE: nowrap; TEXT-DECORATION: none
+}
+.atopnav:visited {
+	COLOR: #ffffff; WHITE-SPACE: nowrap; TEXT-DECORATION: none
+}
+.atopnav:hover {
+	COLOR: #ffffff; WHITE-SPACE: nowrap; TEXT-DECORATION: underline
+}
+
+.topbg {
+	BACKGROUND: url(../images/icon_bg_grad2.gif) no-repeat left bottom
+}
+
+/**************** MENU FINE ***************************/
+
+

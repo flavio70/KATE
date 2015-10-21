@@ -1,0 +1,27 @@
+table.sortable {width:99.99%;border-collapse: collapse;table-layout:fixed;} 
+table.sortable td {text-align:center;word-wrap: break-word;  font-size: 7pt;border:1px solid #660099;}
+table.sortable th {background-color:#660099;}
+table.sortable a.sortheader { text-decoration:none; font-family:Verdana, Arial, Helvetica; color:#fff; font-weight: bold;}
+table.sortable a.sortheader:hover {color:black;}
+table.sortable span.sortarrow {color: #000;text-decoration: none;font-weight: bold;}
+table.sortable span.sortarrow img {border:0px none;vertical-align: middle;}
+.unsortable {font-family:verdana,sans-serif; color:#ffffff; font-weight: bold;} 
+
+
+table.sortable-new {width:100%;border-collapse: collapse;table-layout:fixed;} 
+table.sortable-new td {text-align:center;word-wrap: break-word;  font-size: 12px;}
+table.sortable-new th {background-color:#660099;color:#FFFFFF;}
+table.sortable-new a.sortheader { text-decoration:none; font-family:Verdana, Arial, Helvetica; color:#fff; font-weight: bold;}
+table.sortable-new a.sortheader:hover {color:white;}
+table.sortable-new span.sortarrow {color: #000;text-decoration: none;font-weight: bold;}
+table.sortable-new span.sortarrow img {border:0px none;vertical-align: middle;}
+.unsortable-new {font-family:verdana,sans-serif; color:#ffffff; font-weight: bold;} 
+ 
+
+.stylishButton{
+background-color:#660099;
+font-family:Verdana, Arial, Helvetica;
+font-weight: bold;
+font-size : 8pt;
+color:#fff;
+}

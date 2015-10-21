@@ -1,0 +1,60 @@
+{% load static %}
+
+        <title>TAWS- Test Automation Web Site</title>
+
+	<link rel="stylesheet" type="text/css" href="{% static "css/_styles.css" %}" />
+	<link type="text/css" href="{% static "css/tooltip.css" %}" />
+	<link type="text/css" href="{% static "css/style.css" %}" />
+	<link type="text/css" rel="stylesheet" href="{% static "css/webtoolkit.contextmenu.css" %}" />
+	<LINK href="{% static "css/common.css" %}" type=text/css rel=styleSheet>
+	<link rel="stylesheet" type="text/css" href="{% static "css/gritter.css" %}" />
+	<link type="text/css" href="{% static "css/menu.css" %}" rel="stylesheet" />
+	<link rel="stylesheet" href="{% static "css/blue/style.css" %}" type="text/css" id="" media="print, projection, screen" />
+	<link rel="stylesheet" type="text/css" href="{% static "css/ddsmoothmenu.css" %}" />
+	<link rel="stylesheet" type="text/css" href="{% static "css/sortable.css" %}" />
+
+	<!--<script type="text/javascript" src="{% static "js/tooltip.js" %}"></script>-->
+	<script type="text/javascript" src="{% static "js/PopBox.js" %}"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+	<script type="text/javascript" src="{% static "js/webtoolkit.contextmenu.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/sorttable.js" %}"> </script>
+	<script type="text/javascript" src="{% static "js/jquery.js" %}"></script>
+	<!--<script type="text/javascript" src="{% static "js/menu.js" %}"></script>-->
+	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+	<script type="text/javascript">google.load('jquery', '1.5');</script>
+	<script type="text/javascript" src="{% static "js/jquery.gritter.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/jquery.gvChart-1.0.1.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/jquery.tablesorter.js" %}"></script> 
+	<script type="text/javascript" src="{% static "js/jquery.autocomplete.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/jquery.select-autocomplete.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/ddsmoothmenu.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/TAWS.js" %}"></script>
+
+	<script type="text/javascript">
+
+		ddsmoothmenu.init({
+			mainmenuid: "smoothmenu1", //menu DIV id
+			orientation: 'h', //Horizontal or vertical menu: Set to "h" or "v"
+			classname: 'ddsmoothmenu', //class added to menu's outer DIV
+			//customtheme: ["#1c5a80", "#18374a"],
+			contentsource: "markup" //"markup" or ["container_id", "path_to_menu_file"]
+		})
+
+	</script>
+	<script type="text/javascript">
+		function fillSelectCreator2(valueStr,myselect,selection){
+				if(valueStr!=''){myselect.disabled=false;}
+					else{myselect.disabled=true;}
+				myselect.length=1;
+				tempAry1=valueStr.split('#');
+				for(i=0;i<tempAry1.length;i++){
+					tempAry2=tempAry1[i].split('!');
+					var addTest = document.createElement('option');
+					addTest.text = tempAry2[1];
+					addTest.value = tempAry2[0].replace(/#/g,'@').replace(/!/g,'$');
+					myselect.add(addTest);
+					if(tempAry2[1]==selection){myselect.selectedIndex=i+1;}
+				}
+			}
+	</script>
+

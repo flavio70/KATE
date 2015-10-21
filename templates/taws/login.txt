@@ -1,0 +1,42 @@
+{% load static %}
+	<div style="position:absolute; width:180px; height:30px; left:50%; margin-left:-512px;">
+		<IMG title="" src="{% static "images/logoAlcatel.jpg" %}" width="180px" border="0" onclick="';"> 
+	</div>
+	<div style="position:absolute; width:500px; margin-top:20px; height:30px; right:50%; margin-right:-512px;z-index:2;">
+		<TABLE width="500px" border="0">
+			<TBODY>
+				<TR>
+					<TD align="right" valign="middle">
+						<TABLE>
+							<TBODY>
+								<TR>
+									{% if login %}
+										<TD vAlign="middle" noWrap align="right">
+											Welcome <strong>{{ login }}</strong> 
+										</TD>
+									{% else %}
+											<TD vAlign="middle" noWrap align="right">
+												<A href="/taws/login/" target="_top">Login</A>
+											</TD>
+									{% endif %}
+
+										<TD noWrap align="right">&nbsp;&nbsp;</TD>
+									{% if login %}
+											<TD noWrap align="right">&nbsp; | &nbsp;</TD>
+											<TD vAlign="middle" noWrap align="right"><A href="/taws/logout/" target="_top">Logout</A></TD>
+											<TD noWrap align="right">&nbsp;&nbsp;</TD>
+									{% endif %}
+										<TD noWrap align="right">&nbsp; | &nbsp;</TD>
+										<TD vAlign="middle" noWrap align="right"><A href="http://sm-optics.com/" target="_top">sm-optics.com</A></TD>
+										<TD noWrap align="right">&nbsp;&nbsp;</TD>
+										<TD noWrap align="right">&nbsp; | &nbsp;</TD>
+										<TD vAlign="middle" noWrap><a href="#" id="add-without-image">Help &amp; Contacts</A></TD>
+								</TR>
+							</TBODY>
+						</TABLE>
+					</TD>
+				</TR>
+			</TBODY>
+		</TABLE>
+	</div>
+
