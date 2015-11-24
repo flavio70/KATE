@@ -1,0 +1,82 @@
+{% extends "taws/development_template.html" %}
+{% block body %}
+{% load static %}
+<script>
+	function alignReportTable(){
+		var sxTable=top.principale.document.getElementById('testTable');
+		var dxTable=top.principale.document.getElementById('reportTable');
+		numRows=sxTable.rows.length;
+		for(i=1;i<numRows;i++){
+			if(parseInt(sxTable.rows[i].clientHeight)>parseInt(dxTable.rows[i].clientHeight)){
+				dxTable.rows[i].height=parseInt(sxTable.rows[i].clientHeight);
+			}else{
+				sxTable.rows[i].height=parseInt(dxTable.rows[i].clientHeight);
+			}
+		}
+	}
+	
+	function sendTawsDB(){
+		var sxTable=top.principale.document.getElementById('testTable');
+		document.getElementById('notes').value='';
+		for(i=1;i<sxTable.rows.length;i++){
+			document.getElementById('notes').value+=sxTable.rows[i].cells[3].firstChild.value+'$';
+		}
+		//alert(document.getElementById('notes').value);
+		sendTAWSDBReport.submit()
+	}
+</script>
+<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
+	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Report Collection</h2>
+</div>
+<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:99;height:700px;margin-top:60px;">
+<h2><center><i>Result Collector</i></center></h2>
+<form name="sendTAWSDBReport" action="tawsreport.asp?azione=addResult" method="post" target="_self">
+	<input type="hidden" name="jobName" value="{{ job_name }}">
+	<input type="hidden" name="buildId" value="{{ instance }}">
+	<input type="hidden" name="azione" value="">
+<table align="center" id="maxiTable" width="95%" height="90%" cellspacing="0" style="border-collapse:collapse;table-layout:fixed;" border="1">
+	<thead>
+		<tr style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;height:29px;' align="center">
+			<th style="width:15px">N.</th>
+			<th style="width:600px">Test</th>
+			<th colspan="2">TPS</th>
+			{% if azione == 'process'%}
+				<th>Notes</th>
+			{% endif %}
+		</tr>
+	</thead>
+	<tbody style="overflow-y: auto;">
+		{% for build in buildMatrix %}
+			<tr bgcolor='{{ build.bgcolor }}'>
+				<td style='width:25px;text-align:center;color:{{ build.fontcolor }};border-bottom:1px;' rowspan="{{ build.numTps }}">{{ build.counter }}</td>
+				<td style="text-align:left;margin-left:20px;color:{{ build.fontcolor }};border-bottom:1px;" rowspan="{{ build.numTps }}">{{ build.testName }}</td>
+				{% for tps in build.tpsList %}
+					<td bgcolor='{{ tps.tpsBgcolor }}' style='text-align:center;color:{{ tps.tpsFontcolor }};width:70px;'>{{ tps.tpsArea }}</td>
+					<td bgcolor='{{ tps.tpsBgcolor }}' style='text-align:center;color:{{ tps.tpsFontcolor }};width:60px;'>{{ tps.tpsName }}</td>
+					{% if azione == 'process'%}
+						<td style='border-bottom:1px solid #660099;' bgcolor='{{ tps.tpsBgcolor }}'>
+							<input type='textarea' style='font-size:7pt;' value=''>
+						</td>
+					{% endif %}
+					{% if not forloop.last %}
+						</tr>
+						<tr>
+					{% endif %}
+				{% endfor %}
+			</tr>
+		{% endfor %}
+		<tr>
+			<td bgcolor="#D6E0F4" style="height:30px" colspan="5" align="center">
+				<input type="button" id="addResult" class="stylishButton" style="font-size : 7pt;" value="ADD RESULTS" disabled onclick="sendTawsDB();">
+				<input type="hidden" name="DBNames" value="">
+				<input type="hidden" name="DBStatus" value="">
+				<input type="hidden" name="notes" value="">
+				<input type="hidden" name="TPSValues" value="">
+			</td>	
+		</tr>
+	</tbody>
+</table>
+</form>
+{% endblock %}
+
+

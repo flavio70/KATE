@@ -2,13 +2,86 @@
 {% block body %}
 {% load static %}
 
-<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
-	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Job Management</h2>
+<script>
+$(document).ready(function() {
+	testTable = $('#runTable').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-5"><"col-sm-2"><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+			{
+				"data": "job_name", 
+				"className": "dt-center" 
+			},
+			{ "data": "job_description" },
+			{
+				"data": "job_running", 
+				"className": "dt-center"
+			},
+			{ "data": "job_enabled" },
+			{
+				"data": "job_actiong", 
+				"className": "dt-center"
+			}
+			]
+	});//end DataTable
+});// end ready function
+</script>
+
+
+
+<div id="title" style="position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;z-index:11;">
+	<h2 style="color:white;font-size: 19px;text-align:right;margin:0px 0px 0px 0px;"><span class="label label-primary">Job Management</span></h2>
 </div>
-<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
-	<h3>/Jobs/<h3>
+
+<div id="JenkinsJobs" style="width:250px;height:70px;position:fixed;left:3%;margin-top:18px;background-color:white;z-index:10;" valign="top">
+	<table style="width:100%;height:100%;"><tr><td><h1><span class="label label-default">Jenkins Jobs</span></h1></td></tr></table>
 </div>
-<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
+
+<div style="width:1024px;position:fixed;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:40px;">
+
+
+<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="runTable">
+	<thead>
+		<tr>
+			<th>Job Name</td>
+			<th>Job Description</td>
+			<th>Running</td>
+			<th>Enabled</td>
+			<th>Action</td>
+		</tr>
+	</thead>
+	<tfoot>
+	</tfoot>
+	<tbody>
+			</tr>
+		{% for job in jobMatrix %}
+		    <option value='{{ myItem.productConcat }}'>{{ myItem.product }}</option>
+			<tr bgcolor="{% if job.status == True %}yellow{% endif %}" id="{{ job.name }}">
+				<td align=center>{{ job.name }}</td>
+				<td>{{ job.description }}</td>
+				<td align=center>{{ job.status }}</td>
+				<td align=center>{{ job.enabled }}</td>
+				<td align=center>
+					<input type="button" title='START' onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+this.parentElement.parentElement.id.replace(/&/g,'%26'),'runCreator','height=470,width=900,resizable=no');" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">
+					<input type="button" title='STOP' onclick="jobAction.value='stopJob';jobName.value=this.parentElement.parentElement.id.replace(/&/g,'%26');submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/shutdown.jpg' %})">
+					<input type="button" title='DELETE' onclick="jobAction.value='deleteJob';jobName.value=this.parentElement.parentElement.id.replace(/&/g,'%26');submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})">
+					<input type="button" title='INFO'  onclick="runTest.action='/taws/viewJobDetails/?jobName='+this.parentElement.parentElement.id.replace(/&/g,'%26');submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/info.png' %})">
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+
+
 
 <form name="runTest" action="/taws/runJenkins/" method="post" target="_self">{% csrf_token %}
 	<input type="hidden" name="jobName" value="">
@@ -29,7 +102,7 @@
 				<td align=center>{{ job.status }}</td>
 				<td align=center>{{ job.enabled }}</td>
 				<td align=center>
-					<input type="button" title='START' onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+this.parentElement.parentElement.id.replace(/&/g,'%26'),'runCreator','height=470,width=500,resizable=no');" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">
+					<input type="button" title='START' onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+this.parentElement.parentElement.id.replace(/&/g,'%26'),'runCreator','height=470,width=900,resizable=no');" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">
 					<input type="button" title='STOP' onclick="jobAction.value='stopJob';jobName.value=this.parentElement.parentElement.id.replace(/&/g,'%26');submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/shutdown.jpg' %})">
 					<input type="button" title='DELETE' onclick="jobAction.value='deleteJob';jobName.value=this.parentElement.parentElement.id.replace(/&/g,'%26');submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})">
 					<input type="button" title='INFO'  onclick="runTest.action='/taws/viewJobDetails/?jobName='+this.parentElement.parentElement.id.replace(/&/g,'%26');submit();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/info.png' %})">

@@ -1,0 +1,304 @@
+{% extends "taws/main_template.html" %}
+{% block body %}
+{% load static %}
+<script>
+var benchTable;
+function Free(bench) {
+var ok = window.confirm("Conform request to free Bench?");
+if (ok) {
+	 		   location.href="free_bench.asp?id="+bench
+        }
+}
+function show(view){
+	if(view=='suite'){show1=true;show2=false;show3=false;}
+	if(view=='details'){show1=false;show2=true;show3=false;}
+	if(view=='connection'){show1=false;show2=false;show3=true;}
+	benchTable.column(2).visible(show1);
+	benchTable.column(3).visible(show1);
+	benchTable.column(4).visible(show1);
+	benchTable.column(5).visible(show1);
+	benchTable.column(6).visible(show1);
+	benchTable.column(7).visible(show1);
+	benchTable.column(8).visible(show2);
+	benchTable.column(9).visible(show2);
+	benchTable.column(10).visible(show2);
+	benchTable.column(11).visible(show2);
+	benchTable.column(12).visible(show2);
+	benchTable.column(13).visible(show2);
+	benchTable.column(14).visible(show3);
+	benchTable.column(15).visible(show3);
+	benchTable.column(16).visible(show3);
+	benchTable.column(17).visible(show3);
+}
+
+function editBench(){
+	if(benchTable.row('.info').length>0){
+		window.location.href='/taws/add_bench/?bench='+benchTable.row('.info').data().id;
+	}else{
+		alert('You must select a bench!');
+	}
+}
+
+function createBench(){
+	window.location.href='/taws/add_bench/?bench=';
+}
+
+function deleteBench(){
+	if(benchTable.row('.info').length>0){
+		bench.deleteBench.value=benchTable.row('.info').data().id;
+		bench.submit();
+	}else{
+		alert('You must select a bench!');
+	}
+}
+
+$(document).ready(function() {
+
+	document.getElementById('mainTitle').innerHTML='Bench Management';
+
+	benchTable = $('#suiteTable').DataTable({
+		dom:'<"row"<"col-sm-3"l><"col-sm-3"><"col-sm-3"><"col-sm-3"f>>\
+		<"row"<"col-sm-12"tr>>\
+		<"row"<"col-sm-5"i><"col-sm-7"p>>\
+		<"row"<"col-sm-12"<>><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+		{
+			"data":           "id",
+			"visible": false
+		},
+		{
+			"data": "bench", 
+			"className": "dt-center" 
+		},
+		{
+			"data": "status", 
+			"className": "dt-center" 
+		},
+		{
+			"data": "startingDate", 
+			"className": "dt-center"
+		},
+		{
+			"data": "tester", 
+			"className": "dt-center"
+		},
+		{
+			"data": "SWP",
+			 "className": "dt-center"
+		},
+		{
+			"data": "job",
+			"className": "dt-center"
+		 },
+		{
+			"data": "build",
+			"className": "dt-center"
+		 },
+		{
+			"data": "location",
+			"className": "dt-center",
+			"visible": false
+		 },
+		{
+			"data": "family",
+			"className": "dt-center",
+			"visible": false
+		 },
+		{
+			"data": "type",
+			"className": "dt-center",
+			"visible": false
+		 },
+		{ 
+			"data": "scope",
+			"className": "dt-center",
+			"visible": false
+		},
+		{ 
+			"data": "owner",
+			"className": "dt-center",
+			"visible": false
+		},
+		{ 
+			"data": "topology",
+			"className": "dt-center",
+			"visible": false
+		},
+		{ 
+			"data": "ip",
+			"className": "dt-center",
+			"visible": false
+		},
+		{ 
+			"data": "nm",
+			"className": "dt-center",
+			"visible": false
+		},
+		{ 
+			"data": "gw",
+			"className": "dt-center",
+			"visible": false
+		},
+		{ 
+			"data": "serials",
+			"className": "dt-center",
+			"visible": false
+		}]
+	});
+	 
+	
+	new $.fn.dataTable.Buttons( benchTable, {'buttons': [
+							{text:'Views:'},
+							{
+								text:'<i class="fa fa-archive fa-lg"></i>',
+								titleAttr: 'Show Bench Jenkins Jobs',
+								action:function(){show('suite');}
+							},
+							{
+								text:'<i class="fa fa-info fa-lg"></i>',
+								titleAttr: 'Show Bench Details',
+								action:function(){show('details');}
+							},
+							{
+								text:'<i class="fa fa-random fa-lg"></i>',
+								titleAttr: 'Show Connections info',
+								action:function(){show('connection');}
+							},
+
+						]} );
+						
+	new $.fn.dataTable.Buttons( benchTable, {'buttons': [
+							{text:'Actions:'},
+							{
+								text:'<i class="fa fa-file-o fa-lg"></i>',
+								titleAttr: 'Create New bench',
+								action:function(){createBench();}
+							},
+							{
+								text:'<i class="fa fa-pencil-square-o fa-lg"></i>',
+								titleAttr: 'Edit Selected Bench info',
+								action:function(){editBench();}
+							},
+							{	
+								text:'<i class="fa fa-eraser fa-lg"></i>',
+								titleAttr: 'Delete Selected Bench',
+								action:function(){deleteBench();}
+							},
+						]} );					
+						
+	benchTable.buttons(1,null).container().appendTo($('.col-sm-3:eq(1)',benchTable.table().container() ));
+	benchTable.buttons(2,null).container().appendTo($('.col-sm-3:eq(2)',benchTable.table().container() ));
+	//benchTable.buttons().container().appendTo($('.col-sm-5:eq(0)',benchTable.table().container() ));
+	benchTable.buttons(1,0).disable()
+	benchTable.buttons(2,0).disable()
+
+
+	
+	$("div.tail").html('<div align="center">');
+	/*
+	 $('#suiteTable tbody').on( 'click', 'tr', function () {
+		if ( $(this).hasClass('selected') ) {
+		    $(this).removeClass('selected');
+		}
+		else {
+		    benchTable.$('tr.selected').removeClass('selected');
+		    $(this).addClass('selected');
+		}
+	    } );*/
+	$('#suiteTable tbody').on('click','tr',function(e){
+		$('#suiteTable').find('tr.info').removeClass('info');
+		$(this).addClass('info');
+})
+} );
+
+//$.fn.dataTable.ext.buttons.alert = { className: 'buttons-alert', action: function ( e, dt, node, config ) { alert( this.text() ); } }; $(document).ready(function() { $('#example').DataTable( { dom: 'Bfrtip', buttons: [ { extend: 'alert', text: 'My button 1' }, { extend: 'alert', text: 'My button 2' }, { extend: 'alert', text: 'My button 3' } ] } ); } );
+
+
+</script>
+
+<form name="bench" method="post" action="/taws/add_bench/?action=delete">{% csrf_token %}
+	<input type="hidden" name="deleteBench" value="" />
+</form>
+
+
+<div style="position:fixed; margin-top:10px; width:94%; z-index:10;" id="suite" >
+	<table class="table table-striped table-hover table-condensed" cellspacing="0" id="suiteTable" >
+	<thead>       
+			<tr>             
+				<td></td>
+				<th>Bench</th>
+				<th>Status</th>
+				<th>StartingDate</th>
+				<th>Tester</th>
+				<th>SWP</th>
+				<th>Job</th>
+				<th>Build</th>
+				<th>Location</th>
+				<th>Family</th>
+				<th>Type</th>
+				<th>Scope</th>
+				<th>Owner</th>
+				<th>Topology</th>
+				<th>IP ADDRESS</th>
+				<th>NET MASK</th>
+				<th>GW ADDRESS</th>
+				<th align="center">Serials</th>
+			</tr>     
+	</thead>     
+	<tfoot>       
+			<tr>             
+				<td></td>
+				<th>State</th>
+				<th>Bench</th>
+				<th>StartingDate</th>
+				<th>Tester</th>
+				<th>SWP</th>
+				<th>Job</th>
+				<th>Build</th>
+				<th>Location</th>
+				<th>Family</th>
+				<th>Type</th>
+				<th>Scope</th>
+				<th>Owner</th>
+				<th>Topology</th>
+				<th>IP ADDRESS</th>
+				<th>NET MASK</th>
+				<th>GW ADDRESS</th>
+				<th align="center">Serials</th>
+			</tr>     
+	</tfoot>     
+	<tbody>
+			{% for myBench in benches %}
+				<tr>
+					<td>{{ myBench.id }}</td>
+					<td>{{ myBench.name }}</td>
+					<td>{{ myBench.status }}</td>
+					<td>{{ myBench.starting_date }}</td>
+					<td>{{ myBench.author }}</td>
+					<td>{{ myBench.SWP }}</td>
+					<td>{{ myBench.job_name }}</td>
+					<td>{{ myBench.job_iteration }}</td>
+					<td>{{ myBench.site }} {{ myBench.room }}<br>Row {{ myBench.row }} Rack{{ myBench.rack }}/{{ myBench.pos }}</td>
+					<td>{{ myBench.family }}</td>
+					<td>{{ myBench.type }}</td>
+					<td>{{ myBench.scope }}</td>
+					<td>{{ myBench.reference }}</td>
+					<td>N.A.</td>
+					<td>{{ myBench.ip }}</td>
+					<td>{{ myBench.nm }}</td>
+					<td>{{ myBench.gw }}</td>
+					<td>{{ myBench.serials }}</td>
+				</tr>
+			{% endfor %}
+	</tbody> 
+	</table>
+
+</div>
+{% endblock %}
+

@@ -125,7 +125,7 @@ def suite_creator(request):
 			'wdmTopoAry':wdmTopoAry,
 			'labAry':labAry,
 			'settings':settings.DATABASES['default']['USER']}
-		return render_to_response('taws/suite_creator.html',context_dict,context)
+		return render_to_response('taws/suite_creator2.html',context_dict,context)
 
 def test_development(request):
 	context = RequestContext(request)
@@ -473,7 +473,13 @@ def tuningEngine(request):
 		out_file.write(test_plan)
 		out_file.close()
 		os.chmod(suiteFolder+suiteName+'/workspace/suite/suite.txt',511)
-		print('Test plan created..')
+		tempStr+='DONE!\n'
+	tempStr+='\nCreating Node List...'
+	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset=48 and elemName like '%#%'")
+	nodeList=myRecordSet.fetchone()['nodeList']
+	out_file = open(suiteFolder+suiteName+'/workspace/suite/nodeList.txt',"w")
+	out_file.write(nodeList)
+	out_file.close()
 	tempStr+='DONE!\n'
 
 	tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
@@ -718,43 +724,484 @@ def viewBuildDetails(request):
 		'buildMatrix':buildMatrix}
 	return render(request,'taws/viewBuildDetails.html',context_dict)
 
+def collectReports(request):
+
+	import MySQLdb
+	import xml.etree.ElementTree as ET
+	from os.path import basename
+	from datetime import timedelta, datetime
+	from jenkinsapi.jenkins import Jenkins
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':fromPage}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	job_name=request.POST.get('jobName')
+	buildId=request.POST.get('buildId')
+	azione=request.POST.get('azione')
+
+#	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
+#	job_instance = server.get_job(job_name)
+#	build_instance=job_instance.get_build(int(buildId))
+
+#	if azione == "addResult1":
+#		try:
+#			note=req[str(testCount)].value
+#		except:
+#			note='NA'
+#		myRecordSet.execute("INSERT INTO resultReporter (SELECT null as resultID,"+IDAry[testIndex]+" as ID,'"+result+"' as result,null as SWRelease,'"+Session("login")+"' as tester,'"+note+"' as notes,'"+endingDate+"' as executionDate,"+req['s1'].value+" as SWPID,'' as failedReport)")
+#		dbConnection.commit()
+#		myRecordSet.execute("UPDATE testlist set teststatus='A' where ID="+IDAry[testIndex])
+#		dbConnection.commit()
+#		myRecordSet.execute("SELECT MAX(resultID) as last from resultReporter")
+#		myRecord=myRecordSet.fetchone()
+#		lastID=myRecord['last']
+#		for tpsIndex in range(1,len(tempTps)-1):
+#			if tempTps[tpsIndex].rfind(','):
+#				tpsreport=tempTps[tpsIndex].split(',')
+#				myRecordSet.execute("INSERT INTO tpsreport (tps,area,result,resultID) VALUES('"+tpsreport[1]+"','"+tpsreport[0].strip()+"','"+tpsreport[2]+"','"+str(lastID)+"')")
+#				dbConnection.commit()
+#		myRecordSet.execute("UPDATE atmruntime set tawsdb='OK' where runID="+str(runID))
+#		dbConnection.commit()
+
+#if suiteName != '':
+# 	myRecordSet.execute("select id,concat(product,' ',SWRelease,' SWPs ','<select onchange=\"if((\\\'"+azione+"\\\'==\\\'process\\\')&&(this.value!=\\'\\')){addResult.disabled=false;}else{addResult.disabled=true;}\" name=\"s1\"><option>Select SWP</option>',convert(group_concat(distinct concat('<option value=\"',swpid,'\">',swp,'</option>') order by product,SWRelease,convert(replace(SWP,'.',''),unsigned) desc separator '') using utf8),'</select>') as myresult from compatibility join testarea using(areaID) join availableSWP using(product,SWRelease) where ("+IDStr+") and ordine<>0 group by concat(product,SWRelease)")
+#	myRecord=myRecordSet.fetchone()
+#	Response.Write(myRecord['myresult'])
+
+#	if 'parameters' in build_instance.get_actions():
+#		for myTuple in build_instance.get_actions()['parameters']:
+#			if myTuple['name']=='TB_NODE_IP':
+#				target=myTuple['value']
+#				break
+#	else:
+#		target='NA'
+	#print build_instance.get_resultset().keys()
+	tree = ET.parse(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml')
+	root = tree.getroot()
+
+	buildMatrix=[]
+	counter=1
+	#for suites in root[0]:
+	for suites in root.findall(".suites/suite"):
+		if suites.find('name').text.rfind('_Main')>=0:
+			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._Main','')
+			for stderr in suites.iter('stderr'):
+				testStatus='Failed'
+				bgcolor='red'
+				fontcolor="white"
+				break
+			else:
+				testStatus='Passed'
+				bgcolor='lightgreen'
+				fontcolor="black"
+			tpsList=[]
+			for tps in root.findall(".suites/suite"):
+				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_Main')<0:
+					tpsTemp=tps.find('name').text.replace('(','').replace('.XML)','').replace(testName+'.','').split('_')
+					tpsName=tpsTemp[1].replace('-','.')
+					tpsArea=tpsTemp[0].replace('-','.')
+					tpsTestStatus='Passed'
+					tpsBgcolor='lightgreen'
+					tpsFontcolor="black"
+					for stderr in tps.iter('stderr'):
+						tpsTestStatus='Failed'
+						tpsBgcolor='red'
+						tpsFontcolor="white"
+						break
+					tpsList.append({'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+			buildMatrix.append({'bgcolor':bgcolor,
+				'fontcolor':fontcolor,
+				'counter':counter,
+				'testName':testName,
+				'testStatus':testStatus,
+				'testDuration':suites.find('duration').text,
+				'tpsList':tpsList,
+				'numTps':len(tpsList)})
+			counter+=1
+
+	context_dict={'login':request.session['login'],
+		'job_name':job_name,
+		'azione':azione,
+		'instance': str(buildId),
+		'buildMatrix':buildMatrix}
+	return render(request,'taws/collectReports.html',context_dict)
+
+
 def createRunJenkins(request):
 
-  import datetime
-  from jenkinsapi.jenkins import Jenkins
+	import datetime
+	from jenkinsapi.jenkins import Jenkins
+	import mysql.connector
 
-  context = RequestContext(request)
-  if 'login' not in request.session:
-    fromPage = request.META.get('HTTP_REFERER')
-    context_dict={'fromPage':fromPage}
-    return render_to_response('taws/login.html',context_dict,context)
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':fromPage}
+		return render_to_response('taws/login.html',context_dict,context)
 
-  job_name=request.GET.get('jobName')
-  action=request.GET.get('azione')
-  #myRecordSet.execute("SELECT IF(status='IDLE',Name,CONCAT(Name,'(BUSY)')) as Label,name,adj,status from benches order by Num asc")
-  #nodeArray=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"]} for row in myRecordSet]
-  nodeArray=''
-  
-  myTimeMin=datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
-  tomorrow=datetime.datetime.now()+datetime.timedelta(7)
-  myTimeMax=tomorrow.strftime('%d-%m-%Y %H:%M:%S')
+	job_name=request.GET.get('jobName')
+	action=request.GET.get('azione')
+	target=request.POST.get('target','')
+	swRelMatrix=[]
+	runID=''
 
-  if action == 'runTest':
-    server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
-    if (server.has_job(job_name)):
-      job_instance = server.get_job(job_name)
-      job_instance.invoke(securitytoken='tl-token')
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
-  context_dict={'login':request.session['login'],
+	in_file = open(suiteFolder+job_name+'/workspace/suite/nodeList.txt',"r")
+	tempFile=in_file.read()
+	in_file.close()
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	#myRecordSet.execute("select *,group_concat(piddu) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,concat(sw_rel_name,'#',group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%')) as piddu,T_EQUIPMENT.name as eqptName,owner,T_EQUIPMENT.description,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
+	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
+
+	for row in myRecordSet:
+		if str(row['swRelList'])!='None':
+			tempStr1=str(row['swRelList']).split(',')
+			tempStr2=str(row['packList']).split(',')
+			packageList=[]
+			for myIndex in range(0,len(tempStr1)):
+				packageList.append({'swRelList':tempStr1[myIndex],'packList':tempStr2[myIndex]})
+		else:
+			packageList='None'
+		swRelMatrix.append({'prodName':row['prodName'],
+			'packageList':packageList,
+			'eqptName':row['eqptName'],
+			'owner':row['owner'],
+			'id_equipmet':row['id_equipment']})
+
+	if action == 'runTest':
+		tempTarget=target.split('$')
+		myRecordSet.execute("SELECT if(MAX(id_run) is null,0,MAX(id_run)) as maxId from T_RUNTIME")
+		runID=myRecordSet.fetchone()['maxId']+1
+		myRecordSet.execute("INSERT INTO T_RUNTIME (id_run,job_name,job_iteration,owner,status) VALUES("+str(runID)+",'"+job_name+"',1,'"+request.session['login']+"','READY')")
+		dbConnection.commit()
+		for myItem in tempTarget:
+			tempValue=myItem.split('#')
+			myRecordSet.execute("INSERT INTO T_RTM_BODY (T_RUNTIME_id_run,T_EQUIPMENT_id_equipment,T_PACKAGES_id_pack,forceLoad) VALUES("+str(runID)+","+tempValue[0]+","+tempValue[1]+","+tempValue[2]+")")
+			dbConnection.commit()
+
+		server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
+		if (server.has_job(job_name)):
+			job_instance = server.get_job(job_name)
+			job_instance.invoke(securitytoken='tl-token',build_params={'KateRunId':runID})
+
+	context_dict={'login':request.session['login'],
 		'job_name':job_name,
 		'action': action,
-		'myTimeMin':myTimeMin,
-		'tomorrow':tomorrow,
-		'myTimeMax':myTimeMax,
-		'nodeArray':nodeArray}
+		'swRelMatrix':swRelMatrix,
+		'target':target,
+		'runID':runID}
 
-  return render(request,'taws/createRunJenkins.html',context_dict)
+	return render(request,'taws/createRunJenkins.html',context_dict)
 
+def add_bench(request):
+
+	import mysql.connector
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':fromPage}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	bench=request.GET.get('bench','')
+	action=request.GET.get('action','')
+
+	POSTname=request.POST.get('name','')
+
+	POSTip1=request.POST.get('ip1','')
+	POSTip2=request.POST.get('ip2','')
+	POSTip3=request.POST.get('ip3','')
+	POSTip4=request.POST.get('ip4','')
+
+	POSTnm1=request.POST.get('nm1','')
+	POSTnm2=request.POST.get('nm2','')
+	POSTnm3=request.POST.get('nm3','')
+	POSTnm4=request.POST.get('nm4','')
+
+	POSTgw1=request.POST.get('gw1','')
+	POSTgw2=request.POST.get('gw2','')
+	POSTgw3=request.POST.get('gw3','')
+	POSTgw4=request.POST.get('gw4','')
+	
+	POSTreference=request.POST.get('reference','')
+	POSTsite=request.POST.get('site','')
+	POSTroom=request.POST.get('room','')
+	POSTrow=request.POST.get('row','')
+	POSTrack=request.POST.get('rack','')
+	POSTpos=request.POST.get('pos','')
+	POSTproduct=request.POST.get('product','')
+	POSTscope=request.POST.get('scope','')
+	POSTnote=request.POST.get('note','')
+	POSTdescription=request.POST.get('description','')
+
+	if action == 'create': bench=''
+
+	debugInterface=request.POST.get('debugInterface','')
+
+	name=''
+	ip=''
+	nm=''
+	gw=''
+	reference=''
+	site=''
+	room=''
+	product=''
+	scope=''
+	row=''
+	rack=''
+	pos=''
+	serials=[]
+	createReport=''
+	rowID=''
+	note=''
+	description=''
+
+	if action == 'create' or action == 'update':
+		myRecordSet.execute("SELECT count(*) as myCount from T_EQUIPMENT WHERE name='"+POSTname+"' and id_equipment<>'"+bench+"'")
+		#createReport+="SELECT count(*) as myCount from T_EQUIPMENT WHERE name='"+POSTname+"' and id_equipment<>'"+bench+"'"
+		row=myRecordSet.fetchone()
+		if row['myCount'] > 0:createReport+='Bench Name '+POSTname+' already present\\n'
+		myRecordSet.execute("SELECT count(*) as myCount from T_NET WHERE IP='"+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+"' and inUse=1 and T_EQUIPMENT_id_equipment<>'"+bench+"'")
+		#createReport+="SELECT count(*) as myCount from T_NET WHERE IP='"+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+"' and inUse=1 and T_EQUIPMENT_id_equipment<>'"+bench+"'"
+		row=myRecordSet.fetchone()
+		if row['myCount'] > 0:createReport+='IP ADDRESS '+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+' already in use\\n'
+		if debugInterface != '':
+			debugInterface=debugInterface.split('$')
+			for myITF in debugInterface:
+				tempFields=myITF.split('#')
+				myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET_id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_SERIAL.T_EQUIPMENT_id_equipment<>"+bench)
+				#createReport+="SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET.id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_NET.T_EQUIPMENT_id_equipment<>'"+bench+"'"
+				row=myRecordSet.fetchone()
+				if row['myCount'] > 0:createReport+='SERIAL IP ADDRESS '+tempFields[0]+' port '+tempFields[1]+' already in use\\n'
+	if createReport!='': bench=request.GET.get('bench','')
+	if createReport=='' and (action == 'create' or action == 'update'):
+		myRecordSet.execute("SELECT id_type from T_EQUIP_TYPE WHERE name='"+POSTproduct+"'")
+		id_type=myRecordSet.fetchone()['id_type']
+		myRecordSet.execute("SELECT id_location from T_LOCATION WHERE site='"+POSTsite+"' and room='"+POSTroom+"' and row='"+POSTrow+"' and rack='"+POSTrack+"' and pos='"+POSTpos+"'")
+		row=myRecordSet.fetchone()
+		if row['id_location'] == '':
+			myRecordSet.execute("INSERT INTO T_LOCATION (site,room,row,rack,pos) VALUES ('"+POSTsite+"','"+POSTroom+"','"+POSTrow+"','"+POSTrack+"','"+POSTpos+"')")
+			dbConnection.commit()
+			myRecordSet.execute("SELECT id_location from T_LOCATION WHERE site='"+POSTsite+"' and room='"+POSTroom+"' and row='"+POSTrow+"' and rack='"+POSTrack+"' and pos='"+POSTpos+"'")
+		id_location=row['id_location']
+		myRecordSet.execute("SELECT id_scope from T_SCOPE WHERE description='"+POSTscope+"'")
+		id_scope=myRecordSet.fetchone()['id_scope']
+		if action == 'create':
+			myRecordSet.execute("INSERT INTO T_EQUIPMENT (name, T_EQUIP_TYPE_id_type, T_LOCATION_id_location, T_SCOPE_id_scope, T_PACKAGES_id_pack, owner, inUse, description, note) VALUES ('"+POSTname+"', "+str(id_type)+", "+str(id_location)+", "+str(id_scope)+", null, '"+POSTreference+"', 1, '"+POSTdescription+"', '"+POSTnote+"')")
+			dbConnection.commit()
+			myRecordSet.execute("SELECT id_equipment from T_EQUIPMENT WHERE name='"+POSTname+"'")
+			id_equipment=myRecordSet.fetchone()['id_equipment']
+		else:
+			myRecordSet.execute("UPDATE T_EQUIPMENT set name='"+POSTname+"', T_EQUIP_TYPE_id_type="+str(id_type)+", T_LOCATION_id_location="+str(id_location)+", T_SCOPE_id_scope="+str(id_scope)+", owner='"+POSTreference+"', inUse=1, description='"+POSTdescription+"', note='"+POSTnote+"' WHERE id_equipment="+bench)
+			dbConnection.commit()
+			id_equipment=bench
+		myRecordSet.execute("SELECT count(id_ip) as myCount from T_NET WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
+		row=myRecordSet.fetchone()
+		if row['myCount'] > 0:
+			myRecordSet.execute("UPDATE T_NET SET inUse=1,T_EQUIPMENT_id_equipment="+str(id_equipment)+" where IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
+			dbConnection.commit()
+		else:
+			myRecordSet.execute("INSERT INTO T_NET (inUse,description,T_EQUIPMENT_id_equipment,protocol,IP,NM,GW) VALUES (1,'',"+str(id_equipment)+",'v4','"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"','"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"','"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"')")
+			dbConnection.commit()
+		myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
+		id_ip=myRecordSet.fetchone()['id_ip']
+		myRecordSet.execute("DELETE from T_SERIAL where T_EQUIPMENT_id_equipment="+str(id_equipment))
+		dbConnection.commit()
+		for myITF in debugInterface:
+			tempFields=myITF.split('#')
+			myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+tempFields[0]+"'")
+			id_ip=str(myRecordSet.fetchone()['id_ip'])
+			myRecordSet.execute("UPDATE T_NET SET inUse=1 where id_ip="+id_ip)
+			dbConnection.commit()
+			#myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL  WHERE T_NET_id_ip="+id_ip+" and port="+tempFields[1]+" and inUse=1")
+			#if myRecordSet.fetchone()['myCount']>0:
+			#	myRecordSet.execute("UPDATE T_SERIAL SET inUse=1 where id_ip="+id_ip+" and port="+tempFields[1])
+			#	dbConnection.commit()
+			#else:
+			if tempFields[2] == '':tempFields[2]='0'
+			if tempFields[3] == '':tempFields[3]='0'
+			myRecordSet.execute("INSERT INTO T_SERIAL (inUse, T_NET_id_ip, port, T_EQUIPMENT_id_equipment, slot, subslot, note) VALUES (1,'"+id_ip+"','"+tempFields[1]+"',"+str(id_equipment)+",'"+tempFields[2]+"','"+tempFields[3]+"','')")
+			dbConnection.commit()
+		bench=id_equipment
+
+	
+
+
+
+	if bench != '':
+		SQL="SELECT *,T_NET.IP as benchIP,T_NET.NM as benchNM,T_NET.GW as benchGW,T_EQUIPMENT.description as benchDescription,T_EQUIPMENT.note as benchNote,group_concat(concat(ip1.ip,'#',port,'#',if(slot is null,'-',slot),'#',if(subslot is null,'-',subslot)) separator '|') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET on(T_NET.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) where id_equipment="+str(bench)+" group by id_equipment"
+		#SQL="SELECT * from T_EQUIPMENT join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where id_equipment="+str(bench)
+		myRecordSet.execute(SQL)
+		row=myRecordSet.fetchone()
+		name = row['benchName']
+		ip = row['benchIP']
+		nm = row['benchNM']
+		gw = row['benchGW']
+		reference=row['reference']
+		site=row['site']
+		room=row['room']
+		product=row['type']
+		scope=row['scope']
+		rowID=row['row']
+		rack=row['rack']
+		pos=row['pos']
+		description=row['benchDescription']
+		note=row['benchNote']
+		if row['serials'] != None:
+			serialAry=row['serials'].split('|')
+			for myId,serial in enumerate(serialAry):
+				tempSerial=serial.split('#')
+				tempIP=tempSerial[0].split('.')
+				serials.append({'ip':tempSerial[0],
+					'port':tempSerial[1],
+					'slot':tempSerial[2],
+					'subslot':tempSerial[3]})
+
+	ip = ip.split('.') if ip != '' else '...'.split('.')
+	nm = nm.split('.') if nm != '' else '...'.split('.')
+	gw = gw.split('.') if gw != '' else '...'.split('.')
+
+	myRecordSet.execute("SELECT distinct(site) as site FROM T_LOCATION")
+	locations=[row["site"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(room) as room FROM T_LOCATION")
+	rooms=[row["room"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(username) as user FROM auth_user where first_name <> ''")
+	users=[row["user"].upper() for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(name) as product FROM T_EQUIP_TYPE")
+	products=[row["product"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(description) as scope FROM T_SCOPE")
+	scopes=[row["scope"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(family) as family FROM T_EQUIP_TYPE")
+	families=[row["family"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(ip) as consoleServer FROM T_EQUIP_TYPE join T_EQUIPMENT on(id_type=T_EQUIP_TYPE_id_type) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where family='CONSOLE SERVER'")
+	consoleServers=[row["consoleServer"] for row in myRecordSet]
+
+	context_dict={'login':request.session['login'],
+		'bench':bench,
+		'role':request.session['role'],
+		'name':name,
+		'ip1':ip[0],
+		'ip2':ip[1],
+		'ip3':ip[2],
+		'ip4':ip[3],
+		'nm1':nm[0],
+		'nm2':nm[1],
+		'nm3':nm[2],
+		'nm4':nm[3],
+		'gw1':gw[0],
+		'gw2':gw[1],
+		'gw3':gw[2],
+		'gw4':gw[3],
+		'locations':locations,
+		'rooms':rooms,
+		'users':users,
+		'products':products,
+		'scopes':scopes,
+		'reference':reference,
+		'families':families,
+		'site':site,
+		'room':room,
+		'product':product,
+		'scope':scope,
+		'row':rowID,
+		'rack':rack,
+		'pos':pos,
+		'serials':serials,
+		'createReport':createReport,
+		'description':description,
+		'note':note,
+		'consoleServers':consoleServers
+	}
+
+	return render(request,'taws/add_bench.html',context_dict)
+
+def bench(request):
+
+	filters=request.POST.get('filters','')
+	pattern=request.POST.get('pattern','')
+	deleteBench=request.POST.get('deleteBench','')
+	action=request.GET.get('action','')
+
+	import mysql.connector
+	from django.utils.safestring import mark_safe
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':fromPage}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	if action == 'delete':
+		myRecordSet.execute("DELETE from T_SERIAL where T_EQUIPMENT_id_equipment="+deleteBench)
+		dbConnection.commit()
+		myRecordSet.execute("DELETE from T_NET where T_EQUIPMENT_id_equipment="+deleteBench)
+		dbConnection.commit()
+		myRecordSet.execute("DELETE from T_EQUIPMENT where id_equipment="+deleteBench)
+		dbConnection.commit()
+		
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	#SQL="SELECT *,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET on(T_NET.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope)"
+	SQL="SELECT *,netBench.IP as benchIP,netBench.NM as benchNM,netBench.GW as benchGW,group_concat(concat(ip1.ip,':',port,' ','Slot ',if(slot is null,'-',slot),' SubSlot ',if(subslot is null,'-',subslot)) separator '<br>') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET as netBench on(netBench.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) group by id_equipment"
+	myRecordSet.execute(SQL)
+	benches=[]
+	numBenches=0
+	for row in myRecordSet:
+		numBenches+=1
+		benches.append({'name':row["benchName"],
+			'owner':row["owner"],
+			'inUse':row["inUse"],
+			'description':row["description"],
+			'reference':row["owner"],
+			'job_name':row["job_name"],
+			'job_iteration':row["job_iteration"],
+			'starting_date':row["starting_date"],
+			'errCount':row["errCount"],
+			'runCount':row["runCount"],
+			'status':row['benchStatus'],
+			'reference':row['reference'],
+			'author':row['author'],
+			'SWP':row['T_PACKAGES_id_pack'],
+			'site':row['site'],
+			'room':row['room'],
+			'row':row['row'],
+			'rack':row['rack'],
+			'pos':row['pos'],
+			'id':row['id_equipment'],
+			'type':row['type'],
+			'family':row['family'],
+			'scope':row['scope'],
+			'serials':mark_safe(row['serials']),
+			'ip':row['benchIP'],
+			'nm':row['benchNM'],
+			'gw':row['benchGW']
+		})
+
+	context_dict={'login':request.session['login'],
+		'role':request.session['role'],
+		'benches':benches,
+		'numBenches':numBenches
+	}
+
+	return render(request,'taws/bench.html',context_dict)
 
 def createNewTest(request):
 
@@ -910,15 +1357,12 @@ def accesso(request):
 		queryProduct=request.POST.get('queryProduct','')
 		querySW=request.POST.get('querySWRelease','')
 		queryArea=request.POST.get('queryArea','')
-		queryLab=request.POST.get('queryLab','')
-		labStr=""
-		if queryLab != '':labStr=" and lab='"+queryLab+"'"
 
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 		myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revision from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by T_TEST_test_id")
-		myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revision from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' "+labStr+" order by test_id,id_TestRev desc) as myTable group by test_id")
-		myStr="select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revision from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) order by test_id,revision desc) as myTable where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' "+labStr+" group by test_id"
+		myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' order by test_id,id_TestRev desc) as myTable group by test_id")
+		myStr="select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) order by test_id,revision desc) as myTable where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id"
 		rows=myRecordSet.fetchall()
 		testString=''
 		for row in rows:
@@ -940,8 +1384,9 @@ def accesso(request):
 			row['description']+"#"+\
 			str(row['last_update'])+"#"+\
 			row['run_section']+"#"+\
-			row['revision']+"#"+\
-			row['lab']+"$")
+			row['revisions']+"#"+\
+			row['lab']+"#"+\
+			row['revision']+"$")
 
 		dbConnection.close()
 
@@ -1062,8 +1507,6 @@ def accesso(request):
 		myRecordSet.execute("select * from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_TestRev="+iteration+" group by id_TestRev")
 		row=myRecordSet.fetchone()
 
-		dbConnection.close()
-
 		testString=(str(row['id_TestRev'])+"#"+\
 			row['product']+"#"+\
 			row['sw_rel_name']+"#"+\
@@ -1082,8 +1525,16 @@ def accesso(request):
 			row['description']+"#"+\
 			str(row['last_update'])+"#"+\
 			row['run_section']+"#"+\
-			row['revision']+"#"+\
-			row['lab'])
+			"[MY_REVISIONS]#"+\
+			row['lab']+"#"+\
+			row['revision'])
+
+		myRecordSet.execute("select group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where T_TEST_test_id="+str(row['T_TEST_test_id'])+" group by T_TEST_test_id")
+		row=myRecordSet.fetchone()
+
+		testString=testString.replace('[MY_REVISIONS]',row['revisions'])
+		dbConnection.close()
+
 
 		return  JsonResponse({'testString': testString}, safe=False)
 

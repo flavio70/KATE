@@ -1,0 +1,302 @@
+{% extends "taws/main_template.html" %}
+{% block body %}
+{% load static %}
+
+<SCRIPT>
+/* code from qodo.co.uk */
+// create as many regular expressions here as you need:
+var digitsOnly = /[1234567890]/g;
+var integerOnly = /[0-9\.]/g;
+var alphaOnly = /[A-Za-z]/g;
+
+function restrictCharacters(myfield, e, restrictionType) {
+	if (!e) var e = window.event
+	if (e.keyCode) code = e.keyCode;
+	else if (e.which) code = e.which;
+	var character = String.fromCharCode(code);
+
+	// if they pressed esc... remove focus from field...
+	if (code==27) { this.blur(); return false; }
+	
+	// ignore if they are press other keys
+	// strange because code: 39 is the down key AND ' key...
+	// and DEL also equals .
+	if (!e.ctrlKey && code!=9 && code!=8 && code!=36 && code!=37 && code!=38 && (code!=39 || (code==39 && character=="'")) && code!=40) {
+		if (character.match(restrictionType)) {
+			return true;
+		} else {
+			return false;
+		}
+		
+	}
+}
+<!--
+
+
+function validate(evt) {
+  var theEvent = evt || window.event;
+  var key = theEvent.keyCode || theEvent.which;
+  key = String.fromCharCode( key );
+  var regex = /[0-9]|\./;
+  if( !regex.test(key) ) {
+    theEvent.returnValue = false;
+    if(theEvent.preventDefault) theEvent.preventDefault();
+  }
+}
+//-->
+
+function addDebug(){
+	var row = document.getElementById('debugTable').insertRow();
+
+	tempConsole=''
+	{% for consoleServer in consoleServers %}
+		tempConsole+='<option value="{{ consoleServer }}">{{ consoleServer }}</option>';
+	{% endfor %}
+
+
+	//row.innerHTML='<td align="left" style="padding:10px;"><img src="/static/images/details_close.png" onclick="removeDebug(this.parentElement.parentElement.rowIndex);" id="id52392837847583"></td><td align="left" style="padding:10px;"><label class="title">Interface</label></td><td align="center" style="padding:0px;"><label class="title">IP Address</label></td><td align="center" style="padding:0px;"><input type="text" id="" value="" onkeypress="return restrictCharacters(this, event, integerOnly);" size="3" tabindex="19"></td><td align="center" style="padding:0px;"><input type="text" id="" value="" onkeypress="return restrictCharacters(this, event, integerOnly);" size="3" tabindex="20"></td><td align="center" style="padding:0px;"><input type="text" id="" value="" onkeypress="return restrictCharacters(this, event, integerOnly);" size="3" tabindex="21"></td><td align="center" style="padding:0px;"><input type="text" id="" value="" onkeypress="return restrictCharacters(this, event, integerOnly);" size="3" tabindex="22"></td><td align="center" style="padding:0px;"><label class="title">Port</label></td><td align="center" style="padding:0px;"><input type="text" id="" onkeypress="return restrictCharacters(this, event, integerOnly);" size="4" value="" tabindex="23"></td><td align="left" style="padding:10px;"><label class="title">Slot</label></td><td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="" tabindex="24"></td><td align="center" style="padding:0px;"><label class="title">SubSlot</label></td><td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="" tabindex="25"></td>';
+
+	row.innerHTML='<td align="left" style="padding:10px;"><img src="/static/images/details_close.png" onclick="removeDebug(this.parentElement.parentElement.rowIndex);"></img></td><td align="left" style="padding:10px;"><label class="title">Interface</label></td><td align="center" style="padding:0px;"><label class="title">IP Address</label></td><td align="center" style="padding:0px;"><select style="width:150px;" tabindex="18">'+tempConsole+'</select></td><td align="center" style="padding:0px;"><label class="title">Port</label></td><td align="center" style="padding:0px;"><input type="text" id="" onkeypress="return restrictCharacters(this, event, integerOnly);" size="4" value=""  tabindex="23"></td><td align="left" style="padding:10px;"><label class="title">Slot</label></td><td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value=""  tabindex="24"></td>	<td align="center" style="padding:0px;"><label class="title">SubSlot</label></td><td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value=""  tabindex="25"></td>';
+}
+
+function removeDebug(myRow){
+	document.getElementById('debugTable').deleteRow(myRow);
+}
+
+function saveValues(action){
+	bench.action='/taws/add_bench/?bench={{ bench }}&action='+action;
+	bench.debugInterface.value='';
+	for(i=1;i<document.getElementById('debugTable').rows.length;i++){
+		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[3].children[0].value+'#';
+		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[5].firstChild.value+'#';
+		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[7].firstChild.value+'#';
+		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[9].firstChild.value+'$';
+	}
+	bench.debugInterface.value=bench.debugInterface.value.slice(0,-1)
+	//alert(bench.product.value);
+	bench.submit();
+}
+
+$(document).ready(function(){document.getElementById('mainTitle').innerHTML='Bench Editor';});
+if('{{ createReport }}'!=''){
+	alert('{{ createReport }}');
+}
+</SCRIPT>
+
+<div style="position:fixed; width:94%; left:3%; margin-top:30px;background-color:transparent; z-index:4;">
+	<form name="bench" method="post" action="">{% csrf_token %}
+
+		<input type="hidden" name="debugInterface" value="" />
+		<table width="100%" id="benchTable">
+
+			<tr>
+				<td>
+					<table style="border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;" width="100%" height="100%">
+						<tr>
+							<td valign="middle" colspan="2" align="center" style="padding-top:10px;padding-bottom:10px;"><h3>Bench Parameters</h3></td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" width="300px"><label class="title">BENCH NAME</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><input type="text" name="name" maxlength="20" value="{{ name }}" ></td>
+						</tr>
+
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">IP ADDRESS</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<input type="text" class="input" name="ip1" maxlength="3" value="{{ ip1 }}" tabindex="1" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="ip2" maxlength="3" value="{{ ip2 }}" tabindex="2" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="ip3" maxlength="3" value="{{ ip3 }}" tabindex="3" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="ip4" maxlength="3" value="{{ ip4 }}" tabindex="4" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">
+							</td>
+						</tr>
+
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">NET MASK</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<input type="text" class="input" name="nm1" id="nm1" maxlength="3" value="{{ nm1 }}" tabindex="5" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="nm2" id="nm2" maxlength="3" value="{{ nm2 }}" tabindex="6" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="nm3" id="nm3" maxlength="3" value="{{ nm3 }}" tabindex="7" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="nm4" id="nm4" maxlength="3" value="{{ nm4 }}" tabindex="8" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">
+							</td>
+						</tr>
+
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">GATEWAY</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<input type="text" class="input" name="gw1" id="gw1" maxlength="3" value="{{ gw1 }}" tabindex="9" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="gw2" id="gw2" maxlength="3" value="{{ gw2 }}" tabindex="10" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="gw3" id="gw3" maxlength="3" value="{{ gw3 }}" tabindex="11" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+								<input type="text" class="input" name="gw4" id="gw4" maxlength="3" value="{{ gw4 }}" tabindex="12" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">
+							</td>
+						</tr>
+
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">BENCH REFERENCE</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<select name="reference" style="width:150px;" tabindex="16">
+									{% for user in users %}
+											<option {% if reference == user %}selected{% endif %} value='{{ user }}'>{{ user }}</option>
+									{% endfor %}
+								</select>
+								<!--<input list="users" name="reference" value="{{ reference }}" style="width:150px;" tabindex="13">
+								<datalist id="users">
+									{% for user in users %}
+											<option value='{{ user }}'>{{ user }}</option>
+									{% endfor %}
+								</datalist>-->
+							</td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;"><label class="title">DESCRIPTION</label></td>
+							<td align="left" style="padding:5px;">
+								<input type="text" name="description" maxlength="20" value="{{ description }}" >
+							</td>
+						</tr>
+					</table>
+				</td>
+				<td valign="top">
+					<table style="border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;" width="100%" height="100%">
+						<tr>
+							<td valign="middle" colspan="2" align="center" style="padding-top:10px;padding-bottom:10px;"><h3>Bench Details</h3></td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" width="300px"><label class="title">SITE</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<!--<select name="site" style="width:150px;" tabindex="14">
+									{% for site in locations %}
+											<option value='{{ site }}'>{{ site }}</option>
+									{% endfor %}
+								</select>-->
+								<input list="sites" name="site" value="{{ site }}" style="width:150px;" tabindex="14">
+								<datalist id="sites">
+									{% for site in locations %}
+											<option value='{{ site }}'>{{ site }}</option>
+									{% endfor %}
+								</datalist>
+							</td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">ROOM</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<input list="rooms" name="room" value="{{ room }}" style="width:150px;" tabindex="15">
+								<datalist id="rooms">
+									{% for room in rooms %}
+											<option value='{{ room }}'>{{ room }}</option>
+									{% endfor %}
+								</datalist>
+							</td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">POSITION</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" colspan="2">
+								<input type="text" name="row" size="2" title="Row Number" tabindex="15" value="{{ row }}">/
+								<input type="text" name="rack" size="2" title="Rack Number" tabindex="16" value="{{ rack }}">/
+								<input type="text" name="pos" size="2" title="Position" tabindex="17" value="{{ pos }}" >
+							</td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">PRODUCT</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<select name="product" style="width:150px;" tabindex="18">
+									{% for myProduct in products %}
+											<option {% if myProduct == product %}selected{% endif %} value='{{ myProduct }}'>{{ myProduct }}</option>
+									{% endfor %}
+								</select>
+								<!--<input list="products" name="product" value="{{ product }}" style="width:150px;" tabindex="16">
+								<datalist id="products">
+									{% for product in products %}
+											<option value='{{ product }}'>{{ product }}</option>
+									{% endfor %}
+								</datalist>-->
+							</td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">SCOPE</label></td>
+							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
+								<select name="scope" style="width:150px;" tabindex="19">
+									{% for myScope in scopes %}
+											<option {% if myScope == scope %}selected{% endif %} value='{{ scope }}'>{{ scope }}</option>
+									{% endfor %}
+								</select>
+								<!--<input list="scopes" name="scope" value="{{ scope }}" style="width:150px;" tabindex="17">
+								<datalist id="scopes">
+									{% for scope in scopes %}
+											<option value='{{ scope }}'>{{ scope }}</option>
+									{% endfor %}
+								</datalist>-->
+							</td>
+						</tr>
+						<tr style="height:31px;">
+							<td align="left" style="padding:5px;"><label class="title">NOTES</label></td>
+							<td align="left" style="padding:5px;">
+								<input type="text" name="note" tabindex="21" maxlength="20" value="{{ note }}" >
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<table style="border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;" width="100%" height="100%" id="debugTable">
+						<tr>
+							<td valign="middle" colspan="3" align="center" style="padding-top:10px;padding-bottom:10px;"><h3>Debug Interfaces <img src="{% static 'images/details_open.png' %}" onclick="addDebug();"></img></h3></td>
+						</tr>
+						{% for serial in serials %}
+							<tr>
+								<td align="left" style="padding:10px;"><img src="{% static 'images/details_close.png' %}" onclick="removeDebug(this.parentElement.parentElement.rowIndex);"></img></td>
+								<td align="left" style="padding:10px;"><label class="title">Interface</label></td>
+								<td align="center" style="padding:0px;"><label class="title">IP Address</label></td>
+								<td align="center" style="padding:0px;">
+									<select style="width:150px;" tabindex="18">
+										{% for consoleServer in consoleServers %}
+												<option {% if consoleServer == serial.ip %}selected{% endif %} value='{{ consoleServer }}'>{{ consoleServer }}</option>
+										{% endfor %}
+									</select>
+								</td>
+								<td align="center" style="padding:0px;"><label class="title">Port</label></td>
+								<td align="center" style="padding:0px;"><input type="text" id="" onkeypress='return restrictCharacters(this, event, integerOnly);' size="4" value="{{ serial.port }}"  tabindex="23"></td>
+								<td align="left" style="padding:10px;"><label class="title">Slot</label></td>
+								<td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="{{ serial.slot }}"  tabindex="24"></td>
+								<td align="center" style="padding:0px;"><label class="title">SubSlot</label></td>
+								<td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="{{ serial.subSlot }}"  tabindex="25"></td>
+							</tr>
+						{% endfor %}
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td valign="middle" colspan="4" align="center" style="padding:10px;">
+					{% if update != "" %}<input type="button" class="button" value="UPDATE CURRENT BENCH" onclick="saveValues('update');" />{% endif %}
+					<input type="button" class="button" value="CREATE NEW BENCH" onclick="saveValues('create');" />
+				</td>
+			</tr>
+
+		</table>
+	</form>
+</div>
+
+
+<script type="text/javascript"> 
+ 
+	$(function(){
+ 
+		 
+		$('#add-regular').click(function(){
+ 
+			$.gritter.add({
+				title: 'Information about Connection',
+				text: 'The correct sintax is:<br> COM Number:IP: port#COM Number:IP:port.....<br><br>Example:<br>COM8:151.98.239.244:1010#COM10:151....',
+				image: '',
+				sticky: false,
+				time: ''
+			});
+ 
+			return false;
+ 
+		});
+  
+	});
+</script>
+
+
+{% endblock %}

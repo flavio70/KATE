@@ -19,5 +19,8 @@ urlpatterns = [
 	url(r'^viewBuildDetails/$', views.viewBuildDetails),
 	url(r'^createRunJenkins/$', views.createRunJenkins),
 	url(r'^createNewTest/$', views.createNewTest),
-	url(r'^viewReport/$', views.viewReport)
+	url(r'^viewReport/$', views.viewReport),
+	url(r'^collectReports/$', views.collectReports),
+	url(r'^add_bench/$', views.add_bench),
+	url(r'^bench/$', views.bench)
 ]

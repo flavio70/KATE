@@ -18,6 +18,7 @@
 	<form name="report" action="" method="post" target="_self">{% csrf_token %}
 		<input type="hidden" name="jobName" value="{{ job_name }}">
 		<input type="hidden" name="buildId" value="{{ instance }}">
+		<input type="hidden" name="azione" value="process">
 		<input type="hidden" name="testName" value="">
 			<table align="center" id="reportTable" style="empty-cells: show;font-size : 8pt;width:100%;border-collapse: collapse;border-color:#999999;table-layout: fixed;">
 				<tr style="height:20px;font-size :8pt;text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;">
@@ -102,7 +103,7 @@
 						<input type="button" class="stylishButton" value="XLS" onclick="if(excelValues.value!=''){report.target='connection';report.action='accesso.asp?azione=exportExcel';submit();}">
 						<!--<input type="button" class="stylishButton" value="TSRT" onclick="if(excelValues.value!=''){report.target='principale';report.action='tsrtForm.asp';submit();}">-->
 						<!--<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" onclick="if(excelValues.value!=''){tempValue=excelValues.value.split('#');if(isNaN(tempValue[0])){alert('Results Belonging to Local Testing Suite.\nImpossible to upload results on Server...\n');}else{top.linkFrame.TPS=excelValues.value;extractTCFromExcelValues(excelValues.value,productList.value);}}">-->
-						<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" disabled onclick="if(excelValues.value!=''){report.target='principale';report.action='tawsreport.asp?azione=process';submit();}">
+						<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" onclick="report.action='/taws/collectReports/';submit();">
 						<input type="button" class="stylishButton" id="updateDur" value="Update Durations" onclick="if(excelValues.value!=''){updateTimes();}">
 						<!--<input type="button" class="stylishButton" disabled id="RecoveryBtn" disabled value="Recovery Suite" onclick="recoverSuite('');">-->
 						<!--<input type="button" class="stylishButton" disabled id="LatencyBtn" value="Conformance Report" onclick="LtcyReport.value='';report.target='principale';report.action='conformance.asp?update=none';submit();">-->

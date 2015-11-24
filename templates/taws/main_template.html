@@ -10,20 +10,20 @@
 
     <body>
 	{% include "taws/login.txt" %}
-	<div id="smoothmenu1" class="ddsmoothmenu" style="width:1024px;position:absolute;left:50%;margin-left:-512px;margin-top:60px;z-index:100;">
+	<div id="smoothmenu1" class="ddsmoothmenu" style="width:100%;position:fixed;left:0%;margin-top:60px;z-index:9;">
 		<ul>
 			<li>
 				<a href="http://www.dynamicdrive.com">Registration</a>
 				<ul>
 					<li><a href="request_account.asp">New Sphynx Account</a></li>
-					<li><a href="add_bench.asp">New Bench</a></li>
+					<li><a href="/taws/add_bench/">New Bench</a></li>
 				</ul>
 			</li>
 			<li><a href="#">Resource Overview</a>
   				<ul>
   					<li><a href="list_account.asp">Account List</a></li>
 	  				<!--<li><a href="atm.asp">ATManager List</a></li>-->
- 					<li><a href="bench.asp">Bench List</a></li>
+ 					<li><a href="/taws/bench/">Bench List</a></li>
 	  				<li><a href="topology.asp">Toplology Usage</a></li>
   	  				<li><a href="#" onclick="javascript:window.open('development/frames/topologyViewer.asp','name','height=600,width=1000,resizable=1,scrollbars=1');">Topology Viewer</a></li>
 	  				<li><a href="#" onclick="javascript:window.open('development/frames/sharedPresetCreator.asp','name','height=770,width=1024,resizable=1,scrollbars=1');">Presets Manager</a></li>
@@ -57,7 +57,15 @@
 
 		<br style="clear: left" />
 	</div>
-	<div style="position:absolute; width:1024px; margin-top:180px; margin-left:-512px; left:50%; height:500px; z-index:3">
+
+
+	
+	<div id="title" style="position:absolute;right:50%;margin-right:-512px;margin-top:63px;background-color:#414141;z-index:11;">
+		<h2 style="color:white;font-size: 19px;text-align:right;margin:0px 0px 0px 0px;"><span id="mainTitle" class="label label-primary"></span></h2>
+	</div>
+	
+	
+	<div style="position:fixed; width:94%; margin-top:100px; left:3%; height:500px; z-index:3">
 		{% block body %}{% endblock %}
 	</div>
 	</body>

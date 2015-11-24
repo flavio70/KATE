@@ -21,6 +21,29 @@ class TArea(models.Model):
         db_table = 'T_AREA'
 
 
+class TBoards(models.Model):
+    id_board = models.IntegerField(primary_key=True)
+    t_board_type_id_board_type = models.ForeignKey('TBoardType', db_column='T_BOARD_TYPE_id_board_type')  # Field name made lowercase.
+    t_equipment_id_equipment = models.ForeignKey('TEquipment', db_column='T_EQUIPMENT_id_equipment', blank=True, null=True)  # Field name made lowercase.
+    note = models.CharField(max_length=255, blank=True, null=True)
+    last_update = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'T_BOARDS'
+
+
+class TBoardType(models.Model):
+    id_board_type = models.IntegerField(primary_key=True)
+    name = models.CharField(unique=True, max_length=45)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    note = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'T_BOARD_TYPE'
+
+
 class TDomain(models.Model):
     id_domain = models.AutoField(primary_key=True)
     t_sw_rel_id_sw_rel = models.ForeignKey('TSwRel', db_column='T_SW_REL_id_sw_rel')  # Field name made lowercase.
@@ -61,7 +84,7 @@ class TEquipment(models.Model):
     t_equip_type_id_type = models.ForeignKey('TEquipType', db_column='T_EQUIP_TYPE_id_type')  # Field name made lowercase.
     t_location_id_location = models.ForeignKey('TLocation', db_column='T_LOCATION_id_location')  # Field name made lowercase.
     t_scope_id_scope = models.ForeignKey('TScope', db_column='T_SCOPE_id_scope')  # Field name made lowercase.
-    t_packages_id_pack = models.ForeignKey('TPackages', db_column='T_PACKAGES_id_pack')  # Field name made lowercase.
+    t_packages_id_pack = models.ForeignKey('TPackages', db_column='T_PACKAGES_id_pack', blank=True, null=True)  # Field name made lowercase.
     owner = models.CharField(max_length=45, blank=True, null=True)
     inuse = models.IntegerField(db_column='inUse', blank=True, null=True)  # Field name made lowercase.
     description = models.CharField(max_length=64, blank=True, null=True)
@@ -76,6 +99,7 @@ class TEquipType(models.Model):
     id_type = models.AutoField(primary_key=True)
     name = models.CharField(max_length=45)
     description = models.CharField(max_length=45, blank=True, null=True)
+    family = models.CharField(max_length=45)
 
     class Meta:
         managed = False
@@ -139,7 +163,7 @@ class TPresets(models.Model):
     id_preset = models.AutoField(primary_key=True)
     owner = models.CharField(max_length=45)
     preset_description = models.CharField(max_length=255)
-    preset_title = models.CharField(unique=True, max_length=45)
+    preset_title = models.CharField(max_length=45)
 
     class Meta:
         managed = False
@@ -160,7 +184,7 @@ class TPstEntity(models.Model):
     t_tpy_entity_id_entity = models.ForeignKey('TTpyEntity', db_column='T_TPY_ENTITY_id_entity')  # Field name made lowercase.
     t_presets_id_preset = models.ForeignKey(TPresets, db_column='T_PRESETS_id_preset')  # Field name made lowercase.
     t_equipment_id_equipment = models.ForeignKey(TEquipment, db_column='T_EQUIPMENT_id_equipment')  # Field name made lowercase.
-    pstvalue = models.CharField(db_column='pstValue', max_length=45)  # Field name made lowercase.
+    pstvalue = models.CharField(db_column='pstValue', max_length=45, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -180,14 +204,27 @@ class TReport(models.Model):
         db_table = 'T_REPORT'
 
 
+class TRtmBody(models.Model):
+    t_runtime_id_run = models.IntegerField(db_column='T_RUNTIME_id_run')  # Field name made lowercase.
+    t_equipment_id_equipment = models.IntegerField(db_column='T_EQUIPMENT_id_equipment')  # Field name made lowercase.
+    t_packages_id_pack = models.IntegerField(db_column='T_PACKAGES_id_pack')  # Field name made lowercase.
+    forceload = models.IntegerField(db_column='forceLoad')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'T_RTM_BODY'
+        unique_together = (('t_runtime_id_run', 't_equipment_id_equipment'),)
+
+
 class TRuntime(models.Model):
     id_run = models.AutoField(primary_key=True)
-    t_equipment_id_equipment = models.ForeignKey(TEquipment, db_column='T_EQUIPMENT_id_equipment')  # Field name made lowercase.
-    t_packages_id_pack = models.ForeignKey(TPackages, db_column='T_PACKAGES_id_pack')  # Field name made lowercase.
     starting_date = models.DateTimeField(blank=True, null=True)
     job_name = models.CharField(max_length=45, blank=True, null=True)
     job_iteration = models.IntegerField(blank=True, null=True)
     owner = models.CharField(max_length=45)
+    status = models.CharField(max_length=45)
+    errcount = models.FloatField(db_column='errCount')  # Field name made lowercase.
+    runcount = models.FloatField(db_column='runCount')  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -234,6 +271,7 @@ class TSuitesBody(models.Model):
     t_suites_id_suite = models.ForeignKey(TSuites, db_column='T_SUITES_id_suite')  # Field name made lowercase.
     t_test_revs_id_testrev = models.ForeignKey('TTestRevs', db_column='T_TEST_REVS_id_TestRev')  # Field name made lowercase.
     tcorder = models.IntegerField(db_column='TCorder')  # Field name made lowercase.
+    run_section = models.CharField(max_length=8)
 
     class Meta:
         managed = False
@@ -331,5 +369,4 @@ class TTpyEntity(models.Model):
     class Meta:
         managed = False
         db_table = 'T_TPY_ENTITY'
-
 

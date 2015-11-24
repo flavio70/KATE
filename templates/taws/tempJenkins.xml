@@ -5,6 +5,17 @@
   <keepDependencies>false</keepDependencies>
   <properties>
 [PROPERTIES]
+<hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>KateRunId</name>
+          <description>K@TE RunId entry. 
+Value filled automatically when build is triggered remotely by K@TE.
+Leave empty for local Building</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
@@ -18,7 +29,7 @@
     <hudson.tasks.Shell>
       <command>echo &quot;workspace is: &quot; ${WORKSPACE}
 echo &quot;running suite&quot;
-${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/ppc_test.py ${WORKSPACE}/suite/suite.txt</command>
+${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite/suite.txt ${KateRunId}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

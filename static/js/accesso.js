@@ -94,12 +94,14 @@ function doAccess(myAction){
 		//alert(sersverResponse_data, textStatus_ignored,jqXHR_ignored);
 		//prompt('',sersverResponse_data['myStr']);
 		testListString=String(sersverResponse_data['testString']).split('$');
+		//updateTestTable('testTable',testListString);
 		updateTestTable('testTable',testListString);
-		    if(myAction=='localBrowsing'){
-		      //alert(sersverResponse_data['localString']);
-		  		testBundleString=String(sersverResponse_data['localString']).split('$');
-		    		  updateTestTable('testBundleTable',testBundleString);
-   		 }
+		//alert(sersverResponse_data['testString']);
+		//    if(myAction=='localBrowsing'){
+		//      //alert(sersverResponse_data['localString']);
+		//  		testBundleString=String(sersverResponse_data['localString']).split('$');
+		//    		  updateTestTable('testBundleTable',testBundleString);
+   		 //}
 	};
 	var saveSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
@@ -116,7 +118,8 @@ function doAccess(myAction){
 		alert('Suite correctly deleted');
 	};
 	var queryIteration = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
-		updateTableRow(sersverResponse_data['testString'],lineNumber,currentTable);
+		//updateTableRow(sersverResponse_data['testString'],lineNumber,currentTable);
+		modRecordToTable(sersverResponse_data['testString'],lineNumber,currentTable);
 	};
 	var savePreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//alert('Preset '+sersverResponse_data['fileName']+' Saved!');
@@ -159,6 +162,7 @@ function doAccess(myAction){
 	});
 	//alert(serverPersonalSuite.value);
 	if(myAction=='loadSuite'){
+	alert(loadID);
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
@@ -186,7 +190,6 @@ function doAccess(myAction){
 				queryProduct:queryProduct,
 				querySWRelease:querySWRelease,
 				queryArea:queryArea,
-				queryLab:document.getElementById('lab').value
 				},
 			success: queryDB,
 			error: function(xhr, textStatus, errorThrown) {

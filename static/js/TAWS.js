@@ -1,6 +1,7 @@
 var tempBundleListString = new Array();
 var bundleListString = new Array();
 var testListString = new Array();
+var testTable;
 
 var x1 = 11;   // change the # on the left to adjust the X co-ordinate
 var y1 = 250;  // change the # on the left to adjust the Y co-ordinate
@@ -46,17 +47,17 @@ function placeIt() {
 
 
 function resetFilter(){
-	patternFilter = "";
-	topologyFilter = "";
-	facilityFilter = "";
-	document.getElementById('filterStringLabel').value='';
-	document.getElementById('clearBtn').disabled=true;
-	document.getElementById('pattern').value='Pattern';
+	//patternFilter = "";
+	//topologyFilter = "";
+	//facilityFilter = "";
+	//document.getElementById('filterStringLabel').value='';
+	//document.getElementById('clearBtn').disabled=true;
+	//document.getElementById('pattern').value='Pattern';
 }
 
 
-function queryDB(userName){
-	if(owner=='LOCAL'){
+function queryDB2(userName){
+	/*if(owner=='LOCAL'){
 		emptyTable('testBundleTable');
 		owner=userName;
 	}
@@ -71,11 +72,11 @@ function queryDB(userName){
 	document.getElementById('topoB').disabled=false;
 	document.getElementById('topoC').disabled=false;
 	document.getElementById('topoD').disabled=false;
-	//document.getElementById('facility').disabled=false;
+	document.getElementById('facility').disabled=false;
 	document.getElementById('pattern').disabled=false;
 	document.getElementById('filterString').disabled=false;
 	document.getElementById('clearBtn').disabled=false;
-	document.getElementById('negativeCheck').disabled=false;
+	document.getElementById('negativeCheck').disabled=false;*/
 	if(document.getElementById('product').options[document.getElementById('product').selectedIndex].text!=''&&document.getElementById('product').selectedIndex!=0){queryProduct=document.getElementById('product').options[document.getElementById('product').selectedIndex].text;}
 	if(document.getElementById('SWRelease').options[document.getElementById('SWRelease').selectedIndex].text!=''&&document.getElementById('SWRelease').selectedIndex!=0){querySWRelease=document.getElementById('SWRelease').options[document.getElementById('SWRelease').selectedIndex].text;}
 	if(document.getElementById('area').options[document.getElementById('area').selectedIndex].text!=''&&document.getElementById('area').selectedIndex!=0){
@@ -143,7 +144,7 @@ function saveLocalSuite(){
 	doAccess('saveLocal');
 }
 
-function updateTestTable(tableName,testAry){
+function updateTestTableOldGen(tableName,testAry){
 	emptyTable(tableName);
 	for (i = 0;i < testAry.length; i++) {
 		if(testAry[i]!=''){addRecordToTable(testAry[i],tableName,'');}
@@ -156,7 +157,7 @@ function updateTestTable(tableName,testAry){
 	if(document.getElementById('reportTable')){createReportHistory();}
 }
 
-function addRecordToTable(testString,tableName,position){
+function addRecordToTableOldGen(testString,tableName,position){
 	//alert('LOAD'+testString);
 	var myTable = document.getElementById(tableName);
 	numCol=myTable.getElementsByTagName('th').length;
@@ -429,7 +430,7 @@ function Check(t,io){
 	updateStats(t.parentNode.parentNode.id);
 }
 
-function updateStats(totalTable){
+function updateStatsOldGen(totalTable){
 	var myTable = document.getElementById(totalTable);
 	tot1 = 0
 	tot2 = 0
@@ -455,7 +456,15 @@ function updateStats(totalTable){
 }
 
 function insertBundleList(numAdd,position){
-	myTable=document.getElementById('testTable');
+	rowNum=testTable.rows('.info').data().length;
+	for(i=0;i<rowNum;i++){
+		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		testCellAry[17]=testCellAry[17].replace(/1/g,'2');
+		testString=testCellAry.join('#');
+		addRecordToTable(testString,'testBundleTable','');
+	}
+	updateStats('chart');
+	/*myTable=document.getElementById('testTable');
 	if(position==''){addPosition='';}
 		else{addPosition=position;}
 	for(t=0;t<parseInt(numAdd);t++){
@@ -478,7 +487,7 @@ function insertBundleList(numAdd,position){
 	colorTable('testBundleTable');
 	colorTable('testTable');
 	updateStats('testBundleTable')
-	updateStats('testTable')
+	updateStats('testTable')*/
 	//document.getElementById('tuneBtn').disabled=true;
 	//top.principale.document.getElementById('execBtn').disabled=true;
 }
@@ -486,15 +495,23 @@ function insertBundleList(numAdd,position){
 function insertAllBundleList(){
 	//document.getElementById('transparency').style.zIndex=10;
 	//document.getElementById('transparencyImg').style.visibility='visible';
-	myTable=document.getElementById('testTable');
+	rowNum=testTable.rows().data().length;
+	for(i=0;i<rowNum;i++){
+		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		testCellAry[17]=testCellAry[17].replace(/1/g,'2');
+		testString=testCellAry.join('#');
+		addRecordToTable(testString,'testBundleTable','');
+	}
+	updateStats('chart');
+	/*myTable=document.getElementById('testTable');
 	for(i=1;i<myTable.rows.length;i++){
 		testCellAry=myTable.rows[i].name.split('#');
 		testCellAry[17]=testCellAry[17].replace(/1/g,'2');
 		testString=testCellAry.join('#');
 		addRecordToTable(testString,'testBundleTable','');
-	}
-	colorTable('testBundleTable');
-	updateStats('testBundleTable')
+	}*/
+	//colorTable('testBundleTable');
+	//updateStats('testBundleTable')
 	//document.getElementById('tuneBtn').disabled=true;
 	//document.getElementById('transparency').style.zIndex=-1;
 	//document.getElementById('transparencyImg').style.visibility='hidden';
@@ -703,3 +720,271 @@ function fillSelectCreator(valueStr,myselect,selection){
 	//top.principale.document.getElementById('execBtn').disabled=true;
 }*/
 
+function updateTestTable(tableName,testAry){
+	if(tableName=='testTable'){myTable=testTable;}
+		else{myTable=testBundleTable;}
+	myTable.rows().remove().draw( false );
+	for (i = 0;i < testAry.length-1; i++) {
+		addRecordToTable(testAry[i],tableName,'');
+	}
+	//if(tableName=='testBundleTable'){
+	//	updateStats(testTable);
+		//document.getElementById('tuneBtn').disabled=false;
+	//}
+	//colorTable(tableName);
+	//if(document.getElementById('reportTable')){createReportHistory();}
+}
+
+function addRecordToTable(testString,tableName,lineNumber){
+	if(tableName=='testTable'){myTable=testTable;}
+		else{myTable=testBundleTable;}
+	tempField=testString.split('#');
+	tempRev=tempField[18].split('!');
+ 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
+ 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
+	for(j=0;j<tempRev.length;j++){
+		myRev=tempRev[j].split('|');
+		if(j==0){revision=myRev[1];}
+		revStr+='<option value="'+myRev[1]+'">'+myRev[0]+'</option>';
+	}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][0]=='2'){sect1='<input type="checkbox" checked>';}
+		if(tempField[17][0]=='1'){sect1='<input type="checkbox">';}
+		if(tempField[17][0]=='0'){sect1='<input type="checkbox" disabled>';}
+	}else{sect1='<img src="'+SECT[tempField[17][0]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][1]=='2'){sect2='<input type="checkbox" checked>';}
+		if(tempField[17][1]=='1'){sect2='<input type="checkbox">';}
+		if(tempField[17][1]=='0'){sect2='<input type="checkbox" disabled>';}
+	}else{sect2='<img src="'+SECT[tempField[17][1]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][2]=='2'){sect3='<input type="checkbox" checked>';}
+		if(tempField[17][2]=='1'){sect3='<input type="checkbox">';}
+		if(tempField[17][2]=='0'){sect3='<input type="checkbox" disabled>';}
+	}else{sect3='<img src="'+SECT[tempField[17][2]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][3]=='2'){sect4='<input type="checkbox" checked>';}
+		if(tempField[17][3]=='1'){sect4='<input type="checkbox">';}
+		if(tempField[17][3]=='0'){sect4='<input type="checkbox" disabled>';}
+	}else{sect4='<img src="'+SECT[tempField[17][3]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][4]=='2'){sect5='<input type="checkbox" checked>';}
+		if(tempField[17][4]=='1'){sect5='<input type="checkbox">';}
+		if(tempField[17][4]=='0'){sect5='<input type="checkbox" disabled>';}
+	}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
+	revStr+='</select>';
+	myTable.row.add({
+		"control" : '',
+		"num" : myTable.rows().data().length+1,
+		"tps" : tempField[5],
+		"test": tempField[6],
+		"lab" : tempField[19],
+		"rev" : revStr,
+		"time": tempField[7],
+		"topo": tempField[9],
+		"sect1": sect1,
+		"sect2": sect2,
+		"sect3": sect3,
+		"sect4": sect4,
+		"sect5": sect5,
+		"testId": tempField[0],
+		"dependency": tempField[12],
+		"metric": tempField[8],
+		"assignment": "",
+		"author": tempField[14],
+		"description": tempField[15],
+		"relDate": "",
+		"lastUpdate": tempField[16],
+		"testString":testString
+	}
+	).draw( false );
+	/*$('#testTable tfoot th').each( function () {
+		var title = $(this).prop('title');
+		if (title == 'TPS') {$(this).html( '<input type="text" placeholder="Search '+title+'" />' );}
+	});*/
+myTable
+}
+
+function modRecordToTable(testString,lineNumber,currentTable){
+	//if(tableName=='testTable'){myTable=testTable;}
+	//	else{myTable=testBundleTable;}
+	//var myTable = myRow.closest('table');
+	//var row = myTable.row(myRow);
+	tempField=testString.split('#');
+	tempRev=tempField[18].split('!');
+ 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=this.parentElement.parentElement.parentElement.parentElement;doAccess(\'queryIteration\');">';
+	/*revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+currentTable+'\';doAccess(\'queryIteration\');">';
+	for(j=0;j<tempRev.length;j++){
+		myRev=tempRev[j].split('|');
+		checked='';
+		alert(tempField[20]+'###'+myRev[0]);
+		if(tempField[20]==myRev[0]){checked='checked';alert('CULO');}
+		revStr+='<option value="'+myRev[1]+'" '+checked+'>'+myRev[0]+'</option>';
+	}
+	alert(revStr);*/
+	if(currentTable=='testBundleTable'){if(tempField[17][0]=='1'){sect1='<input type="checkbox" checked>';}else{sect1='<input type="checkbox" disabled>';}}else{sect1='<img src="'+SECT[tempField[17][0]]+'"/>';}
+	if(currentTable=='testBundleTable'){if(tempField[17][1]=='1'){sect2='<input type="checkbox" checked>';}else{sect2='<input type="checkbox" disabled>';}}else{sect2='<img src="'+SECT[tempField[17][1]]+'"/>';}
+	if(currentTable=='testBundleTable'){if(tempField[17][2]=='1'){sect3='<input type="checkbox" checked>';}else{sect3='<input type="checkbox" disabled>';}}else{sect3='<img src="'+SECT[tempField[17][2]]+'"/>';}
+	if(currentTable=='testBundleTable'){if(tempField[17][3]=='1'){sect4='<input type="checkbox" checked>';}else{sect4='<input type="checkbox" disabled>';}}else{sect4='<img src="'+SECT[tempField[17][3]]+'"/>';}
+	if(currentTable=='testBundleTable'){if(tempField[17][4]=='1'){sect5='<input type="checkbox" checked>';}else{sect5='<input type="checkbox" disabled>';}}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
+	revStr+='</select>';
+	var oTable = $('#'+currentTable).dataTable();
+	//oTable.fnUpdate( ['','1',tempField[5],tempField[6],tempField[19],revStr,tempField[7],tempField[9],sect1,sect2,sect3,sect4,sect5,tempField[0],tempField[12],tempField[8],"",tempField[14],tempField[15],"",tempField[16],testString,revision],0);
+	oTable.fnUpdate('',lineNumber,0,false);
+	//oTable.fnUpdate(lineNumber,lineNumber,1,false);
+	oTable.fnUpdate(tempField[5],lineNumber,2,false);
+	oTable.fnUpdate(tempField[6],lineNumber,3,false);
+	oTable.fnUpdate(tempField[19],lineNumber,4,false);
+	//oTable.fnUpdate(revStr,lineNumber,5,true);
+	oTable.fnUpdate(tempField[7],lineNumber,6,false);
+	oTable.fnUpdate(tempField[9],lineNumber,7,false);
+	oTable.fnUpdate(sect1,lineNumber,8,false);
+	oTable.fnUpdate(sect2,lineNumber,9,false);
+	oTable.fnUpdate(sect3,lineNumber,10,false);
+	oTable.fnUpdate(sect4,lineNumber,11,false);
+	oTable.fnUpdate(sect5,lineNumber,12,false);
+	oTable.fnUpdate(tempField[0],lineNumber,13,false);
+	oTable.fnUpdate(tempField[12],lineNumber,14,false);
+	oTable.fnUpdate(tempField[8],lineNumber,15,false);
+	oTable.fnUpdate('',lineNumber,16,false);
+	oTable.fnUpdate(tempField[14],lineNumber,17,false);
+	oTable.fnUpdate(tempField[15],lineNumber,18,false);
+	oTable.fnUpdate('',lineNumber,19,false);
+	oTable.fnUpdate(tempField[16],lineNumber,20,false);
+	oTable.fnUpdate(testString,lineNumber,21,false);
+	//oTable.fnUpdate(revision,lineNumber,22,false);
+	/*testTable.row(myRow).data().tps=tempField[5];
+	testTable.row(myRow).data().test=tempField[6];
+	testTable.row(myRow).data().lab=tempField[19];
+	testTable.row(myRow).data().rev=revStr;
+	testTable.row(myRow).data().time=tempField[7];
+	testTable.row(myRow).data().topo=tempField[9];
+	testTable.row(myRow).data().sect1=sect1;
+	testTable.row(myRow).data().sect2=sect2;
+	testTable.row(myRow).data().sect3=sect3;
+	testTable.row(myRow).data().sect4=sect4;
+	testTable.row(myRow).data().sect5=sect5;
+	testTable.row(myRow).data().testId=tempField[0];
+	testTable.row(myRow).data().dependency=tempField[12];
+	testTable.row(myRow).data().metric=tempField[8];
+	testTable.row(myRow).data().assignment="";
+	testTable.row(myRow).data().author=tempField[14];
+	testTable.row(myRow).data().description=tempField[15];
+	testTable.row(myRow).data().relDate="";
+	testTable.row(myRow).data().lastUpdate=tempField[16];
+	testTable.row(myRow).data().testString=testString;
+	testTable.row(myRow).data().revision=revision;
+	testTable.row(myRow).data().draw(false);*/
+	/*$('#testTable tfoot th').each( function () {
+		var title = $(this).prop('title');
+		if (title == 'TPS') {$(this).html( '<input type="text" placeholder="Search '+title+'" />' );}
+	});*/
+
+}
+function fillButtons(values,nextItem,selection,currButton){
+	if(nextItem=='sw-release'){
+		document.getElementById('sw-release').innerHTML='SW Version <span class="caret"></span>';
+		document.getElementById('domain-dropdown').innerHTML='';
+		document.getElementById('domain').innerHTML='Domain <span class="caret"></span>';
+		document.getElementById('area-dropdown').innerHTML='';
+		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		nextSelection='domain';
+		document.getElementById('domain').disabled=true;
+		document.getElementById('area').disabled=true;
+	}
+	if(nextItem=='domain'){
+		document.getElementById('domain').innerHTML='Domain <span class="caret"></span>';
+		document.getElementById('area-dropdown').innerHTML='';
+		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		nextSelection='area';
+		document.getElementById('area').disabled=true;
+	}
+	if(nextItem=='area'){document.getElementById('area').innerHTML='Area <span class="caret"></span>';}
+	document.getElementById(currButton).innerHTML=selection+' <span class="caret"></span>';
+	document.getElementById(nextItem).disabled=false;
+	tempAry1=values.split('@');
+	newDropDown='';
+	for(i=0;i<tempAry1.length;i++){
+		tempAry2=tempAry1[i].split('?');
+		nextValues='';
+		if(tempAry2.length>1){nextValues=tempAry2[1].replace(/#/g,'?').replace(/%/g,'@').replace(/\|/g,'%')}
+		newDropDown+='<li><a onclick="fillButtons(\''+nextValues+'\',\''+nextSelection+'\',\''+tempAry2[0]+'\',\''+nextItem+'\');">'+tempAry2[0]+'</a></li>';
+	}
+	if(currButton=='area'){queryDB();}
+		else{document.getElementById(nextItem+'-dropdown').innerHTML=newDropDown;}
+}
+
+function queryDB(userName){
+	queryProduct=document.getElementById('product').innerHTML.replace(' <span class="caret"></span>','');
+	querySWRelease=document.getElementById('sw-release').innerHTML.replace(' <span class="caret"></span>','');
+	queryArea=document.getElementById('area').innerHTML.replace(' <span class="caret"></span>','');
+	doAccess('queryDB');
+}
+
+function updateStats(perspective){
+	if(perspective=='selection'){
+		totTime=0;
+		totMetric=0;
+		totTPS=0;
+		for(k=0;k<testTable.rows('.info').data().length;k++){
+			totTime+=parseInt(testTable.row(testTable.rows('.info')[k]).data().time);
+			totMetric+=parseInt(testTable.row(testTable.rows('.info')[k]).data().metric);
+			tempTPS=testTable.row(testTable.rows('.info')[k]).data().tps
+			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1
+		}
+		document.getElementById('badge-sel-test').innerHTML=testTable.rows('.info').data().length;
+		document.getElementById('badge-sel-tps').innerHTML=totTPS;
+		document.getElementById('badge-sel-time').innerHTML=String(totTime).toHHMMSS();
+		document.getElementById('badge-sel-metric').innerHTML=totMetric;
+	}
+	if(perspective=='chart'){
+		totTime=0;
+		totMetric=0;
+		totTPS=0;
+		for(k=0;k<testBundleTable.rows().data().length;k++){
+			totTime+=parseInt(testBundleTable.row(testBundleTable.rows()[k]).data().time);
+			totMetric+=parseInt(testBundleTable.row(testBundleTable.rows()[k]).data().metric);
+			tempTPS=testBundleTable.row(testBundleTable.rows()[k]).data().tps
+			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1
+		}
+		document.getElementById('badge-chart-test').innerHTML=testBundleTable.rows().data().length;
+		document.getElementById('badge-chart-tps').innerHTML=totTPS;
+		document.getElementById('badge-chart-time').innerHTML=String(totTime).toHHMMSS();
+		document.getElementById('badge-chart-metric').innerHTML=totMetric;
+	}
+	/*var myTable = document.getElementById(totalTable);
+	tot1 = 0
+	tot2 = 0
+	tot3 = 0
+	tot4 = 0
+	for(i=1;i<myTable.rows.length;i++){
+		tempAry=myTable.rows[i].name.split('#');
+		tempTPS=tempAry[5].split(',');
+		if(((totalTable=='testTable')&&(myTable.rows[i].style.background.indexOf('red')>=0))||(totalTable=='testBundleTable')){
+			tot1=tot1+1;
+			tot2=tot2+parseInt(tempTPS.length);
+			tot3=tot3+parseInt(tempAry[7]);
+			tot4=tot4+parseInt(tempAry[8]);
+		}
+	}
+	if(totalTable=='testTable'){tableName='selected';}
+	if(totalTable=='testBundleTable'){tableName='bundle';}
+	tot3=seconds2Time(tot3);
+	document.getElementById(tableName + "Number").innerHTML  = tot1;
+	document.getElementById(tableName + "TPS").innerHTML  = tot2;
+	document.getElementById(tableName + "Time").innerHTML  = tot3;
+	document.getElementById(tableName + "Metric").innerHTML  = tot4;*/
+}
+
+String.prototype.toHHMMSS = function () {
+    var sec_num = parseInt(this, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    var time    = hours+':'+minutes+':'+seconds;
+    return time;
+}

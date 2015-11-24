@@ -10,7 +10,7 @@
 
     <body>
 	{% include "taws/login.txt" %}
-	<div id="smoothmenu1" class="ddsmoothmenu" style="width:824px;position:absolute;left:50%;margin-left:-512px;margin-top:60px;z-index:10;">
+	<div id="smoothmenu1" class="ddsmoothmenu" style="width:100%;position:fixed;left:0%;margin-top:60px;z-index:9;">
 		<ul>
 			<li><a href="#">Jenkins</a>
 				<ul>
@@ -34,15 +34,19 @@
 				  <li><a href="#" onclick="javascript:window.open('sharedPresetCreator.asp','name','height=770,width=1024,resizable=1,scrollbars=1');">Presets Manager</a></li>
 			  </ul>
 			</li>		
-			<li><a href="#" onclick="top.location.href='../../default.asp';">Automation WebSite</a></li>
+			<li><a href="/taws/">Automation WebSite</a></li>
 		</ul>
 		<br style="clear: left" />
 	</div>
-	<div style="position:absolute; width:1024px; margin-top:80px; margin-left:-512px; left:50%; height:500px; z-index:3">
+	
+	<div id="title" style="position:absolute;right:50%;margin-right:-512px;margin-top:63px;background-color:#414141;z-index:11;">
+		<h2 style="color:white;font-size: 19px;text-align:right;margin:0px 0px 0px 0px;"><span id="mainTitle" class="label label-primary"></span></h2>
+	</div>
+	<div style="position:fixed; width:1024px; margin-top:84px; margin-left:-512px; left:50%; height:500px;z-index:3;">
 		{% block body %}{% endblock %}
 	</div>
-	<script type='text/javascript' src="{% static 'js/jquery-1.11.1.min.js' %}"></script>
-	<script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+	<!--<script type='text/javascript' src="{% static 'js/jquery-1.11.1.min.js' %}"></script>
+	<script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>-->
 	<script type='text/javascript' src="{% static 'js/accesso.js' %}"></script>
 
 	</body>

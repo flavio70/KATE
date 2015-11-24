@@ -1,0 +1,51 @@
+td.details-control {
+    background: url('../images/details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+tr.shown td.details-control {
+    background: url('../images/details_close.png') no-repeat center center;
+}
+
+table.dataTable.table-condensed .sorting::after,
+table.dataTable.table-condensed .sorting_asc::after,
+table.dataTable.table-condensed .sorting_desc::after {
+  bottom: 3px;
+  top: unset;
+}
+
+tfoot input {
+        width: 100%;
+        padding: 3px;
+        box-sizing: border-box;
+    }
+
+.tableScroll {
+ 
+  height:90%;
+  overflow-y:scroll;
+  
+}
+
+.btn-custom {
+	color: #333;
+	background-color:#FFF;
+	border-color:#CCC;
+	padding: 4px 10px;
+	
+}
+.btn-info2 {
+	color: unset;
+	background-color: #5BC0DE;
+	border-color:#46B8DA;
+}
+
+.list-group{
+	margin-bottom: unset;
+}
+
+.list-group-item {
+	padding: 2px 25px;
+}
+BODY {
+	font-size:12px;
+}
