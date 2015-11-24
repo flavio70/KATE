@@ -15,7 +15,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -96,10 +95,11 @@ JENKINS = {
 
 
 # TEMPLATE FILES
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+TEST_TEMPLATE = TEMPLATES_DIR + '/taws/testTemplate.txt'
+JOB_PROPS_TEMPLATE = TEMPLATES_DIR + '/taws/tempProperties.xml'
+JOB_TEMPLATE = TEMPLATES_DIR + '/taws/tempJenkins.xml'
 
-TEST_TEMPLATE = '/tools/smotools/www/KATE/templates/taws/testTemplate.txt'
-JOB_PROPS_TEMPLATE = '/tools/smotools/www/KATE/templates/taws/tempProperties.xml'
-JOB_TEMPLATE = '/tools/smotools/www/KATE/templates/taws/tempJenkins.xml'
 
 GIT_REPO = '/GITREPOS/KATETESTS'
 # Internationalization

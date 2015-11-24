@@ -33,15 +33,14 @@
 
 <script>
 function changePerspective(){
-	if(document.getElementById('chartTitle').style.zIndex==5){show1=5;show2=10;viewStr='View Composer';}
-	else{show1=10;show2=5;viewStr='View Chart';}
+	if(document.getElementById('chartTitle').style.zIndex==5){show1=5;show2=10;viewStr='View Composer';} else{show1=10;show2=5;viewStr='View Cart';}
 	document.getElementById('composerTitle').style.zIndex=show1;
 	document.getElementById('chartTitle').style.zIndex=show2;
 	//document.getElementById('queries').style.zIndex=show1;
 	//document.getElementById('suiteCommand').style.zIndex=show2;
 	document.getElementById('testContainer').style.zIndex=show1;
 	document.getElementById('testBundleContainer').style.zIndex=show2;
-	this.innerHTML=viewStr;
+	document.getElementById('CartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> '+viewStr;
 }
 
 function format ( myRow ) {
@@ -291,7 +290,7 @@ $(document).ready(function() {
 						<span class="icon-bar"></span>\
 						<span class="icon-bar"></span>\
 					</button>\
-					<a class="navbar-brand">Job Chart</a>\
+					<a class="navbar-brand">Job Cart</a>\
 				</div><!-- end navbar-header -->\
 				<!-- Collect the nav links, forms, and other content for toggling -->\
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">\
@@ -311,19 +310,6 @@ $(document).ready(function() {
 		</nav><!-- end navbar -->\
 	');
 	
-	
-/*'<div class="input-group input-group-sm">\
-	<span class="input-group-addon" id="sizing-addon2">Selection</span></div><div class="input-group input-group-sm">\
-	<span class="input-group-addon" id="sizing-addon2">Total Tests  <span class="badge">4</span></span>\
-      <div class="input-group-btn">\
-        <button class="btn btn-primary" type="button">Total tests <span class="badge">4</span></button>\
-        <button class="btn btn-primary" type="button">Messages <span class="badge">4</span></button>\
-    </div></div>');
-*/ 
-	/*$('#testTable tbody').on( 'click', 'tr', function () {
-		$(this).toggleClass('selected');
-		//$(this).toggleClass($(this)[0].id);
-	    } );*/
 
 	$('#testTable tbody').on('click', 'td.details-control', function () {
 		var tr = $(this).closest('tr');
@@ -501,12 +487,45 @@ $(document).ready(function() {
 
 
 <!--<div id="chart" style="width:200px;height:230px;position:fixed;right:3%;margin-top:20px;z-index:5;background-color:white;" align="right">-->
-<div id="chart" style="height:230px;position:fixed;right:3%;margin-top:20px;z-index:5;background-color:white;">
-	<table id="bundleStats" style="border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;">
+<div id="chart" style="height:230px;position:fixed;right:3%;margin-top:40px;z-index:5;background-color:white;">
+
+
+<table style="border-collapse:separate;border:solid lightgray 1px;border-radius:6px;-moz-border-radius:6px;">
+  <tr>
+    <td rowspan="2"><a id="CartTitle" class="btn btn-default-lg" onclick="changePerspective()"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> View Cart</a></td>
+    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-test" class="badge">0</span>Total Test &nbsp;</li></ul></td>
+    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-tps" class="badge">0</span>Total TPS &nbsp;</li></ul></td>
+  </tr>
+  <tr>
+    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-time" class="badge">00:00:00</span>Total Time &nbsp;</li></ul></td>
+    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li></ul></td>
+  </tr>
+</table>
+	
+
+	
+	
+	<!--<table id="bundleStats" style="border-collapse:separate;border:solid lightgray 1px;border-radius:6px;-moz-border-radius:6px;">
 		<tr>
-			<td colspan="4" align="center" style="padding:5px;border-bottom:solid lightgray 3px;" onclick="changePerspective();">View Chart</td>
-		
-		<tr style="border-bottom:solid lightgray 1px;">
+			<td align="center" style="padding:5px;" onclick="changePerspective();">View Chart</td>
+			<td>
+				<tr>
+					aaa
+				</tr>
+					bbb
+				<tr>
+				</tr>
+			</td>
+			<td>
+				<tr>
+					<ul class="list-group"><li class="list-group-item"><span id="badge-chart-time" class="badge">00:00:00</span>Total Time &nbsp;</li></ul>
+				</tr>
+				<tr>
+					<ul class="list-group"><li class="list-group-item"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li></ul>
+				</tr>
+			</td>
+		</tr>
+		<tr>
 		  <td>
 				<ul class="list-group"><li class="list-group-item"><span id="badge-chart-test" class="badge">0</span>Total Test &nbsp;</li></ul>
 			</td>
@@ -522,8 +541,7 @@ $(document).ready(function() {
 				<ul class="list-group"><li class="list-group-item"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li></ul>
 			</td>
 		</tr>
-		</tr>
-	</table>
+	</table>-->
 </div>
 
 <div id="composerTitle" style="width:250px;height:70px;position:fixed;left:3%;margin-top:18px;background-color:white;z-index:10;" valign="top">
@@ -531,8 +549,7 @@ $(document).ready(function() {
 </div>
 
 <div id="chartTitle" style="width:250px;height:70px;position:fixed;left:3%;margin-top:18px;background-color:white;z-index:5;" valign="top">
-<table style="width:100%;height:100%;"><tr><td><h1><span class="label label-default">Job Chart&nbsp;&nbsp;&nbsp;</span></h1></td></tr></table>
-</div>
+<table style="width:100%;height:100%;"><tr><td><h1><span class="label label-default">Job Cart&nbsp;&nbsp;&nbsp;</span></h1></td></tr></table> </div>
 
 <!--<div id="queries" style="width:600px;height:50px;position:fixed;left:3%;margin-top:100px;background-color:white;z-index:10;">
 	<table style="width:100%;border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;">
