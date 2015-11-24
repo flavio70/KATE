@@ -13,9 +13,10 @@
 	myUserSuite="";
 	mySharedSuite="";
 	userSuiteID='';
+	sharedSuiteID='';
 </script>
 {% for myItem in userSuiteAry %}
-    <script>myUserSuite+='<li><a onclick="userSuiteID={{ myItem.suiteID }};document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
+    <script>myUserSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in sharedSuiteAry %}
@@ -449,9 +450,9 @@ $(document).ready(function() {
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">User Suites <span class="caret"></span></button>\
         <ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+myUserSuite+'</ul>\
         </div>\
-        <button type="button" class="btn btn-default" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(userSuiteID.value!=\'\'){owner=\'{{ login }}\';loadID=userSuiteID;doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(userSuiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(testBundleTable.rows().data().length>0){owner=\'{{ login }}\';jsaveFile(\'userSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(userSuiteID.value!=\'\'&&confirm(\'Are you sure you want to delete \'+document.getElementById(\'userSuites\').innerHTML.replace(\' <span class=\'+String.fromCharCode(34)+\'caret\'+String.fromCharCode(34)+\'></span>\',\'\')+\'?\')){owner=\'{{ login }}\';emptyTable(\'testBundleTable\');doAccess(\'deleteSuite\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
         <button type="button" class="btn btn-default"><i class="fa fa-share-alt"></i></button>\
     </div>&nbsp;&nbsp;&nbsp;<div class="input-group-btn">\
         <div class="btn-group btn-group-sm" role="group">\

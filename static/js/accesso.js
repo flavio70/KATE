@@ -104,16 +104,41 @@ function doAccess(myAction){
    		 //}
 	};
 	var saveSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
-		fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
-		fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
+		userSuiteAry=sersverResponse_data['userSuiteAry'];
+		for(i=0;i<userSuiteAry.length;i++){
+			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
+		}
+		document.getElementById('serverPersonalSuite').innerHTML=myUserSuite;
+		userSuiteAry=sersverResponse_data['sharedSuiteAry'];
+		for(i=0;i<userSuiteAry.length;i++){
+			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
+		}
+		document.getElementById('serverSharedSuite').innerHTML=myUserSuite;
+		//for(i=0;sersverResponse_data['sharedSuiteAry'];i++){myUserSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';}
+		//document.getElementById('serverPersonalSuite').innerHTML=myUserSuite;
+		//fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
+		//fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
 		//alert(sersverResponse_data['testString']);
 		alert('Suite correctly saved');
 	};
 	var deleteSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
-		fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
-		fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
+		userSuiteID='';
+		sharedSuiteID='';
+		for(i=0;i<userSuiteAry.length;i++){
+			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
+		}
+		document.getElementById('serverPersonalSuite').innerHTML=myUserSuite;
+		document.getElementById('userSuites').innerHTML='User Suites <span class=caret></span>';
+		userSuiteAry=sersverResponse_data['sharedSuiteAry'];
+		for(i=0;i<userSuiteAry.length;i++){
+			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
+		}
+		document.getElementById('serverSharedSuite').innerHTML=myUserSuite;
+		document.getElementById('sharedSuites').innerHTML='Shared Suites <span class=caret></span>';
+		//fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
+		//fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
 		emptyTable('testBundleTable');
 		alert('Suite correctly deleted');
 	};
@@ -162,7 +187,6 @@ function doAccess(myAction){
 	});
 	//alert(serverPersonalSuite.value);
 	if(myAction=='loadSuite'){
-	alert(loadID);
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
@@ -170,7 +194,7 @@ function doAccess(myAction){
 			data: {
 				action: myAction,
 				owner: owner,
-				loadID: loadID
+				loadID: suiteID
 				},
 			success: loadSuite,
 			error: function(xhr, textStatus, errorThrown) {
@@ -222,9 +246,25 @@ function doAccess(myAction){
 			data: {
 				action: myAction,
 				owner: owner,
-				deleteID: deleteID
+				deleteID: suiteID
 				},
 			success: deleteSuite,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+	if(myAction=='shareSuite'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				owner: owner,
+				shareID: suiteID
+				},
+			success: saveSuite,
 			error: function(xhr, textStatus, errorThrown) {
 					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
 				}

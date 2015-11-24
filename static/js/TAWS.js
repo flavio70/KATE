@@ -96,40 +96,42 @@ function queryDB2(userName){
 	}
 }
 
-function jsaveFile(selectId){
-	saveID=selectId.value;
-	saveText=selectId.options[selectId.selectedIndex].text;
-	path=selectId.id;
+function jsaveFile(suiteType){
+	saveID=suiteID;
+	saveText=document.getElementById(suiteType).innerHTML.replace(' <span class="caret"></span>','');
 	savingString='';
-	if(saveText!='Select Here'){
-		saveText = prompt('Insert Suite Name!',saveText)
+	foundSuite=false;
+	if(saveText!=''){
+		newText = prompt('Insert Suite Name!',saveText);
 	}else{
-		saveText = prompt('Insert Suite Name!','newSuite');
+		newText = prompt('Insert Suite Name!','newSuite');
 	}
-	if(saveText!=null){
-		foundSuite=false;
-		for(i=1;i<selectId.options.length;i++){
-			if(selectId.options[i].text==saveText){
-				foundSuite=true;
-				if(owner!='LOCAL'){saveID=selectId.options[i].value;}
-				break;
-			}
-		}
-		if(foundSuite==false){saveID=saveText;}
-		myTable=document.getElementById('testBundleTable');
-		for(i=1;i<myTable.rows.length;i++){
-			tempAry = myTable.rows[i].name.split("#");
-			savingString +=tempAry[10]+'#'+tempAry[17]+"$";
-			//alert(savingString);
-		}
-		//parent.topPage.connection.document.pivot.string1.value = savingString;
-		//parent.topPage.connection.document.pivot.string2.value = saveID.replace(/'/g,"");
-		//parent.topPage.connection.document.pivot.action = "accesso.asp?azione=jsavesuite";
-		if((foundSuite==true&&confirm("Overwrite " + saveText +"?"))||foundSuite==false){
-			//alert(savingString);
-			doAccess('saveSuite');
-		}
+	if(newText==saveText){foundSuite=true;}
+	for(k=0;k<testBundleTable.rows().data().length;k++){
+		savingString+=testBundleTable.row(testBundleTable.rows()[k]).data().testId+'#';
+		sect1=0;
+		sect2=0;
+		sect3=0;
+		sect4=0;
+		sect5=0;
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
+		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 	}
+	if((foundSuite==true&&confirm("Overwrite " + newText +"?"))||foundSuite==false){
+		saveText=newText;
+		document.getElementById(suiteType).innerHTML=saveText+' <span class="caret"></span>';
+		doAccess('saveSuite');
+	}
+
 }
 
 function saveLocalSuite(){
@@ -354,16 +356,9 @@ function addRecordToTableOldGen(testString,tableName,position){
 
 
 function emptyTable(tbl){
-	var myTable = document.getElementById(tbl);
-	if(myTable){
-		var numRow = myTable.rows;
-		iterations = numRow.length;
-		if(iterations > 1){
-			for(i=0;i<iterations-1;i++){
-				myTable.deleteRow(1);
-			}
-		}
-	}
+	if(tbl=='testTable'){myTable=testTable;}
+		else{myTable=testBundleTable;}
+	myTable.rows().remove().draw( false );
 }
 
 function colorTable(tableName){
@@ -721,9 +716,10 @@ function fillSelectCreator(valueStr,myselect,selection){
 }*/
 
 function updateTestTable(tableName,testAry){
-	if(tableName=='testTable'){myTable=testTable;}
+	emptyTable(tableName);
+	/*if(tableName=='testTable'){myTable=testTable;}
 		else{myTable=testBundleTable;}
-	myTable.rows().remove().draw( false );
+	myTable.rows().remove().draw( false );*/
 	for (i = 0;i < testAry.length-1; i++) {
 		addRecordToTable(testAry[i],tableName,'');
 	}
@@ -747,30 +743,31 @@ function addRecordToTable(testString,tableName,lineNumber){
 		if(j==0){revision=myRev[1];}
 		revStr+='<option value="'+myRev[1]+'">'+myRev[0]+'</option>';
 	}
+	sectFunct=' onclick="changeSection(this);"';
 	if(tableName=='testBundleTable'){
-		if(tempField[17][0]=='2'){sect1='<input type="checkbox" checked>';}
-		if(tempField[17][0]=='1'){sect1='<input type="checkbox">';}
-		if(tempField[17][0]=='0'){sect1='<input type="checkbox" disabled>';}
+		if(tempField[17][0]=='2'){sect1='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][0]=='1'){sect1='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][0]=='0'){sect1='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect1='<img src="'+SECT[tempField[17][0]]+'"/>';}
 	if(tableName=='testBundleTable'){
-		if(tempField[17][1]=='2'){sect2='<input type="checkbox" checked>';}
-		if(tempField[17][1]=='1'){sect2='<input type="checkbox">';}
-		if(tempField[17][1]=='0'){sect2='<input type="checkbox" disabled>';}
+		if(tempField[17][1]=='2'){sect2='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][1]=='1'){sect2='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][1]=='0'){sect2='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect2='<img src="'+SECT[tempField[17][1]]+'"/>';}
 	if(tableName=='testBundleTable'){
-		if(tempField[17][2]=='2'){sect3='<input type="checkbox" checked>';}
-		if(tempField[17][2]=='1'){sect3='<input type="checkbox">';}
-		if(tempField[17][2]=='0'){sect3='<input type="checkbox" disabled>';}
+		if(tempField[17][2]=='2'){sect3='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][2]=='1'){sect3='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][2]=='0'){sect3='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect3='<img src="'+SECT[tempField[17][2]]+'"/>';}
 	if(tableName=='testBundleTable'){
-		if(tempField[17][3]=='2'){sect4='<input type="checkbox" checked>';}
-		if(tempField[17][3]=='1'){sect4='<input type="checkbox">';}
-		if(tempField[17][3]=='0'){sect4='<input type="checkbox" disabled>';}
+		if(tempField[17][3]=='2'){sect4='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][3]=='1'){sect4='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][3]=='0'){sect4='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect4='<img src="'+SECT[tempField[17][3]]+'"/>';}
 	if(tableName=='testBundleTable'){
-		if(tempField[17][4]=='2'){sect5='<input type="checkbox" checked>';}
-		if(tempField[17][4]=='1'){sect5='<input type="checkbox">';}
-		if(tempField[17][4]=='0'){sect5='<input type="checkbox" disabled>';}
+		if(tempField[17][4]=='2'){sect5='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][4]=='1'){sect5='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][4]=='0'){sect5='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
 	revStr+='</select>';
 	myTable.row.add({
@@ -944,8 +941,8 @@ function updateStats(perspective){
 		for(k=0;k<testBundleTable.rows().data().length;k++){
 			totTime+=parseInt(testBundleTable.row(testBundleTable.rows()[k]).data().time);
 			totMetric+=parseInt(testBundleTable.row(testBundleTable.rows()[k]).data().metric);
-			tempTPS=testBundleTable.row(testBundleTable.rows()[k]).data().tps
-			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1
+			tempTPS=testBundleTable.row(testBundleTable.rows()[k]).data().tps;
+			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1;
 		}
 		document.getElementById('badge-chart-test').innerHTML=testBundleTable.rows().data().length;
 		document.getElementById('badge-chart-tps').innerHTML=totTPS;
@@ -987,4 +984,15 @@ String.prototype.toHHMMSS = function () {
     if (seconds < 10) {seconds = "0"+seconds;}
     var time    = hours+':'+minutes+':'+seconds;
     return time;
+}
+
+function changeSection(myObj){
+	var oTable = $('#testBundleTable').dataTable();
+	lineNumber=myObj.closest('tr').sectionRowIndex;
+	cellNumber=myObj.parentElement.cellIndex;
+	if(myObj.checked==true){
+		oTable.fnUpdate('<input type="checkbox" checked'+sectFunct+'>',lineNumber,cellNumber,false);
+	}else{
+		oTable.fnUpdate('<input type="checkbox"'+sectFunct+'>',lineNumber,cellNumber,false);
+	}
 }

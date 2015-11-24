@@ -1343,9 +1343,14 @@ def accesso(request):
 			row['description']+"#"+\
 			str(row['last_update'])+"#"+\
 			row['section']+"#"+\
-			row['revision']+"#"+\
-			row['lab']+"$")
+			"[MY_REVISIONS]#"+\
+			row['lab']+"#"+\
+			row['revision']+'$')
 
+		myRecordSet.execute("select group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where T_TEST_test_id="+str(row['T_TEST_test_id'])+" group by T_TEST_test_id")
+		row=myRecordSet.fetchone()
+
+		testString=testString.replace('[MY_REVISIONS]',row['revisions'])
 		dbConnection.close()
 		myVar='finito'
 
@@ -1494,6 +1499,29 @@ def accesso(request):
 
 		return  JsonResponse({'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry}, safe=False)
 
+	if myAction=='shareSuite':
+
+		owner=request.POST.get('owner','')
+		deleteID=request.POST.get('shareID','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+
+		myRecordSet.execute("DELETE from T_SUITES_BODY where T_SUITES_id_suite="+deleteID)
+		dbConnection.commit()
+
+		myRecordSet.execute("DELETE from T_SUITES where id_suite="+deleteID)
+		dbConnection.commit()
+
+		myRecordSet.execute("SELECT * from T_SUITES where owner = '"+request.session['login']+"' order by name")
+		userSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT * from T_SUITES where owner = 'SHARED' order by name")
+		sharedSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
+
+		dbConnection.close()
+
+		return  JsonResponse({'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry}, safe=False)
 
 	if myAction=='queryIteration':
 
