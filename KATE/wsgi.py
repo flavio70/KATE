@@ -9,9 +9,18 @@ https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
 
 import os,sys
 
-sys.path.append(os.path.abspath("/tools/smotools/www"))
-sys.path.append(os.path.abspath("/tools/smotools/www/KATE"))
-sys.path.append(os.path.abspath("/tools/smotools/www/KATE/KATE"))
+
+CURR_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# trying using relative paths
+sys.path.append(CURR_DIR)
+sys.path.append(CURR_DIR + '/..')
+sys.path.append(CURR_DIR + '/../..')
+
+
+#sys.path.append(os.path.abspath("/tools/smotools/www"))
+#sys.path.append(os.path.abspath("/tools/smotools/www/KATE"))
+#sys.path.append(os.path.abspath("/tools/smotools/www/KATE/KATE"))
 
 from django.core.wsgi import get_wsgi_application
 
