@@ -647,6 +647,7 @@ def viewBuildDetails(request):
 
 	job_name=request.POST.get('jobName')
 	buildId=request.POST.get('buildId')
+	target='NA'
 
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
@@ -1500,6 +1501,8 @@ def accesso(request):
 		return  JsonResponse({'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry}, safe=False)
 
 	if myAction=='shareSuite':
+
+		#NOT IMPLEMENTED YET
 
 		owner=request.POST.get('owner','')
 		deleteID=request.POST.get('shareID','')
