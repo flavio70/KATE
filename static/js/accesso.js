@@ -123,7 +123,7 @@ function doAccess(myAction){
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
 		//alert(sersverResponse_data['testString']);
-		alert('Suite correctly saved');
+		showalert("Suite correctly saved","alert-success")
 	};
 	var deleteSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		userSuiteID='';
@@ -144,7 +144,7 @@ function doAccess(myAction){
 		//fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
 		//fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
 		emptyTable('testBundleTable');
-		alert('Suite correctly deleted');
+		showalert("Suite correctly deleted","alert-success")
 	};
 	var queryIteration = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//updateTableRow(sersverResponse_data['testString'],lineNumber,currentTable);

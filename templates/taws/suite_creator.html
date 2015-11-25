@@ -32,9 +32,23 @@
 {% endfor %}
 
 <script>
+
+function showalert(message,alerttype) {
+
+    $('#alert_placeholder').html('<div id="alertdiv" class="alert ' +  alerttype + '"><a class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>')
+	$("#alert_placeholder").fadeToggle("slow");
+    setTimeout(function() { // this will automatically close the alert and remove this if the users doesnt close it in 5 secs
+
+
+      $("#alert_placeholder").fadeToggle("slow");
+
+    }, 5000);
+  }
+
+
+
 function changePerspective(){
-	$('#alert-success').html('<div class="alert"><a class="close" data-dismiss="alert">×</a><span>PIPPONE</span></div>');
-	if(document.getElementById('chartTitle').style.zIndex==5){show1=5;show2=10;viewStr='View Composer';} else{show1=10;show2=5;viewStr='View Cart';}
+	if(document.getElementById('chartTitle').style.zIndex==5){show1=5;show2=10;viewStr='View Composer <span class="caret"></span>';} else{show1=10;show2=5;viewStr='View Cart <span class="caret"></span>';}
 	document.getElementById('composerTitle').style.zIndex=show1;
 	document.getElementById('chartTitle').style.zIndex=show2;
 	//document.getElementById('queries').style.zIndex=show1;
@@ -494,65 +508,8 @@ $(document).ready(function() {
 
 </script>
 
-<div id="alert-success"></div>
 
-<!--<div id="chart" style="width:200px;height:230px;position:fixed;right:3%;margin-top:20px;z-index:5;background-color:white;" align="right">-->
-<div id="chart" style="height:230px;position:fixed;right:3%;margin-top:40px;z-index:5;background-color:white;">
-
-
-<table style="border-collapse:separate;border:solid lightgray 1px;border-radius:6px;-moz-border-radius:6px;">
-  <tr>
-    <td rowspan="2"><a id="CartTitle" class="btn btn-default-lg" onclick="changePerspective()"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> View Cart</a></td>
-    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-test" class="badge">0</span>Total Test &nbsp;</li></ul></td>
-    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-tps" class="badge">0</span>Total TPS &nbsp;</li></ul></td>
-  </tr>
-  <tr>
-    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-time" class="badge">00:00:00</span>Total Time &nbsp;</li></ul></td>
-    <td><ul class="list-group"><li class="list-group-item" style="border:unset;padding:3px 25px;"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li></ul></td>
-  </tr>
-</table>
-	
-
-	
-	
-	<!--<table id="bundleStats" style="border-collapse:separate;border:solid lightgray 1px;border-radius:6px;-moz-border-radius:6px;">
-		<tr>
-			<td align="center" style="padding:5px;" onclick="changePerspective();">View Chart</td>
-			<td>
-				<tr>
-					aaa
-				</tr>
-					bbb
-				<tr>
-				</tr>
-			</td>
-			<td>
-				<tr>
-					<ul class="list-group"><li class="list-group-item"><span id="badge-chart-time" class="badge">00:00:00</span>Total Time &nbsp;</li></ul>
-				</tr>
-				<tr>
-					<ul class="list-group"><li class="list-group-item"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li></ul>
-				</tr>
-			</td>
-		</tr>
-		<tr>
-		  <td>
-				<ul class="list-group"><li class="list-group-item"><span id="badge-chart-test" class="badge">0</span>Total Test &nbsp;</li></ul>
-			</td>
-			<td>
-				<ul class="list-group"><li class="list-group-item"><span id="badge-chart-tps" class="badge">0</span>Total TPS &nbsp;</li></ul>
-		  </td>
-		</tr>
-		<tr>
-			<td>
-				<ul class="list-group"><li class="list-group-item"><span id="badge-chart-time" class="badge">00:00:00</span>Total Time &nbsp;</li></ul>
-			</td>
-			<td>
-				<ul class="list-group"><li class="list-group-item"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li></ul>
-			</td>
-		</tr>
-	</table>-->
-</div>
+<div id="alert_placeholder" style="position:fixed;top:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 
 <div id="composerTitle" style="width:250px;height:70px;position:fixed;left:3%;margin-top:18px;background-color:white;z-index:10;" valign="top">
 <table style="width:100%;height:100%;"><tr><td><h1><span class="label label-default">Job Composer</span></h1></td></tr></table>
@@ -805,7 +762,6 @@ $(document).ready(function() {
 <IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
 <script>typeEnd()</script>-->
 
-<div id="alert-success"></div>
 
 {% endblock %}
 

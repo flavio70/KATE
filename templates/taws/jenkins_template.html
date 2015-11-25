@@ -93,6 +93,14 @@
 				</li>
 			</ul>
 			<ul class="nav navbar-nav navbar-right">
+				<li><a  id="CartTitle" href="#" onclick="changePerspective()"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>View Cart <span class="caret"></span></a>
+					<ul class="dropdown-menu">
+						<li class="list-group-item" style="border:unset;padding:3px 25px;width:200px;"><span id="badge-chart-test" class="badge">0</span>Total Test &nbsp;</li>
+						<li class="list-group-item" style="border:unset;padding:3px 25px;width:200px;"><span id="badge-chart-tps" class="badge">0</span>Total TPS &nbsp;</li>
+						<li class="list-group-item" style="border:unset;padding:3px 25px;width:200px;"><span id="badge-chart-time" class="badge">00:00:00</span>Total Time &nbsp;</li>
+						<li class="list-group-item" style="border:unset;padding:3px 25px;width:200px;"><span id="badge-chart-metric" class="badge">0</span>Total Metric &nbsp;</li>
+					</ul>
+				</li>
 				<li><a class="navbar-brand" href="#" id="mainTitle"></a></li>
 				{% if login %}
 					<li><a href="#">Welcome <strong>{{ login }}</strong> <span class="caret"></span></a>
@@ -111,9 +119,7 @@
 	<div id="title" style="position:absolute;right:0%;margin-right:-180px;background-color:#414141;z-index:11;">
 		<h2 style="color:white;font-size: 19px;text-align:right;margin:0px 0px 0px 0px;"><span id="mainTitle" class="label label-primary"></span></h2>
 	</div>
-	<div style="position:fixed; width:1024px; margin-top:84px; margin-left:-512px; left:50%; height:500px;z-index:3;">
-		{% block body %}{% endblock %}
-	</div>
+	{% block body %}{% endblock %}
 	<!--<script type='text/javascript' src="{% static 'js/jquery-1.11.1.min.js' %}"></script>
 	<script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>-->
 	<script type='text/javascript' src="{% static 'js/accesso.js' %}"></script>
