@@ -63,32 +63,12 @@
 								<li><a href="avviso.asp">Newsletter</a></li>
 							</ul>
 						</li>
+						<li><a href="/taws/development_index/">Development</a></li>
 					</ul>
 				</li>
-				<li><a href="#">Jenkins <span class="caret"></span></a>
-					<ul class="dropdown-menu">
-						<li><a href="/taws/suite_creator/">Job Creator</a></li>
-						<li><a href="/taws/test_development/">Test Development</a></li>
-						<li><a href="/taws/runJenkins/">Job Management</a></li>
-						<li><a href="#" onclick="top.principale.location.href='theDoctor.asp';top.accesso.location.href='accesso.asp';">The Doctor</a></li>
-					</ul>
-				</li>
-				<!--<li><a href="#">PYTHON</a></li>-->
-				<!--<li><a href="#">Reports</a>
-					<ul>
-						<li><a href="#" onclick="top.principale.location.href='reportOverview.asp';top.topPage.connection.location.href='accesso.asp';">Reports Overview</a></li>
-						<li><a href="#" onclick="top.principale.location.href='viewReport.asp';top.topPage.connection.location.href='accesso.asp';">Old Reports Page</a></li>
-					</ul>
-				</li>-->
-				<li><a href="#" onclick="top.principale.location.href='JTCRelease.asp';top.topPage.connection.location.href='accesso.asp';">TC Release</a></li>
-				<li><a href="#">Topologies & Presets <span class="caret"></span></a>
-				  <ul class="dropdown-menu">
-					  <li><a href="#" onclick="javascript:window.open('topologyViewer.asp','name','height=600,width=1000,resizable=1,scrollbars=1');">Topology Viewer</a></li>
-					  <li><a href="#" onclick="javascript:window.open('sharedPresetCreator.asp','name','height=770,width=1024,resizable=1,scrollbars=1');">Presets Manager</a></li>
-				  </ul>
-				</li>		
 			</ul>
 			<ul class="nav navbar-nav navbar-right">
+				<li><a class="navbar-brand" href="#" id="mainTitle"></a></li>
 				{% if login %}
 					<li><a href="#">Welcome <strong>{{ login }}</strong> <span class="caret"></span></a>
 						<ul class="dropdown-menu">
@@ -102,17 +82,16 @@
 				{% endif %}
 			</ul>
 		</div>
+
+
+	
+	<div id="title" style="position:fixed;right:0%;margin-right:-150px;background-color:#414141;z-index:11;">
+		<h2 style="color:white;font-size: 19px;text-align:right;margin:0px 0px 0px 0px;"><span id="#" class="label label-primary"></span></h2>
 	</div>
 	
-	<div id="title" style="position:absolute;right:0%;margin-right:-150px;background-color:#414141;z-index:11;">
-		<h2 style="color:white;font-size: 19px;text-align:right;margin:0px 0px 0px 0px;"><span id="mainTitle" class="label label-primary"></span></h2>
-	</div>
-	<div style="position:fixed; width:1024px; margin-top:84px; margin-left:-512px; left:50%; height:500px;z-index:3;">
+	
+	<div style="position:fixed; width:94%; margin-top:50px; left:3%; height:500px; z-index:3">
 		{% block body %}{% endblock %}
 	</div>
-	<!--<script type='text/javascript' src="{% static 'js/jquery-1.11.1.min.js' %}"></script>
-	<script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>-->
-	<script type='text/javascript' src="{% static 'js/accesso.js' %}"></script>
-
 	</body>
 </html>

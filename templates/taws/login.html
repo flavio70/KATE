@@ -1,6 +1,6 @@
-{% extends "taws/template_menu.html" %}
+{% extends "taws/main_template.html" %}
 {% block body %}
-<div style="width:390px; height:380px; position:absolute; margin-top:180px; left:50%; margin-left:-180px; z-index:3; background:url(/static/images/restricted.jpg);">
+<div style="width:390px; height:380px; position:fixed; left:50%; margin-left:-180px; z-index:3; background:url(/static/images/restricted.jpg);">
 	<form name="login" method="post" action="/taws/check_login/">{% csrf_token %}
 
 		<input type="hidden" id="url" name="url" value="{{ fromPage }}">

@@ -104,6 +104,8 @@ function doAccess(myAction){
    		 //}
 	};
 	var saveSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		myUserSuite='';
+		mySharedSuite='';
 		userSuiteAry=sersverResponse_data['userSuiteAry'];
 		for(i=0;i<userSuiteAry.length;i++){
 			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
@@ -126,6 +128,8 @@ function doAccess(myAction){
 	var deleteSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		userSuiteID='';
 		sharedSuiteID='';
+		myUserSuite='';
+		mySharedSuite='';
 		for(i=0;i<userSuiteAry.length;i++){
 			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
 		}
@@ -133,7 +137,7 @@ function doAccess(myAction){
 		document.getElementById('userSuites').innerHTML='User Suites <span class=caret></span>';
 		userSuiteAry=sersverResponse_data['sharedSuiteAry'];
 		for(i=0;i<userSuiteAry.length;i++){
-			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
+			mySharedSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
 		}
 		document.getElementById('serverSharedSuite').innerHTML=myUserSuite;
 		document.getElementById('sharedSuites').innerHTML='Shared Suites <span class=caret></span>';

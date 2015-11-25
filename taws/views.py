@@ -54,11 +54,12 @@ def check_login(request):
 		context_dict={'login':username}
 	else:
 		context_dict={'nothing':'nothing'}
-	if 'url' in request.POST:
-		# url=request.POST['url'] to be developed
-		url="taws/index.html"
+	if 'fromPage' in request.POST:
+		 url=request.POST['fromPage']
+		#url="taws/index.html"
 	else:
 		url="taws/index.html"
+	context_dict.update({'fromPage':url})
 	return render_to_response(url,context_dict,context)
 
 def development_index(request):
@@ -125,7 +126,7 @@ def suite_creator(request):
 			'wdmTopoAry':wdmTopoAry,
 			'labAry':labAry,
 			'settings':settings.DATABASES['default']['USER']}
-		return render_to_response('taws/suite_creator2.html',context_dict,context)
+		return render_to_response('taws/suite_creator.html',context_dict,context)
 
 def test_development(request):
 	context = RequestContext(request)

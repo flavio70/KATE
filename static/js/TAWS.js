@@ -97,16 +97,20 @@ function queryDB2(userName){
 }
 
 function jsaveFile(suiteType){
-	saveID=suiteID;
-	saveText=document.getElementById(suiteType).innerHTML.replace(' <span class="caret"></span>','');
 	savingString='';
 	foundSuite=false;
+	saveText='';
+	if(document.getElementById(suiteType).innerHTML.replace(' <span class="caret"></span>','').replace('User Suites','').replace('Shared Suites','')!=''){
+		saveText=document.getElementById(suiteType).innerHTML.replace(' <span class="caret"></span>','');
+	}
 	if(saveText!=''){
 		newText = prompt('Insert Suite Name!',saveText);
+		if(newText==saveText){foundSuite=true;}
+
 	}else{
 		newText = prompt('Insert Suite Name!','newSuite');
+		saveID=newText;
 	}
-	if(newText==saveText){foundSuite=true;}
 	for(k=0;k<testBundleTable.rows().data().length;k++){
 		savingString+=testBundleTable.row(testBundleTable.rows()[k]).data().testId+'#';
 		sect1=0;
@@ -732,8 +736,13 @@ function updateTestTable(tableName,testAry){
 }
 
 function addRecordToTable(testString,tableName,lineNumber){
-	if(tableName=='testTable'){myTable=testTable;}
-		else{myTable=testBundleTable;}
+	if(tableName=='testTable'){
+		myTable=testTable;
+		myNum='';
+	}else{
+		myTable=testBundleTable;
+		myNum=myTable.rows().data().length+1;
+	}
 	tempField=testString.split('#');
 	tempRev=tempField[18].split('!');
  	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
@@ -743,6 +752,7 @@ function addRecordToTable(testString,tableName,lineNumber){
 		if(j==0){revision=myRev[1];}
 		revStr+='<option value="'+myRev[1]+'">'+myRev[0]+'</option>';
 	}
+	revStr+='</select>';
 	sectFunct=' onclick="changeSection(this);"';
 	if(tableName=='testBundleTable'){
 		if(tempField[17][0]=='2'){sect1='<input type="checkbox" checked'+sectFunct+'>';}
@@ -769,10 +779,9 @@ function addRecordToTable(testString,tableName,lineNumber){
 		if(tempField[17][4]=='1'){sect5='<input type="checkbox"'+sectFunct+'>';}
 		if(tempField[17][4]=='0'){sect5='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
-	revStr+='</select>';
 	myTable.row.add({
 		"control" : '',
-		"num" : myTable.rows().data().length+1,
+		"num" : myNum,
 		"tps" : tempField[5],
 		"test": tempField[6],
 		"lab" : tempField[19],
@@ -802,13 +811,13 @@ function addRecordToTable(testString,tableName,lineNumber){
 myTable
 }
 
-function modRecordToTable(testString,lineNumber,currentTable){
+function modRecordToTable(testString,lineNumber,tableName){
 	//if(tableName=='testTable'){myTable=testTable;}
 	//	else{myTable=testBundleTable;}
 	//var myTable = myRow.closest('table');
 	//var row = myTable.row(myRow);
 	tempField=testString.split('#');
-	tempRev=tempField[18].split('!');
+	//tempRev=tempField[18].split('!');
  	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=this.parentElement.parentElement.parentElement.parentElement;doAccess(\'queryIteration\');">';
 	/*revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+currentTable+'\';doAccess(\'queryIteration\');">';
 	for(j=0;j<tempRev.length;j++){
@@ -819,13 +828,34 @@ function modRecordToTable(testString,lineNumber,currentTable){
 		revStr+='<option value="'+myRev[1]+'" '+checked+'>'+myRev[0]+'</option>';
 	}
 	alert(revStr);*/
-	if(currentTable=='testBundleTable'){if(tempField[17][0]=='1'){sect1='<input type="checkbox" checked>';}else{sect1='<input type="checkbox" disabled>';}}else{sect1='<img src="'+SECT[tempField[17][0]]+'"/>';}
-	if(currentTable=='testBundleTable'){if(tempField[17][1]=='1'){sect2='<input type="checkbox" checked>';}else{sect2='<input type="checkbox" disabled>';}}else{sect2='<img src="'+SECT[tempField[17][1]]+'"/>';}
-	if(currentTable=='testBundleTable'){if(tempField[17][2]=='1'){sect3='<input type="checkbox" checked>';}else{sect3='<input type="checkbox" disabled>';}}else{sect3='<img src="'+SECT[tempField[17][2]]+'"/>';}
-	if(currentTable=='testBundleTable'){if(tempField[17][3]=='1'){sect4='<input type="checkbox" checked>';}else{sect4='<input type="checkbox" disabled>';}}else{sect4='<img src="'+SECT[tempField[17][3]]+'"/>';}
-	if(currentTable=='testBundleTable'){if(tempField[17][4]=='1'){sect5='<input type="checkbox" checked>';}else{sect5='<input type="checkbox" disabled>';}}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
-	revStr+='</select>';
-	var oTable = $('#'+currentTable).dataTable();
+	sectFunct=' onclick="changeSection(this);"';
+	if(tableName=='testBundleTable'){
+		if(tempField[17][0]=='2'){sect1='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][0]=='1'){sect1='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][0]=='0'){sect1='<input type="checkbox" disabled'+sectFunct+'>';}
+	}else{sect1='<img src="'+SECT[tempField[17][0]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][1]=='2'){sect2='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][1]=='1'){sect2='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][1]=='0'){sect2='<input type="checkbox" disabled'+sectFunct+'>';}
+	}else{sect2='<img src="'+SECT[tempField[17][1]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][2]=='2'){sect3='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][2]=='1'){sect3='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][2]=='0'){sect3='<input type="checkbox" disabled'+sectFunct+'>';}
+	}else{sect3='<img src="'+SECT[tempField[17][2]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][3]=='2'){sect4='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][3]=='1'){sect4='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][3]=='0'){sect4='<input type="checkbox" disabled'+sectFunct+'>';}
+	}else{sect4='<img src="'+SECT[tempField[17][3]]+'"/>';}
+	if(tableName=='testBundleTable'){
+		if(tempField[17][4]=='2'){sect5='<input type="checkbox" checked'+sectFunct+'>';}
+		if(tempField[17][4]=='1'){sect5='<input type="checkbox"'+sectFunct+'>';}
+		if(tempField[17][4]=='0'){sect5='<input type="checkbox" disabled'+sectFunct+'>';}
+	}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
+	//revStr+='</select>';
+	var oTable = $('#'+tableName).dataTable();
 	//oTable.fnUpdate( ['','1',tempField[5],tempField[6],tempField[19],revStr,tempField[7],tempField[9],sect1,sect2,sect3,sect4,sect5,tempField[0],tempField[12],tempField[8],"",tempField[14],tempField[15],"",tempField[16],testString,revision],0);
 	oTable.fnUpdate('',lineNumber,0,false);
 	//oTable.fnUpdate(lineNumber,lineNumber,1,false);

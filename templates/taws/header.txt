@@ -61,10 +61,12 @@
 	<script type="text/javascript" src="{% static "js/jszip.min.js" %}"></script>
 	<script type="text/javascript" src="{% static "js/pdfmake.min.js" %}"></script>
 	<script type="text/javascript" src="{% static "js/vfs_fonts.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/jquery.smartmenu.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/jquery.smartmenus.bootstrap.min.js" %}"></script>
 
 	<script type="text/javascript">
 
-		ddsmoothmenu.init({
+		/*ddsmoothmenu.init({
 			mainmenuid: "smoothmenu1", //menu DIV id
 			orientation: 'h', //Horizontal or vertical menu: Set to "h" or "v"
 			classname: 'ddsmoothmenu', //class added to menu's outer DIV
@@ -72,6 +74,13 @@
 			contentsource: "markup" //"markup" or ["container_id", "path_to_menu_file"]
 		})
 
+		ddsmoothmenu.init({
+			mainmenuid: "smoothmenu2", //menu DIV id
+			orientation: 'h', //Horizontal or vertical menu: Set to "h" or "v"
+			classname: 'ddsmoothmenu', //class added to menu's outer DIV
+			//customtheme: ["#1c5a80", "#18374a"],
+			contentsource: "markup" //"markup" or ["container_id", "path_to_menu_file"]
+		})*/
 	</script>
 	<script type="text/javascript">
 		function fillSelectCreator2(valueStr,myselect,selection){
