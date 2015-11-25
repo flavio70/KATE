@@ -48,14 +48,14 @@ function showalert(message,alerttype) {
 
 
 function changePerspective(){
-	if(document.getElementById('chartTitle').style.zIndex==5){show1=5;show2=10;viewStr='View Composer <span class="caret"></span>';} else{show1=10;show2=5;viewStr='View Cart <span class="caret"></span>';}
-	document.getElementById('composerTitle').style.zIndex=show1;
-	document.getElementById('chartTitle').style.zIndex=show2;
+	if(document.getElementById('cartTitle').innerHTML.match('Cart')){show1=5;show2=10;viewStr='View Composer <span class="caret"></span>';} else{show1=10;show2=5;viewStr='View Cart <span class="caret"></span>';}
+	//document.getElementById('composerTitle').style.zIndex=show1;
+	//document.getElementById('chartTitle').style.zIndex=show2;
 	//document.getElementById('queries').style.zIndex=show1;
 	//document.getElementById('suiteCommand').style.zIndex=show2;
 	document.getElementById('testContainer').style.zIndex=show1;
 	document.getElementById('testBundleContainer').style.zIndex=show2;
-	document.getElementById('CartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> '+viewStr;
+	document.getElementById('cartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> '+viewStr;
 }
 
 function format ( myRow ) {
@@ -511,83 +511,8 @@ $(document).ready(function() {
 
 <div id="alert_placeholder" style="position:fixed;top:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 
-<div id="composerTitle" style="width:250px;height:70px;position:fixed;left:3%;margin-top:18px;background-color:white;z-index:10;" valign="top">
-<table style="width:100%;height:100%;"><tr><td><h1><span class="label label-default">Job Composer</span></h1></td></tr></table>
-</div>
 
-<div id="chartTitle" style="width:250px;height:70px;position:fixed;left:3%;margin-top:18px;background-color:white;z-index:5;" valign="top">
-<table style="width:100%;height:100%;"><tr><td><h1><span class="label label-default">Job Cart&nbsp;&nbsp;&nbsp;</span></h1></td></tr></table> </div>
-
-<!--<div id="queries" style="width:600px;height:50px;position:fixed;left:3%;margin-top:100px;background-color:white;z-index:10;">
-	<table style="width:100%;border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;">
-		<tr>
-			<td align="center" valign="top"><b>Query Test DB : </b></td>
-		</tr>
-		<tr>
-			<td align="center" valign="top">
-				<select id="product1" style="width:100px;" onchange="fillSelectCreator(this.value,SWRelease,'');">
-					<option>Product</option>
-					{% for myItem in productAry %}
-					    <option value='{{ myItem.productConcat }}'>{{ myItem.product }}</option>
-					{% endfor %}
-				</select>
-				<select id="SWRelease1" style="width:100px;" disabled onchange="fillSelectCreator(this.value,scope,'');"><option>SW Version</option></select>
-				<select id="scope1" style="width:100px;" disabled onchange="fillSelectCreator(this.value,area,'');"><option>Domain</option></select>
-				<select id="area1" style="width:100px;" disabled onchange="resetFilter();lab.disabled=false;queryDB();"><option>Area</option></select>
-				<select id="lab1" style="width:100px;" disabled onchange="queryDB();">
-					<option value=''>Lab</option>
-					<option value="SVT">SVT</option>
-					<option value="SW">SW</option>
-					<option value="TEC">TEC</option>
-					<option value="NMS">NMS</option>
-				</select><br>
-			</td>	
-		</tr>
-	</table>
-</div>-->
-
-<!--<div id="suiteCommand" style="width:600px;height:50px;position:fixed;left:3%;margin-top:100px;background-color:white;z-index:5;">
-	<form name="selectTest" action="" method="post" >{% csrf_token %}
-	<input type="hidden" value="" name="targetFile" id="targetFile">
-	<input type="hidden" value="" name="saveBody" id="saveBody">
-	<input type="hidden" value="" name="tuningBundle" id="tuningBundle">
-	<input type="hidden"  name="savingStringValue">
-	<input type="hidden"  name="savingName">
-	<table style="width:100%;border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;">
-		<tr>
-			<td align="center" valign="top"><b>Suites Management : </b></td>
-		</tr>
-		<tr>
-			<td align="center">
-				<b>User Suites </b>
-				<select id="serverPersonalSuite" style="width:170;" onchange="serverSharedSuite.selectedIndex=0;">
-					<option value=''>Select Here</option>
-					{% for myItem in userSuiteAry %}
-					    <option value='{{ myItem.suiteID }}'>{{ myItem.suiteName }}</option>
-					{% endfor %}
-				</select>
-				<input type="button" title="LOAD" onclick="if(owner=='LOCAL'){emptyTable('testTable');}if(serverPersonalSuite.value!=''){owner='{{ login }}';loadID=serverPersonalSuite.value;doAccess('loadSuite');};" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">
-				<input type="button" title="SAVE" id="savePersonal" onclick="if(testBundleTable.rows.length>1){owner='{{ login }}';jsaveFile(serverPersonalSuite);}" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/save.png' %})">
-				<input type="button" title="DELETE" onclick="emptyTable('testBundleTable');if(serverPersonalSuite.value!=''&&confirm('Are you sure you want to delete '+serverPersonalSuite.value+'?')){owner='{{ login }}';deleteID=serverPersonalSuite.value;doAccess('deleteSuite');};" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})">
-				<b>Shared Suites </b>
-				<select id="serverSharedSuite" style="width:170;" onchange="serverPersonalSuite.selectedIndex=0;">
-					<option value=''>Select Here</option>
-					{% for myItem in sharedSuiteAry %}
-					    <option value='{{ myItem.suiteID }}'>{{ myItem.suiteName }}</option>
-					{% endfor %}
-				</select>
-				<input disabled type="button" title="LOAD" onclick="if(owner=='LOCAL'){emptyTable('testTable');}if(serverSharedSuite.value!=''){owner='SHARED';loadID=serverSharedSuite.value;doAccess('loadSuite');}" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">
-				<input disabled type="button" title="SAVE" id="saveShared" onclick="if(testBundleTable.rows.length>1){owner='SHARED';jsaveFile(serverSharedSuite);}" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/save.png' %})">
-				<input disabled type="button" title="DELETE" onclick="emptyTable('testBundleTable');if(serverPersonalSuite.value!=''&&confirm('Are you sure you want to delete '+serverPersonalSuite.value+'?')){owner='SHARED';deleteID=serverPersonalSuite.value;doAccess('deleteSuite');};" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})">
-				<input type="button" value="BUILD" id="tuneBtn" onclick="if(document.getElementById('serverPersonalSuite').value!=''||document.getElementById('serverSharedSuite').value!=''){jtuneSuite();}">
-			</td>
-		</tr>
-	</table>
-	</form>
-</div>-->
-
-
-<div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:150px;background-color:white;z-index:10;">
+<div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable">
 		<thead>       
 			<tr>     
@@ -651,33 +576,9 @@ $(document).ready(function() {
 		</tfoot>
 		
 	</table>
-	<!--<table>
-			<tr>
-				<td bgcolor="#D6E0F4" align="center" colspan="3">
-					<input type="button" class="stylishButton" style="width:30px" value=">>" title="ADD ALL TCs TO SUITE" onclick="insertAllBundleList();" />
-					<input type="button" class="stylishButton" style="width:30px" value=">" title="ADD SELECTED TCs TO SUITE" onclick="insertBundleList(1,'');" />
-					<input type="button" class="stylishButton" style="width:30px" value=">N" title="ADD SELECTED TCs N-times TO SUITE" onclick="numAdd=prompt('Insert Multiplier','');if(numAdd!=null){insertBundleList(numAdd,'');}" />
-					<input type="button" class="stylishButton" style="width:30px" value=">@" title="ADD SELECTED TCs AT SUITE POSITION" onclick="insertBundleList(1,prompt('Insert Position',''));" />
-					<input type="button" class="stylishButton" style="width:90px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="DELETE" id="deleteBtn" onclick="deleteTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/>
-					<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
-				</td>
-			</tr>
-	</table>
-	<table id="selectedStats" style="border-collapse:separate;border:solid lightgray 2px;border-radius:6px;-moz-border-radius:6px;width:600px">
-		<tr>
-			<td align="center" style="border-right:solid lightgray 3px;">Selection</td>
-			<td>Total Test</td>
-			<td style="border-right:solid lightgray 1px;text-align:center;" id="selectedNumber">0</td>
-			<td>Total TPS</td>
-			<td style="border-right:solid lightgray 1px;text-align:center;" id="selectedTPS">0</td>
-			<td>Total Time</td>
-			<td style="border-right:solid lightgray 1px;text-align:center;" id="selectedTime">0</td>
-			<td style="">Total Metric</td>
-			<td style="text-align:center;" id="selectedMetric">0</td>
-		</tr>
-	</table>-->
+	
 </div>
-<div id="testBundleContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:150px;background-color:white;z-index:5;">
+<div id="testBundleContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:5;">
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testBundleTable" >
 		<thead>       
 				<tr>     
@@ -751,16 +652,6 @@ $(document).ready(function() {
 	</table>
 </div>
 
-<!--<script>typeStart()</script>
-<input type="button" class="stylishButton" style="width:30px" value=">>" title="ADD ALL TCs TO SUITE" onclick="insertAllBundleList();" /><br>
-<input type="button" class="stylishButton" style="width:30px" value=">" title="ADD SELECTED TCs TO SUITE" onclick="insertBundleList(1,'');" /><br>
-<input type="button" class="stylishButton" style="width:30px" value=">N" title="ADD SELECTED TCs N-times TO SUITE" onclick="numAdd=prompt('Insert Multiplier','');if(numAdd!=null){insertBundleList(numAdd,'');}" /><br>
-<input type="button" class="stylishButton" style="width:30px" value=">@" title="ADD SELECTED TCs AT SUITE POSITION" onclick="insertBundleList(1,prompt('Insert Position',''));" /><br>
-<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" /><br>
-<input type="button" class="stylishButton" style="width:30px" value="<<" title="REMOVE ALL TCs FROM SUITE" onclick="removeAllBundleList();" /><br>
-<input type="button" class="stylishButton" style="width:30px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="DELETE" id="deleteBtn" onclick="deleteTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/><br>
-<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
-<script>typeEnd()</script>-->
 
 
 {% endblock %}
