@@ -1,28 +1,114 @@
-{% extends "taws/development_template.html" %}
+{% extends "taws/report_template.html" %}
 {% block body %}
 {% load static %}
-<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
-	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Job Details</h2>
-</div>
-<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
+<script>
+$(document).ready(function() {
+	document.getElementById('mainTitle').innerHTML='Build History';
+	jobTable = $('#jobTable').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+			{
+				"data": "job_action", 
+				"className": "dt-center" 
+			},
+			{
+				"data": "job_id", 
+				"className": "dt-center" 
+			},
+			{ "data": "job_status" },
+			{
+				"data": "job_date", 
+				"className": "dt-center"
+			},
+			{ "data": "job_test_passed" },
+			{
+				"data": "job_test_failed", 
+				"className": "dt-center"
+			},
+					{
+				"data": "job_test_total", 
+				"className": "dt-center"
+			}
+			]
+	});//end DataTable
+	
+	
+});// end ready function
+</script>
+
+
+
+
+<!--<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:1px;">
 	<h3>/<a href="/taws/runJenkins/"><u>Jobs</u></a>/{{ job_name }}/<h3>
+</div>-->
+<div style="width:1024px;position:fixed;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:30px">
+<div>
+	<ol class="breadcrumb">
+		<li><a href="/taws/runJenkins/">Jobs</a></li>
+		<li class="active">{{ job_name }}</li>
+	</ol>
 </div>
-<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:90px;">
-<h3><center><i>Available Builds</i></center></h3>
 <form name="jobDetails" method="post" target="_self" action="/taws/viewBuildDetails/">{% csrf_token %}
 	<input type="hidden" name="jobName">
 	<input type="hidden" name="buildId">
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="jobTable">
+			<thead>
+				<tr>
+					<th></th>
+					<th>Job Id</th>
+					<th>Job Status</th>
+					<th>Starting Date</th>
+					<th>Passed</th>
+					<th>Failed</th>
+					<th>Total</th>
+				</tr>
+			</thead>
+			<tfoot>
+			</tfoot>
+			<tbody>
+				{% for build in buildMatrix %}
+				<tr>
+					<td>
+						<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Run Job" role="group">
+							<button type="button" id='{{ build.instance }}' onclick="jobDetails.action='/taws/viewBuildDetails/';jobDetails.jobName.value='{{ job_name }}';jobDetails.buildId.value=this.id;jobDetails.submit();" class="btn btn-default btn-{{ build.bgcolor }}"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+						</div>
+					</td>
+					<td>#{{ build.instance }}</td>
+					<td>{{ build.status }}</td>
+					<td>{{ build.timeStamp }}</td>
+					<td>{{ build.passed }}</td>
+					<td>{{ build.failed }}</td>
+					<td>{{ build.total }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	
+	
+	
+<!--	
+	
 	<table cellspacing='0' width="100%">
 		<tr>
 			<td colspan="7" align="center">
 				<!--<input type="button" title='First' onclick="jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum=1';jobDetails.submit();" value="<<">-->
 				<!--<input type="button" title='Previous' onclick="if({{ pageNum }}-1>1){jobDetails.action='/taws/viewJobDetails/jobName={{ job_name }}&pageNum={{ pageNum }}-1';jobDetails.submit();}" value="<">-->
-					{% for i in pageList %}
+<!--					{% for i in pageList %}
 						<input type="button" onclick="jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum={{ i }}';jobDetails.submit();" {% if i == pageNum %}style="background-color: #660099;color:white;"{% endif %} value="{{ i }}">
 					{% endfor %}
 				<!--<input type="button" title='Next' onclick="if({{ pageNum }}+1>{{ buildNumber }}){jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum={{ pageNum }}+1';jobDetails.submit();}" value=">">-->
 				<!--<input type="button" title='Last' onclick="jobDetails.action='/taws/viewJobDetails/?jobName={{ job_name }}&pageNum={{ buildNumber }}';jobDetails.submit();" value=">>">-->
-			</td>
+<!--			</td>
 		</tr>
 		<tr style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#999999;' align="center">
 			<td style="width:15px;"></td>
@@ -44,7 +130,7 @@
 				<td style='width:50px;text-align:center;'>{{ build.total }}</td>
 			</tr>
 		{% endfor %}
-	</table>
+	</table>-->
 </form>
 </div>
 {% endblock %}
