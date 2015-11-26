@@ -2,6 +2,7 @@ var tempBundleListString = new Array();
 var bundleListString = new Array();
 var testListString = new Array();
 var testTable;
+var suiteChanged=false;
 
 var x1 = 11;   // change the # on the left to adjust the X co-ordinate
 var y1 = 250;  // change the # on the left to adjust the Y co-ordinate
@@ -100,13 +101,10 @@ function jsaveFile(suiteType){
 	savingString='';
 	foundSuite=false;
 	saveText='';
-	if(document.getElementById(suiteType).innerHTML.replace(' <span class="caret"></span>','').replace('User Suites','').replace('Shared Suites','')!=''){
-		saveText=document.getElementById(suiteType).innerHTML.replace(' <span class="caret"></span>','');
-	}
-	if(saveText!=''){
-		newText = prompt('Insert Suite Name!',saveText);
-		if(newText==saveText){foundSuite=true;}
-
+	if(suiteName!=''){
+		newText = prompt('Insert Suite Name!',suiteName);
+		if(newText==suiteName){foundSuite=true;saveID=suiteID;}
+			else{saveID=newText;}
 	}else{
 		newText = prompt('Insert Suite Name!','newSuite');
 		saveID=newText;
@@ -130,10 +128,10 @@ function jsaveFile(suiteType){
 		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
 		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 	}
-	if((foundSuite==true&&confirm("Overwrite " + newText +"?"))||foundSuite==false){
-		saveText=newText;
-		document.getElementById(suiteType).innerHTML=saveText+' <span class="caret"></span>';
+	if((((foundSuite==true&&confirm("Overwrite " + newText +"?"))||foundSuite==false))&&(saveID!=''&&saveID!='null')&&(savingString!='')){
+		document.getElementById(suiteType).innerHTML=suiteName+' <span class="caret"></span>';
 		doAccess('saveSuite');
+		//alert(saveID);
 	}
 
 }
@@ -502,6 +500,7 @@ function insertAllBundleList(){
 		addRecordToTable(testString,'testBundleTable','');
 	}
 	updateStats('chart');
+	suiteChanged=true;
 	/*myTable=document.getElementById('testTable');
 	for(i=1;i<myTable.rows.length;i++){
 		testCellAry=myTable.rows[i].name.split('#');
@@ -654,7 +653,7 @@ function updateSection(myObj){
 
 
 function jtuneSuite(){
-	switch(true){
+	/*switch(true){
 		//case selectTest.loadBundle.selectedIndex!=0:
 			//tuneName=selectTest.loadBundle.value.replace(/&/g,'%26');
 			//break;
@@ -666,20 +665,22 @@ function jtuneSuite(){
 			break;
 		default:
 			alert('No suites selected!');
-	}
-	if((tempBundleListString.length!=0)&&(bundleListString.length!=0)){
-		if(tempBundleListString.length-1!=bundleListString.length){
-			if(confirm('File seems to be changed since loaded,\nwanna save it now for tuning?')){jsaveFile('TestBundle',tuneName);}
+	}*/
+	selectTest.savingName.value=suiteID;
+	selectTest.action='/taws/tuning/';
+	if(testBundleTable.rows().data().length!=0){
+		if(suiteChanged){
+			if(confirm('File seems to be changed since loaded,\nwanna save it now for tuning?')){jsaveFile('TestBundle',suiteName);}
 		}else{
 			//alert('pippone');
-			selectTest.savingName.value=tuneName;
-			selectTest.action='/taws/tuning/';
+			//selectTest.savingName.value=tuneName;
+			//selectTest.action='/taws/tuning/';
 			//selectTest.target='principale';
 			selectTest.submit();
 		}
 	}else{
-		selectTest.savingName.value=tuneName;
-		selectTest.action='/taws/tuning/';
+		//selectTest.savingName.value=tuneName;
+		//selectTest.action='/taws/tuning/';
 		//selectTest.target='principale';
 		selectTest.submit();
 	}

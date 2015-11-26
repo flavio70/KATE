@@ -12,15 +12,17 @@
 	myLab="";
 	myUserSuite="";
 	mySharedSuite="";
+	suiteID='';
+	suiteName='';
 	userSuiteID='';
 	sharedSuiteID='';
 </script>
 {% for myItem in userSuiteAry %}
-    <script>myUserSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
+    <script>myUserSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in sharedSuiteAry %}
-    <script>mySharedSuite+='<li><a onclick="">{{ myItem.suiteName }}</a></li>';</script>
+    <script>mySharedSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'sharedSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ;">{{ myItem.suiteName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in productAry %}
@@ -461,25 +463,24 @@ $(document).ready(function() {
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">User Suites <span class="caret"></span></button>\
         <ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+myUserSuite+'</ul>\
         </div>\
-        <button type="button" class="btn btn-default" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(userSuiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
         <button type="button" class="btn btn-default" onclick="if(testBundleTable.rows().data().length>0){owner=\'{{ login }}\';jsaveFile(\'userSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-        <button type="button" class="btn btn-default" onclick="if(userSuiteID.value!=\'\'&&confirm(\'Are you sure you want to delete \'+document.getElementById(\'userSuites\').innerHTML.replace(\' <span class=\'+String.fromCharCode(34)+\'caret\'+String.fromCharCode(34)+\'></span>\',\'\')+\'?\')){owner=\'{{ login }}\';emptyTable(\'testBundleTable\');doAccess(\'deleteSuite\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(suiteID.value!=\'\'&&confirm(\'Are you sure you want to delete \'+document.getElementById(\'userSuites\').innerHTML.replace(\' <span class=\'+String.fromCharCode(34)+\'caret\'+String.fromCharCode(34)+\'></span>\',\'\')+\'?\')){owner=\'{{ login }}\';emptyTable(\'testBundleTable\');doAccess(\'deleteSuite\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
         <button type="button" class="btn btn-default"><i class="fa fa-share-alt"></i></button>\
     </div>&nbsp;&nbsp;&nbsp;<div class="input-group-btn">\
         <div class="btn-group btn-group-sm" role="group">\
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="sharedSuites">Shared Suites <span class="caret"></span></button>\
         <ul id="serverSharedSuite" class="dropdown-menu dropdown-menu-right">'+mySharedSuite+'</ul>\
         </div>\
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'SHARED\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(testBundleTable.rows().data().length>0){owner=\'SHARED\';jsaveFile(\'sharedSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
+        <button type="button" class="btn btn-default" onclick="if(suiteID.value!=\'\'&&confirm(\'Are you sure you want to delete \'+document.getElementById(\'sharedSuites\').innerHTML.replace(\' <span class=\'+String.fromCharCode(34)+\'caret\'+String.fromCharCode(34)+\'></span>\',\'\')+\'?\')){owner=\'SHARED\';emptyTable(\'testBundleTable\');doAccess(\'deleteSuite\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
         </div>&nbsp;&nbsp;&nbsp;<div class="input-group-btn">\
-        <button type="button" class="btn btn-default btn-info2"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> BUILD</button>\
+        <button type="button" class="btn btn-default btn-info2" onclick="if(suiteID!=\'\'){jtuneSuite();}"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> BUILD</button>\
     </div>\
     </div>');
     
-     
-    
+   
 	//$('#suiteTable').DataTable();
 	$('#testBundleTable tbody').on( 'click', 'tr', function () {
 		$(this).toggleClass('selected');
@@ -502,12 +503,13 @@ $(document).ready(function() {
 		}
 	    } );
 	
-	
-	
 } );
 
 </script>
 
+<form name="selectTest" action="" method="post" >{% csrf_token %}
+	<input type="hidden" value="" name="savingName" id="savingName">
+</form>
 
 <div id="alert_placeholder" style="position:fixed;top:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 

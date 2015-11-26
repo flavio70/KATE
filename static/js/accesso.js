@@ -89,6 +89,7 @@ function doAccess(myAction){
 		//alert(sersverResponse_data['testString']);
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
+		suiteChanged=false;
 	};
 	var queryDB = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//alert(sersverResponse_data, textStatus_ignored,jqXHR_ignored);
@@ -123,6 +124,7 @@ function doAccess(myAction){
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
 		//alert(sersverResponse_data['testString']);
+		suiteChanged=false;
 		showalert("Suite correctly saved","alert-success")
 	};
 	var deleteSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {

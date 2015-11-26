@@ -500,34 +500,25 @@ def runJenkins(request):
 		context_dict={'fromPage':fromPage}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
 	jobAction=request.POST.get('jobAction')
 	jobName=request.POST.get('jobName')
-	if jobName != '':
-		if (server.has_job(jobName)):
-			job_instance = server.get_job(jobName)
-			if jobAction=='stopJob':
-				job_instance.disable()
-				buildNumber=job_instance.get_last_build()
-				buildNumber.stop()
-			if jobAction=='deleteJob':
-				shutil.rmtree(suiteFolder+jobName)
-				server.delete_job(jobName)
-			#if jobAction=='getJobBuild':
-			#	buildNumber=job_instance.get_next_build_number()
-			#	for buildId in range(1,buildNumber):
-			#		build_instance=job_instance.get_build(buildId)
 
-			#		in_file = open(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml',"r")
-			#		tempFile=in_file.read()
-			#		in_file.close()
 
-			#		buildMatrix.append({'instance': str(buildId),'status':build_instance.get_status(),'duration':str(build_instance.get_duration()),'failCount':str(build_instance.get_actions()['failCount']),'totalCount':str(build_instance.get_actions()['totalCount']),'skipCount':str(build_instance.get_actions()['skipCount']),'xmlFile':tempFile,'url':build_instance.get_result_url(),'timeStamp':build_instance.get_timestamp()})
-					#print buildMatrix[buildId-1]
+	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 
-	#jobMatrix = [{'name':server.get_job(j[0]).name,'description':server.get_job(j[0]).get_description(),'status':server.get_job(j[0]).is_running(),'enabled':server.get_job(j[0]).is_enabled()} for j in server.get_jobs()]
+	if jobAction=='stopJob':
+		job_instance = server.get_job(jobName)
+		job_instance.disable()
+		buildNumber=job_instance.get_last_build()
+		buildNumber.stop()
+
+	if jobAction=='deleteJob':
+		job_instance = server.get_job(jobName)
+		shutil.rmtree(suiteFolder+jobName)
+		server.delete_job(jobName)
+
 	jobMatrix=[]
 	for j in server.get_jobs():
 		job_instance=server.get_job(j[0])
