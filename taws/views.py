@@ -582,9 +582,9 @@ def viewJobDetails(request):
 				#buildStatus=build_instance.get_status()
 				if failed == 0: buildStatus="SUCCESS"
 				if failed != 0: buildStatus="UNSTABLE"
-				if buildStatus == "SUCCESS":bgcolor="lightgreen"
+				if buildStatus == "SUCCESS":bgcolor="info"
 				#if buildStatus == "ABORTED":bgcolor="yellow"
-				if buildStatus == "UNSTABLE":bgcolor="red"
+				if buildStatus == "UNSTABLE":bgcolor="danger"
 				#buildDuration=build_instance.get_duration()
 				#buildUrl=build_instance.get_result_url()
 				#buildTimeStamp=build_instance.get_timestamp()
@@ -592,7 +592,7 @@ def viewJobDetails(request):
 				buildUrl=settings.JENKINS['HOST']+"/job/"+job_name+"/"+str(buildId)+"/"
 				buildTimeStamp=time.ctime(os.path.getmtime(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml'))
 			else:
-				bgcolor='yellow'
+				bgcolor='warning'
 				buildStatus = "ABORTED"
 				#failed=build_instance['failCount']
 				#total=build_instance['totalCount']
