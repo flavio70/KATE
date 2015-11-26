@@ -531,7 +531,7 @@ def runJenkins(request):
 def viewJobDetails(request):
 
 	from jenkinsapi.jenkins import Jenkins
-	import os.path
+	import os.path,time
 	import xml.etree.ElementTree as ET
 
 	buildMatrix=[]
@@ -547,34 +547,18 @@ def viewJobDetails(request):
 
 	job_name=request.GET.get('jobName')
 	page_num=int(request.GET.get('pageNum',1))
-	page_size=10
+	page_size=1000
 	buildNumber=0
-
+	
 	if (server.has_job(job_name)):
 		print('Getting Job '+job_name+' build number...')
 		job_instance = server.get_job(job_name)
 		buildNumber=job_instance.get_next_build_number()
 		print(str(buildNumber)+' build(s) retrieved...')
-		tempStr=buildNumber
-		maxBuild=buildNumber - (10*(page_num-1))
-		minBuild=0 if buildNumber - (10*(page_num)) < 0 else buildNumber - (10*(page_num))
-		totPage=buildNumber//10
-		#totPage=100
-		pageList=[]
-		pageList.append(1)
-		pageList.append(page_num-3) if page_num-3 > 0 and totPage >= 2 else pageList.append(2)
-		pageList.append(page_num-2) if page_num-2 > 1 and totPage >= 3 else pageList.append(3)
-		pageList.append(page_num-1) if page_num-1 > 2 and totPage >= 4 else pageList.append(4)
-		pageList.append(page_num) if page_num > 5 and totPage >= 5 else pageList.append(5)
-		pageList.append(6) if page_num+1 < totPage-3 and totPage >= 6 and page_num < 5 else pageList.append(page_num+1)
-		pageList.append(7) if page_num-2 < totPage-2 and totPage >= 7 and page_num < 5 else pageList.append(page_num+2)
-		pageList.append(8) if page_num-3 < totPage-1 and totPage >= 8 and page_num < 5 else pageList.append(page_num+3)
-		if totPage >= 9:pageList.append(totPage)
-		#for buildId in range(buildNumber,0,-1):
-		for buildId in range(maxBuild,minBuild,-1):
+		for buildId in range(buildNumber,0,-1):
 			bgcolor=""
 			if os.path.isfile(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml'):
-				build_instance=job_instance.get_build(buildId)
+				#build_instance=job_instance.get_build(buildId)
 				#in_file = open(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml',"r")
 				#tempFile=in_file.read()
 				#in_file.close()
@@ -595,32 +579,43 @@ def viewJobDetails(request):
 						passed+=1
 						#Response.Write("	<td style='width:50px'>OK</td>")
 				onClickFunction=chr(34)+"window.open('viewBuildDetails.asp?job="+job_name+"&build='+this.id.replace(/&/g,\'%26\'),'BuildDetails','height=800,width=1000,resizable=no');"+chr(34)
-				buildStatus=build_instance.get_status()
+				#buildStatus=build_instance.get_status()
+				if failed == 0: buildStatus="SUCCESS"
+				if failed != 0: buildStatus="UNSTABLE"
 				if buildStatus == "SUCCESS":bgcolor="lightgreen"
-				if buildStatus == "ABORTED":bgcolor="yellow"
+				#if buildStatus == "ABORTED":bgcolor="yellow"
 				if buildStatus == "UNSTABLE":bgcolor="red"
-				buildDuration=build_instance.get_duration()
-				buildUrl=build_instance.get_result_url()
-				buildTimeStamp=build_instance.get_timestamp()
-			#else:
-			#	bgcolor='red'
+				#buildDuration=build_instance.get_duration()
+				#buildUrl=build_instance.get_result_url()
+				#buildTimeStamp=build_instance.get_timestamp()
+				buildDuration="0"
+				buildUrl=settings.JENKINS['HOST']+"/job/"+job_name+"/"+str(buildId)+"/"
+				buildTimeStamp=time.ctime(os.path.getmtime(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml'))
+			else:
+				bgcolor='yellow'
+				buildStatus = "ABORTED"
 				#failed=build_instance['failCount']
 				#total=build_instance['totalCount']
 				#passed=int(build_instance['totalCount'])-int(build_instance['failCount'])-int(build_instance['skipCount'])
-			#	failed=0
-			#	total=0
-			#	passed=0
+				failed=0
+				total=0
+				passed=0
+				buildTimeStamp="NA"
+				buildUrl="NA"
+				tempFile=''
+				buildDuration="0"
 			#	buildStatus="NA"
 			#	buildDuration=0
 			#	buildUrl=""
 			#	buildTimeStamp=0
-			#	tempFile=""
-			#	onClickFunction=""
+				onClickFunction=""
 
-				buildMatrix.append({'instance': str(buildId),'status':buildStatus,'duration':buildDuration,'failed':failed,'total':total,'passed':passed,'xmlFile':tempFile,'url':buildUrl,'timeStamp':buildTimeStamp,'onClickFunction':onClickFunction,'bgcolor':bgcolor})
+			buildMatrix.append({'instance': str(buildId),'status':buildStatus,'duration':buildDuration,'failed':failed,'total':total,'passed':passed,'xmlFile':tempFile,'url':buildUrl,'timeStamp':buildTimeStamp,'onClickFunction':onClickFunction,'bgcolor':bgcolor})
 			#print buildMatrix[buildId-1]
-
-	context_dict={'login':request.session['login'],'buildMatrix':buildMatrix,'job_name':job_name,'pageNum':page_num,'pageList':pageList}
+	
+	
+	
+	context_dict={'login':request.session['login'],'buildMatrix':buildMatrix,'job_name':job_name,'pageNum':0,'pageList':"NA"}
 	return render(request,'taws/viewJobDetails.html',context_dict)
 
 def viewBuildDetails(request):
