@@ -491,30 +491,29 @@ $(document).ready(function() {
    
     $("div.suiteNavigation").html('<div class="input-group input-group-sm">\
       <div class="input-group-btn">\
-        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-forward fa-rotate-270"></i></button>\
-        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-play fa-rotate-270"></i></button>\
-        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-play fa-rotate-90"></i></button>\
-        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-forward fa-rotate-90"></i></button>\
+        <button type="button" class="btn btn-default" onclick="moveSelectedEdge(\'up\');"><i class="fa fa-forward fa-rotate-270"></i></button>\
+        <button type="button" class="btn btn-default" onclick="moveSelected(\'up\');"><i class="fa fa-play fa-rotate-270"></i></button>\
+        <button type="button" class="btn btn-default" onclick="moveSelected(\'down\');"><i class="fa fa-play fa-rotate-90"></i></button>\
+        <button type="button" class="btn btn-default" onclick="moveSelectedEdge(\'down\')"><i class="fa fa-forward fa-rotate-90"></i></button>\
     </div>&nbsp;&nbsp;&nbsp;\
     <div class="input-group-btn">\
-        <button type="button" class="btn btn-default" onclick=""><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Remove</button>\
-        <button type="button" class="btn btn-default" onclick=""><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> Remove All</button>\
+        <button type="button" class="btn btn-default" onclick="removeBundleList();"><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Remove</button>\
+        <button type="button" class="btn btn-default" onclick="removeAllBundleList();"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> Remove All</button>\
       </div>\
     </div>');
    
    
    
-   
-   
-   
-   
+  	$('#testBundleTable tbody').on('click','tr',function(e){
+		$(this).toggleClass('info');
+	})
    
    
 	//$('#suiteTable').DataTable();
-	$('#testBundleTable tbody').on( 'click', 'tr', function () {
-		$(this).toggleClass('selected');
-		//$(this).toggleClass($(this)[0].id);
-	    } );
+	//$('#testBundleTable tbody').on( 'click', 'tr', function () {
+	//	$(this).toggleClass('selected');
+	//	//$(this).toggleClass($(this)[0].id);
+	 //   } );
 
 	$('#testBundleTable tbody').on('click', 'td.details-control', function () {
 		var tr = $(this).closest('tr');

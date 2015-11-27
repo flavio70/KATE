@@ -460,33 +460,7 @@ function insertBundleList(numAdd,position){
 		testString=testCellAry.join('#');
 		addRecordToTable(testString,'testBundleTable','');
 	}
-	updateStats('chart');
-	/*myTable=document.getElementById('testTable');
-	if(position==''){addPosition='';}
-		else{addPosition=position;}
-	for(t=0;t<parseInt(numAdd);t++){
-		for(i=1;i<myTable.rows.length;i++){
-			if(myTable.rows[i].style.background.indexOf('red')>=0){
-				testCellAry=myTable.rows[i].name.split('#');
-				testCellAry[17]=testCellAry[17].replace(/1/g,'2');
-				testString=testCellAry.join('#');
-				addRecordToTable(testString,'testBundleTable',addPosition);
-				if(position!=''){addPosition++;}
-			}
-		}
-	}
-	if(position!=''){
-		myTable2=document.getElementById('testBundleTable');
-		for(i=1;i<myTable2.rows.length;i++){
-			myTable2.rows[i].cells[0].innerHTML=i;
-		}
-	}
-	colorTable('testBundleTable');
-	colorTable('testTable');
-	updateStats('testBundleTable')
-	updateStats('testTable')*/
-	//document.getElementById('tuneBtn').disabled=true;
-	//top.principale.document.getElementById('execBtn').disabled=true;
+	updateStats('cart');
 }
 
 function insertAllBundleList(){
@@ -499,7 +473,7 @@ function insertAllBundleList(){
 		testString=testCellAry.join('#');
 		addRecordToTable(testString,'testBundleTable','');
 	}
-	updateStats('chart');
+	updateStats('cart');
 	suiteChanged=true;
 	/*myTable=document.getElementById('testTable');
 	for(i=1;i<myTable.rows.length;i++){
@@ -516,26 +490,114 @@ function insertAllBundleList(){
 }
 
 function removeBundleList(){
-	myTable=document.getElementById('testBundleTable');
-	for(i=1;i<myTable.rows.length;i++){
-		if(myTable.rows[i].style.background.indexOf('red')>=0){
-			myTable.deleteRow(i);
-			i--
-		}
+	rowNum=testBundleTable.rows('.info').data().length;
+	for(i=0;i<rowNum;i++){
+		testBundleTable.rows(i).remove().draw();
 	}
-	updateStats('testBundleTable')
-	colorTable('testBundleTable');
-	//document.getElementById('tuneBtn').disabled=true;
-	//top.principale.document.getElementById('execBtn').disabled=true;
+	updateStats('cart');
 }
 
 function removeAllBundleList(){
-	emptyTable('testBundleTable');
-	updateStats('testBundleTable')
-	//document.getElementById('tuneBtn').disabled=true;
-	//top.principale.document.getElementById('execBtn').disabled=true;
+	testBundleTable.clear().draw();
+	updateStats('cart')
 }
 
+function moveSelectedEdge(direction){
+    var arr = jQuery('#testBundleTable tbody tr.info')
+     
+    for(var i=0; i<arr.length; i++) {           
+        var tr = arr[i];           
+        var row = jQuery(tr);               // row to move.
+	var firstRow = testBundleTable.row(0)
+        var prevRow = jQuery(tr).prev();    // row to move should be moved up and replace this.
+        var nextRow = jQuery(tr).next();    // row to move should be moved up and replace this.
+ 
+        /* already at the top? */
+        if(direction=='up'&&prevRow.length==0){  break; }   
+        if(direction=='down'&&nextRow.length==0){  break; }   
+        
+	if(direction=='up'){
+		//moveData(row, firstRow);
+		//moveVisualSelection(row, prevRow);
+		numStep=row[0].sectionRowIndex;
+		for(j=1;j<=numStep-i;j++){
+			moveData(row, prevRow);
+			moveVisualSelection(row, prevRow);
+			row = prevRow;
+			prevRow = prevRow.prev();
+		}
+	}
+	if(direction=='down'){
+		//moveData(row, firstRow);
+		//moveVisualSelection(row, prevRow);
+		//$('#testBundleTable').dataTable().fnAddData($('#testBundleTable').dataTable().fnGetData(row[0]));
+		numStep=row[0].sectionRowIndex;
+		for(j=numStep;j<testBundleTable.rows().data().length-i-1;j++){
+			moveData(row, nextRow);
+			moveVisualSelection(row, nextRow);
+			row = nextRow;
+			nextRow = nextRow.next();
+		}
+	}
+    }  
+ 
+    // send new comma-separated list of row order to server with ajax.
+    //updateRowOrderOnServer(getAllNodes().toString());
+	testBundleTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+		    cell.innerHTML = i+1;
+		} );
+}
+
+function moveSelected(direction){
+    var arr = jQuery('#testBundleTable tbody tr.info')
+     
+    for(var i=0; i<arr.length; i++) {           
+        var tr = arr[i];           
+        var row = jQuery(tr);               // row to move.
+        var prevRow = jQuery(tr).prev();    // row to move should be moved up and replace this.
+        var nextRow = jQuery(tr).next();    // row to move should be moved up and replace this.
+ 
+        /* already at the top? */
+        if(direction=='up'&&prevRow.length==0){  break; }   
+        if(direction=='down'&&nextRow.length==0){  break; }   
+        
+	if(direction=='up'){moveData(row, prevRow);moveVisualSelection(row, prevRow);}
+	if(direction=='down'){moveData(row, nextRow);moveVisualSelection(row, nextRow);}
+    }  
+ 
+    // send new comma-separated list of row order to server with ajax.
+    //updateRowOrderOnServer(getAllNodes().toString());
+	testBundleTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+		    cell.innerHTML = i+1;
+		} );
+}  
+ 
+/* the visual stuff that show which rows are selected */
+function moveVisualSelection(actualRow, futureRow){
+    actualRow.removeClass("info");
+    futureRow.addClass("info");
+}
+ 
+/* move the data in the internal datatable structure */
+function moveData(actualRow, futureRow){     
+    var movedData = $('#testBundleTable').dataTable().fnGetData(actualRow[0]);    // copy of row to move.
+    var prevData = $('#testBundleTable').dataTable().fnGetData(futureRow[0]); // copy of old data to be overwritten by above data.
+     
+    // switch data around :)
+    $('#testBundleTable').dataTable().fnUpdate(prevData , actualRow[0]); 
+    $('#testBundleTable').dataTable().fnUpdate(movedData , futureRow[0]);
+}      
+
+function moveUpTest(){
+	rowNum=testBundleTable.rows('.info').data().length;
+	for(i=0;i<rowNum;i++){
+		selectedRowNumber=testBundleTable.rows('.info')[i][0];
+		oldRowNumber=testBundleTable.rows(selectedRowNumber).data()[0].num;
+		$('#testBundleTable').dataTable().fnUpdate(oldRowNumber,oldRowNumber-1,1,false);
+		$('#testBundleTable').dataTable().fnUpdate(oldRowNumber-1,oldRowNumber,1,false);
+	}
+	updateStats('cart');
+}
 function fillSelect(ary,targetSelect,header,defaultSelection){
 	if(targetSelect.options.length>0){targetSelect.options.length=0;}
 	targetSelect.disabled=false;
@@ -965,7 +1027,7 @@ function updateStats(perspective){
 		document.getElementById('badge-sel-time').innerHTML=String(totTime).toHHMMSS();
 		document.getElementById('badge-sel-metric').innerHTML=totMetric;
 	}
-	if(perspective=='chart'){
+	if(perspective=='cart'){
 		totTime=0;
 		totMetric=0;
 		totTPS=0;
@@ -975,10 +1037,10 @@ function updateStats(perspective){
 			tempTPS=testBundleTable.row(testBundleTable.rows()[k]).data().tps;
 			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1;
 		}
-		document.getElementById('badge-chart-test').innerHTML=testBundleTable.rows().data().length;
-		document.getElementById('badge-chart-tps').innerHTML=totTPS;
-		document.getElementById('badge-chart-time').innerHTML=String(totTime).toHHMMSS();
-		document.getElementById('badge-chart-metric').innerHTML=totMetric;
+		document.getElementById('badge-cart-test').innerHTML=testBundleTable.rows().data().length;
+		document.getElementById('badge-cart-tps').innerHTML=totTPS;
+		document.getElementById('badge-cart-time').innerHTML=String(totTime).toHHMMSS();
+		document.getElementById('badge-cart-metric').innerHTML=totMetric;
 	}
 	/*var myTable = document.getElementById(totalTable);
 	tot1 = 0

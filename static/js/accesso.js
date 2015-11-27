@@ -209,8 +209,8 @@ function doAccess(myAction){
 		});
 	}
 	if(myAction=='queryDB'){
-    document.getElementById('serverPersonalSuite').disabled=false;
-    document.getElementById('serverSharedSuite').disabled=false;
+    //document.getElementById('serverPersonalSuite').disabled=false;
+    //document.getElementById('serverSharedSuite').disabled=false;
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
