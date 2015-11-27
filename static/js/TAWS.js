@@ -103,12 +103,19 @@ function jsaveFile(suiteType){
 	saveText='';
 	if(suiteName!=''){
 		newText = prompt('Insert Suite Name!',suiteName);
-		if(newText==suiteName){foundSuite=true;saveID=suiteID;}
-			else{saveID=newText;}
+		if(newText==suiteName){
+			foundSuite=true;saveID=suiteID;
+		}else{
+			saveID=newText;
+		}
 	}else{
 		newText = prompt('Insert Suite Name!','newSuite');
-		saveID=newText;
+		for(j=0;j<serverPersonalSuite.children.length;j++){
+			if(newText==serverPersonalSuite.children[j].children[0].name){foundSuite=true;saveID=serverPersonalSuite.children[j].children[0].id;}
+		}
+		if(foundSuite==false){saveID=newText;}
 	}
+	suiteName = newText;
 	for(k=0;k<testBundleTable.rows().data().length;k++){
 		savingString+=testBundleTable.row(testBundleTable.rows()[k]).data().testId+'#';
 		sect1=0;
@@ -128,7 +135,7 @@ function jsaveFile(suiteType){
 		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
 		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 	}
-	if((((foundSuite==true&&confirm("Overwrite " + newText +"?"))||foundSuite==false))&&(saveID!=''&&saveID!='null')&&(savingString!='')){
+	if((((foundSuite==true&&confirm("Overwrite " + newText +"?"))||foundSuite==false))&&(saveID!=''&&saveID!='null')&&(savingString!='')&&(newText!=null)){
 		document.getElementById(suiteType).innerHTML=suiteName+' <span class="caret"></span>';
 		doAccess('saveSuite');
 		//alert(saveID);
@@ -1041,6 +1048,10 @@ function updateStats(perspective){
 		document.getElementById('badge-cart-tps').innerHTML=totTPS;
 		document.getElementById('badge-cart-time').innerHTML=String(totTime).toHHMMSS();
 		document.getElementById('badge-cart-metric').innerHTML=totMetric;
+		showalert("Test Cases Adde Succesfully.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Test:"+testBundleTable.rows().data().length+"\
+							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tot Time:"+String(totTime).toHHMMSS()+"\
+							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total TPS:"+totTPS+"\
+							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Metric:"+totMetric,"alert-success")
 	}
 	/*var myTable = document.getElementById(totalTable);
 	tot1 = 0

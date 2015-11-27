@@ -20,11 +20,11 @@
 	sharedSuiteID='';
 </script>
 {% for myItem in userSuiteAry %}
-    <script>myUserSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
+    <script>myUserSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in sharedSuiteAry %}
-    <script>mySharedSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'sharedSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ;">{{ myItem.suiteName }}</a></li>';</script>
+    <script>mySharedSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'sharedSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ;">{{ myItem.suiteName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in productAry %}

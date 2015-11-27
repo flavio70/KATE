@@ -132,6 +132,7 @@ function doAccess(myAction){
 		sharedSuiteID='';
 		myUserSuite='';
 		mySharedSuite='';
+		userSuiteAry=sersverResponse_data['userSuiteAry'];
 		for(i=0;i<userSuiteAry.length;i++){
 			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
 		}
