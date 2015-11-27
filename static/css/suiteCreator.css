@@ -1,0 +1,24 @@
+.suiteNavigation {
+	text-align:center;
+}
+
+
+.navbar-xs { min-height:31px;max-height:31px;}
+.navbar-xs .navbar-brand{ padding: 4px 8px;font-size: 14px;min-height:31px;max-height:31px}
+.navbar-xs .navbar-nav > li > a {  padding-top: 0px; padding-bottom: 0px;min-height:31px;max-height:31px }
+.navbar-btn-xs {margin-top:3px;}
+.navbar-toggle-xs { 
+	margin-top:4px;
+	padding:4px 4px;
+	
+}
+
+
+
+.navbar-colored {background-color:#F0F1FB;}
+
+@media screen and (max-width: 768px) {
+  .navbar-xs {
+    max-height:unset;
+  }
+}
