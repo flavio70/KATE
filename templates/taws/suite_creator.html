@@ -360,7 +360,11 @@ $(document).ready(function() {
 	    } ).draw();		 
 	    
 	testBundleTable = $('#testBundleTable').DataTable({
-		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"buttonGroup2">><"col-sm-3"f>><"row"<"col-sm-12"tr>><"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>><"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		dom:'<"row"<"col-sm-12"<"buttonGroup2">>>\
+			<"row"<"col-sm-2"l><"col-sm-7"<"suiteNavigation">><"col-sm-3"f>>\
+			<"row"<"col-sm-12"tr>>\
+			<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+			<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
 		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
 		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
 		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
@@ -457,7 +461,11 @@ $(document).ready(function() {
 				]
 	});
 	
-	 $("div.buttonGroup2").html('<div class="input-group input-group-sm">\
+	
+	$("div.buttonGroup2").html('');
+	
+	
+	 $("div.buttonGroup33").html('<div class="input-group input-group-sm">\
       <div class="input-group-btn">\
         <div class="btn-group btn-group-sm" role="group">\
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">User Suites <span class="caret"></span></button>\
@@ -480,6 +488,27 @@ $(document).ready(function() {
     </div>\
     </div>');
     
+   
+    $("div.suiteNavigation").html('<div class="input-group input-group-sm">\
+      <div class="input-group-btn">\
+        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-forward fa-rotate-270"></i></button>\
+        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-play fa-rotate-270"></i></button>\
+        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-play fa-rotate-90"></i></button>\
+        <button type="button" class="btn btn-default" onclick=""><i class="fa fa-forward fa-rotate-90"></i></button>\
+    </div>&nbsp;&nbsp;&nbsp;\
+    <div class="input-group-btn">\
+        <button type="button" class="btn btn-default" onclick=""><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Remove</button>\
+        <button type="button" class="btn btn-default" onclick=""><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> Remove All</button>\
+      </div>\
+    </div>');
+   
+   
+   
+   
+   
+   
+   
+   
    
 	//$('#suiteTable').DataTable();
 	$('#testBundleTable tbody').on( 'click', 'tr', function () {
@@ -643,7 +672,7 @@ $(document).ready(function() {
 				</tr>     
 		</tfoot>
 	</table>
-	<table>
+	<!--<table>
 		<tr>
 			<td bgcolor="#D6E0F4" style="font-size : 8pt;" align="center" colspan="3">
 				<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" />
@@ -651,7 +680,7 @@ $(document).ready(function() {
 				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
 			</td>
 		</tr>
-	</table>
+	</table>-->
 </div>
 
 
