@@ -839,7 +839,7 @@ def createRunJenkins(request):
 
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
-	in_file = open(suiteFolder+job_name+'/workspace/suite/nodeList.txt',"r")
+	in_file = open(suiteFolder+job_name+'/workspace/nodeList.txt',"r")
 	tempFile=in_file.read()
 	in_file.close()
 
