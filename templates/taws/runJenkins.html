@@ -34,6 +34,9 @@ $(document).ready(function() {
 			}
 			]
 	});//end DataTable
+
+	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+
 });// end ready function
 </script>
 
@@ -66,16 +69,16 @@ $(document).ready(function() {
 						<td align=center>{{ job.status }}</td>
 						<td align=center>{{ job.enabled }}</td>
 						<td align=center>
-							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Run Job" role="group">
+							<div class="btn-group btn-group-xs" data-toggle="popover" title="RUN JOB" data-content="Use this button to RUN your Job,run setting required" role="group">
 								<button type="button" onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+$(this).closest('tr')[0].id,'runCreator','height=470,width=900,resizable=no');" class="btn btn-default-xs btn-success"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
 							</div>
-							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Stop Job execution" role="group">
+							<div class="btn-group btn-group-xs" data-toggle="popover" title="STOP JOB" data-content="Use this button to stop Job execution immediatly" role="group">
 								<button type="button" onclick="jobAction.value='stopJob';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-warning"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
 							</div>
-							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Delete Job" role="group">
+							<div class="btn-group btn-group-xs" data-toggle="popover" title="DELETE JOB" data-content="Use this button to permanently DELETE your JOB" role="group">
 								<button type="button" onclick="jobAction.value='deleteJob';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 							</div>
-							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Get Job History builds" role="group">
+							<div class="btn-group btn-group-xs" data-toggle="popover" title="JOB DETAILS" data-content="Use this button to get information about your JOB and get Build History" role="group">
 								<button type="button" onclick="runTest.action='/taws/viewJobDetails/?jobName='+$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-info"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></button>
 							</div>
 							<!--<input type="button" title='START' onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+this.parentElement.parentElement.id.replace(/&/g,'%26'),'runCreator','height=470,width=900,resizable=no');" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/load.png' %})">

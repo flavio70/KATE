@@ -292,7 +292,7 @@ $(document).ready(function() {
 							<ul class="dropdown-menu dropdown-menu-right" id="area-dropdown"></ul>\
 						</div><!-- end btn_group-->\
 						<div class="btn-group btn-group-sm" data-toggle="tooltip" title="remove Selected test from DB"" role="group">\
-							<button type="button" onclick="deleteTest();"class="btn btn-default navbar-btn btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>\
+							<button type="button" data-toggle="popover" title="DELETE BUTTON" data-content="Use this button to delete selected tests" onclick="deleteTest();"class="btn btn-default navbar-btn btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>\
 						</div><!-- end btn_group-->\
 					</ul>\
 				</div><!-- end navbar-collapse -->\
@@ -316,14 +316,14 @@ $(document).ready(function() {
 				<!-- Collect the nav links, forms, and other content for toggling -->\
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">\
 					<ul class="nav navbar-nav">\
-						<div class="btn-group btn-group-sm data-toggle="tooltip" title="Add Selected test to Suite"" role="group">\
-							<button type="button" onclick="insertBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-play" aria-hidden="true"></span> Add</button>\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Use this button to add selected Test to your Suite" onclick="insertBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-play" aria-hidden="true"></span> Add</button>\
 						</div><!-- end btn_group-->\
-						<div class="btn-group btn-group-sm" data-toggle="tooltip" title="Add All tests to Suite""role="group">\
-							<button type="button" onclick="insertAllBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Add All</button>\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Use this button to add ALL the Tests browsed to your Suite" onclick="insertAllBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Add All</button>\
 						</div><!-- end btn_group-->\
-						<div class="btn-group btn-group-sm" data-toggle="tooltip" title="Add Selected test to position""role="group">\
-							<button type="button" onclick="insertBundleList(1,prompt(\'Insert Position\',\'\'));" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Add To</button>\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON to Index" data-content="Use this button to add selected Test to your Suite at specified position" onclick="insertBundleList(1,prompt(\'Insert Position\',\'\'));" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Add To</button>\
 						</div><!-- end btn_group-->\
 					</ul>\
 				</div><!-- end navbar-collapse -->\
@@ -480,7 +480,7 @@ $(document).ready(function() {
 				<!-- Collect the nav links, forms, and other content for toggling -->\
 				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
 					<ul class="nav navbar-nav navbar-center">\
-						<div class="btn-group btn-group-sm" role="group">\
+						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
 							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">User Suites <span class="caret"></span></button>\
 							<ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+myUserSuite+'</ul>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
@@ -489,7 +489,7 @@ $(document).ready(function() {
 							<button type="button" class="btn btn-default navbar-btn"data-toggle="tooltip" title="Share selected Suite"><i class="fa fa-share-alt"></i></button>\
 						</div>\
 						&nbsp;&nbsp;&nbsp;\
-						<div class="btn-group btn-group-sm" role="group">\
+						<div class="btn-group btn-group-sm" data-toggle="popover" title="SHARED SUITE COMMANDS" data-content="Select saved SHARED suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
 							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="sharedSuites">Shared Suites <span class="caret"></span></button>\
 							<ul id="serverSharedSuite" class="dropdown-menu dropdown-menu-right">'+mySharedSuite+'</ul>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load Shared Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'SHARED\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
@@ -498,7 +498,7 @@ $(document).ready(function() {
 						</div>\
 						&nbsp;&nbsp;&nbsp;\
 						<div class="btn-group btn-group-sm" role="group">\
-							<button type="button" class="btn btn-default btn-info2 navbar-btn" data-toggle="tooltip" title="Tune selected Suite" onclick="if(suiteID!=\'\'){jtuneSuite();}"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> BUILD</button>\
+							<button type="button" class="btn btn-default btn-info2 navbar-btn" data-toggle="popover" title="BUIILD BUTTON" data-content="After you save the suite use this button to build a job using your environment settings" onclick="if(suiteID!=\'\'){jtuneSuite();}"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> BUILD</button>\
 						</div>\
 					</ul>\
 				</div><!-- end navbar-collapse -->\
@@ -523,7 +523,7 @@ $(document).ready(function() {
 				<!-- Collect the nav links, forms, and other content for toggling -->\
 				<div class="collapse navbar-collapse" id="LC-navbar-collapse">\
 					<ul class="nav navbar-nav navbar-left">\
-								<div class="btn-group btn-group-xs" role="group" aria-label="...">\
+								<div class="btn-group btn-group-xs" role="group" aria-label="..." data-toggle="popover" title="MOVE TEST CASES" data-content="MOVE UP adn DOWN,to TOP or to BOTTOM selected Test Cases">\
 									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test to Top" onclick="moveSelectedEdge(\'up\')"><i class="fa fa-forward fa-rotate-270"></i></button>\
 									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test Up" onclick="moveSelected(\'up\')"><i class="fa fa-play fa-rotate-270"></i></button>\
 									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test Down" onclick="moveSelected(\'down\')"><i class="fa fa-play fa-rotate-90"></i></button>\
@@ -554,8 +554,8 @@ $(document).ready(function() {
 				<div class="collapse navbar-collapse" id="LC-navbar-collapse1">\
 						<ul class="nav navbar-nav navbar-center">\
 						<div class="btn-group btn-group-xs" role="group" aria-label="...">\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Remove selected Test" onclick="removeBundleList()"><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Selected</button>\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Remove all Tests" onclick="removeAllBundleList()"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> All</button>\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="popover" title="REMOVE BUTTON" data-content="Remove selected Test Cases from yout Suite" onclick="removeBundleList()"><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Selected</button>\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="popover" title="REMOVE ALL BUTTON" data-content="Remove ALL Test Cases from yout Suite" onclick="removeAllBundleList()"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> All</button>\
 								</div>\
 						</ul>\
 				</div><!-- end navbar-collapse -->\
@@ -591,7 +591,9 @@ $(document).ready(function() {
 		    tr.addClass('shown');
 		}
 	    } );
-	
+	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'right','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+	$('[data-toggle="popover-left"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 } );
 
 </script>
@@ -600,7 +602,7 @@ $(document).ready(function() {
 	<input type="hidden" value="" name="savingName" id="savingName">
 </form>
 
-<div id="alert_placeholder" style="position:fixed;top:1px;z-index:100;width:100%;left:0px;display:none;"></div>
+<div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 
 
 <div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">

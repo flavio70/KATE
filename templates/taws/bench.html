@@ -214,7 +214,10 @@ $(document).ready(function() {
 	$('#suiteTable tbody').on('click','tr',function(e){
 		$('#suiteTable').find('tr.info').removeClass('info');
 		$(this).addClass('info');
-})
+	})
+
+	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'down','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+
 } );
 
 //$.fn.dataTable.ext.buttons.alert = { className: 'buttons-alert', action: function ( e, dt, node, config ) { alert( this.text() ); } }; $(document).ready(function() { $('#example').DataTable( { dom: 'Bfrtip', buttons: [ { extend: 'alert', text: 'My button 1' }, { extend: 'alert', text: 'My button 2' }, { extend: 'alert', text: 'My button 3' } ] } ); } );
