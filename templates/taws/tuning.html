@@ -1,4 +1,4 @@
-{% extends "taws/mainCompact_template.html" %}
+{% extends "taws/report_template.html" %}
 {% block body %}
 {% load static %}
 
@@ -22,7 +22,6 @@
 	
 	owner='{{ login }}';
 	var myURL = "{% url 'accesso' %}";
-	
 	
 </script> 
 
@@ -112,15 +111,15 @@
 	
 	<div id="div_topology_table" class="col-sm-6">
 		<h2 id='topoTitle'>Title</h2>
-		<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="valueTable">
+		<table class="display table table-striped table-hover table-condensed" id="showedTable">
 			<thead>
 				<tr>
-					<th>label</td>
-					<th>Value</td>
+					<th>label</th>
+					<th></th>
+					<th>Value</th>
+					<th></th>
 				</tr>
 			</thead>
-			<tfoot>
-			</tfoot>
 			<tbody>
 			</tbody>
 		</table>
@@ -172,21 +171,33 @@
 <script>
 	
 	$(document).ready(function() { 
-	$('[data-toggle="popover"]').popover(); 
-	document.getElementById('mainTitle').innerHTML='Job Management';
-	testTable = $('#valueTable').DataTable({
-		dom:'<"row"<"col-sm-12"tr>>',
-		scrollY:'380px',
-		scrollCollapse:true,"columns": [
-			{
-				"data": "label", 
-				"className": "dt-center" 
-			},
-			{ "data": "value" }
-			]
-	});//end DataTable
+		$('[data-toggle="popover"]').popover(); 
+		document.getElementById('mainTitle').innerHTML='Job Management';
+		valueTable = $('#showedTable').DataTable({
+			dom:'<"row"<"col-sm-12"tr>>',
+			scrollY:'380px',
+			"bSort" : false,
+			scrollCollapse:true,"columns": [
+				{
+					"data": "label", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "labelID", 
+					"visible" : false
+				},
+				{
+					"data": "value", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "valueID", 
+					"visible" : false
+				}
+				]
+		});//end DataTable
 	
-});
+	});
 	
 	
 	
@@ -209,12 +220,11 @@
 
 	function show(topoIndex){
 		topoName=topologies[topoIndex][0];
-		//removeAllChild();
-		myCell=document.getElementById('topoTitle');
-		myCell.innerText="Topology " + topoName;
+		valueTable.clear().draw();
+		document.getElementById('topoTitle').innerHTML="Topology " + topoName;
 		currentTopology=topoIndex;
 		currentLabel='';
-		/*for(i=0;i<topologies[topoIndex][1].length;i++){
+		for(i=0;i<topologies[topoIndex][1].length;i++){
 			if(topologies[topoIndex][1][i].indexOf('#')<0){
 				if(i==topologies[topoIndex][1].length){
 					createElement(topologies[topoIndex][1][i],topologies[topoIndex][2][i],i,'bottom','',topologies[topoIndex][4][i]);
@@ -225,7 +235,7 @@
 				createElement(topologies[topoIndex][6][i],topologies[topoIndex][2][i],i,'top',topologies[topoIndex][1][i].replace('#',''),topologies[topoIndex][4][i]);
 				currentLabel=topologies[topoIndex][6][i];
 			}
-		}*/
+		}
 		document.getElementById('prevBtn').onclick = function(){show(topoIndex-1);}
 		document.getElementById('nextBtn').onclick = function(){show(topoIndex+1);}
 		if(topoIndex==0){document.getElementById('prevBtn').onclick = function(){show(topologies.length-1);}}
@@ -236,36 +246,35 @@
 	}
 
 	function createElement(name,description,progressiveID,borderType,eqptType,idEntity){
-		myTable=document.getElementById('showedTable');
-		var myRow=myTable.insertRow();
-		if(borderType=='top'){myRow.style.borderTop='3px solid black';}
-		if(borderType=='bottom'){myRow.style.borderBottom='3px solid black';}
-		var myCell = myRow.insertCell();
-		textNode = document.createElement ('p');
-		textNode.setAttribute("title",description)
-		textNode.appendChild (document.createTextNode (name));
-		myCell.appendChild(textNode);
-		var flagsInput = document.createElement("input");
+		//myTable=document.getElementById('showedTable');
+		//var myRow=myTable.insertRow();
+		//if(borderType=='top'){myRow.style.borderTop='3px solid black';}
+		//if(borderType=='bottom'){myRow.style.borderBottom='3px solid black';}
+		//var myCell = myRow.insertCell();
+		//textNode = document.createElement ('p');
+		//textNode.setAttribute("title",description)
+		//textNode.appendChild (document.createTextNode (name));
+		//myCell.appendChild(textNode);
+		//var flagsInput = document.createElement("input");
 		if(borderType=='top'){
 			buttonText='...';
 			if(topologies[currentTopology][3][progressiveID]!=''){buttonText=topologies[currentTopology][3][progressiveID]}
-			flagsInput.id=progressiveID+'$'+eqptType+'$'+idEntity;
-			flagsInput.type="button";
-			flagsInput.value=buttonText;
-			flagsInput.onclick=function(){newwindow=window.open('/taws/selectEqpt/?myVars='+flagsInput.id,'viewReportTrunk','height=600,width=1000,resizable=1');}
-			flagsInput.style.fontSize="6pt";
+			valueID=progressiveID+'$'+eqptType+'$'+idEntity;
+			value='<button onclick="window.open(\'/taws/selectEqpt/?myVars=\'+valueTable.row($(this).closest(\'tr\')).data().valueID,\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+buttonText+'</button>';
 		}else{
-			flagsInput.id=progressiveID;
-			flagsInput.setAttribute("type","text");
-			if(topologies[currentTopology][3][progressiveID]!=''){flagsInput.value=topologies[currentTopology][3][progressiveID];}
-				else{flagsInput.value="";}
-			flagsInput.style.fontSize="7pt";
-			flagsInput.onchange=function(){
-				topologies[currentTopology][3][this.id]=this.value;
-			}
+			valueID=progressiveID;
+			if(topologies[currentTopology][3][progressiveID]!=''){myValue=topologies[currentTopology][3][progressiveID];}
+				else{myValue="";}
+			value='<input type="text" onchange="topologies[currentTopology][3][this.id]=this.value;" value="'+myValue+'">';
 		}
-		myCell = myRow.insertCell();
-		myCell.appendChild(flagsInput);
+		//myCell = myRow.insertCell();
+		//myCell.appendChild(flagsInput);
+		valueTable.row.add({
+			"label" : '<span title="'+description+'">'+name+'</span>',
+			"labelID" : name,
+			"value" : value,
+			"valueID" : valueID
+		}).draw( false );
 	}
 
 	function removeAllChild(){

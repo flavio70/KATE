@@ -229,6 +229,7 @@ function doAccess(myAction){
 		});
 	}
 	if(myAction=='saveSuite'){
+		alert(savingString);
 		$.ajax({
 			type: "POST",
 			dataType: 'json',

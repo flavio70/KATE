@@ -3,6 +3,7 @@ var bundleListString = new Array();
 var testListString = new Array();
 var testTable;
 var suiteChanged=false;
+var valueTable;
 
 var x1 = 11;   // change the # on the left to adjust the X co-ordinate
 var y1 = 250;  // change the # on the left to adjust the Y co-ordinate
@@ -117,7 +118,7 @@ function jsaveFile(suiteType){
 	}
 	suiteName = newText;
 	for(k=0;k<testBundleTable.rows().data().length;k++){
-		savingString+=testBundleTable.row(testBundleTable.rows()[k]).data().testId+'#';
+		savingString+=testBundleTable.row(k).data().testId+'#';
 		sect1=0;
 		sect2=0;
 		sect3=0;
@@ -878,7 +879,7 @@ function addRecordToTable(testString,tableName,lineNumber){
 		var title = $(this).prop('title');
 		if (title == 'TPS') {$(this).html( '<input type="text" placeholder="Search '+title+'" />' );}
 	});*/
-myTable
+//myTable
 }
 
 function modRecordToTable(testString,lineNumber,tableName){
