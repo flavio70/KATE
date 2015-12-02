@@ -666,12 +666,12 @@ def viewBuildDetails(request):
 			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._Main','')
 			for stderr in suites.iter('stderr'):
 				testStatus='Failed'
-				bgcolor='red'
+				bgcolor='danger'
 				fontcolor="white"
 				break
 			else:
 				testStatus='Passed'
-				bgcolor='lightgreen'
+				bgcolor='info'
 				fontcolor="black"
 			tpsList=[]
 			for tps in root.findall(".suites/suite"):
@@ -680,11 +680,11 @@ def viewBuildDetails(request):
 					tpsName=tpsTemp[1].replace('-','.')
 					tpsArea=tpsTemp[0].replace('-','.')
 					tpsTestStatus='Passed'
-					tpsBgcolor='lightgreen'
+					tpsBgcolor='success'
 					tpsFontcolor="black"
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
-						tpsBgcolor='red'
+						tpsBgcolor='danger'
 						tpsFontcolor="white"
 						break
 					tpsList.append({'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
