@@ -1,4 +1,4 @@
-{% extends "taws/development_template.html" %}
+{% extends "taws/report_template.html" %}
 {% block body %}
 {% load static %}
 <script>
@@ -6,15 +6,161 @@
 		report.action='/taws/viewJobDetails/?jobName={{ job_name }}';
 		report.submit();
 	}
+	
+	
+	$(document).ready(function() {
+	document.getElementById('mainTitle').innerHTML='Job Details';
+	jobTable = $('#stepResultTable').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'},
+		{
+			text:'<i class="fa fa-database fa"></i>',
+			titleAttr: 'Export report to K@TE Database',
+			action:function(){exportReport();},
+			className:'btn-custom'
+		},
+		
+		],
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+			{
+				"data": "step_action", 
+				"className": "dt-center" 
+			},
+			{
+				"data": "step_id", 
+				"className": "dt-center" 
+			},
+			{ "data": "step_name",
+			"className": "dt-center"
+			},
+			{
+				"data": "step_result", 
+				"className": "dt-center"
+			},
+			{ "data": "step_duration" },
+			{
+				"data": "step_jiraStory", 
+				"className": "dt-center"
+			},
+			{
+				"data": "step_jiraTask", 
+				"className": "dt-center"
+			}
+			]
+	});//end DataTable
+	
+	
+});// end ready function
+
 </script>
-<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
-	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Job Details</h2>
-</div>
-<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;">
-	<h3>/<a href="/taws/runJenkins/"><u>Jobs</u></a>/<a href="#" onclick="goToJob()"><u>{{ job_name }}</u></a>/{{ instance }}<h3>
-</div>
-<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:90px;">
-	<center>
+
+<div style="width:1024px;position:fixed;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:30px">
+	<div>
+		<ol class="breadcrumb">
+			<li><a href="/taws/runJenkins/">Jobs</a></li>
+			<li><a href="#" onclick="goToJob()">{{ job_name }}</a></li>
+			<li class="active">{{ instance }}</li>
+		</ol>
+	</div>
+	<table class="display table table-bordered table-condensed" cellspacing="1" id="testSummaryTable">
+		<thead>
+			<tr class="info">
+				<td>Status</td>
+				<td>Name</td>
+				<td>Owner</td>
+				<td>Target</td>
+				<td>SWP</td>
+				<td>Start</td>
+				<td>Duration</td>
+				<td>KATE DB</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr class="active">
+				<td id='JKSStatus'>{{ status }}</td>
+				<td id='suite'>Job {{ job_name }} Build # {{ build_name }}</td>
+				<td id='owner'>NA</td>
+				<td id='targetBench'>{{ target }}</td>
+				<td id='SWP'>NA</td>
+				<td id='start'>{{ timeStamp }}</td>
+				<td id='end'>{{ duration }}</td>
+				<td id='tawsdb'>NA</td>
+			</tr>
+		</tbody>
+	</table>
+	<form name="report" action="" method="post" target="_self">{% csrf_token %}
+		<input type="hidden" name="jobName" value="{{ job_name }}">
+		<input type="hidden" name="buildId" value="{{ instance }}">
+		<input type="hidden" name="azione" value="process">
+		<input type="hidden" name="testName" value="">
+		<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="stepResultTable">
+			<thead>
+				<tr>
+					<th></th>
+					<th>N.</th>
+					<th>Test List</th>
+					<th>Report</th>
+					<th>Duration</th>
+					<th>Story</th>
+					<th>Task</th>
+				</tr>
+			</thead>
+			<tfoot>
+			</tfoot>
+			<tbody>
+				{% for build in buildMatrix %}
+					<tr>
+						<td>
+							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="View Job Id Details" role="group">
+								<button type="button" id='{{ build.testName }}' onclick="report.action='/taws/viewReport/';report1.testName.value='{{ build.testName }}';submit();" class="btn btn-default btn-{{ build.bgcolor }}"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+							</div>
+						</td>
+						<td>{{ build.counter }}</td>
+						<td>{{ build.testName }}</td>
+						<td>{{ build.testStatus }}</td>
+						<td>{{ build.testDuration }}</td>
+						<td>
+							<ul class="list-group">
+								{% for tps in build.tpsList %}
+									<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.tpsArea }}</li>
+								{% endfor %}
+							</ul>
+						</td>
+						<td>
+							<ul class="list-group">
+								{% for tps in build.tpsList %}
+									<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.tpsName }}</li>
+								{% endfor %}
+							</ul>
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		
+		</table>
+	</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<!--<center>
 	<form name="report" action="" method="post" target="_self">{% csrf_token %}
 		<input type="hidden" name="jobName" value="{{ job_name }}">
 		<input type="hidden" name="buildId" value="{{ instance }}">
@@ -103,16 +249,16 @@
 						<input type="button" class="stylishButton" value="XLS" onclick="if(excelValues.value!=''){report.target='connection';report.action='accesso.asp?azione=exportExcel';submit();}">
 						<!--<input type="button" class="stylishButton" value="TSRT" onclick="if(excelValues.value!=''){report.target='principale';report.action='tsrtForm.asp';submit();}">-->
 						<!--<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" onclick="if(excelValues.value!=''){tempValue=excelValues.value.split('#');if(isNaN(tempValue[0])){alert('Results Belonging to Local Testing Suite.\nImpossible to upload results on Server...\n');}else{top.linkFrame.TPS=excelValues.value;extractTCFromExcelValues(excelValues.value,productList.value);}}">-->
-						<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" onclick="report.action='/taws/collectReports/';submit();">
+	<!--					<input type="button" class="stylishButton" id="TAWSBtn" value="TAWS DB" onclick="report.action='/taws/collectReports/';submit();">
 						<input type="button" class="stylishButton" id="updateDur" value="Update Durations" onclick="if(excelValues.value!=''){updateTimes();}">
 						<!--<input type="button" class="stylishButton" disabled id="RecoveryBtn" disabled value="Recovery Suite" onclick="recoverSuite('');">-->
 						<!--<input type="button" class="stylishButton" disabled id="LatencyBtn" value="Conformance Report" onclick="LtcyReport.value='';report.target='principale';report.action='conformance.asp?update=none';submit();">-->
 						<!--<input type="button" class="stylishButton" disabled id="LoggingBtn" value="DCI Certification" onclick="parent.topPage.connection.location.href='pythonAccess.asp?azione=1830Certification&savingStringValue=';">-->
-					</td>
+	<!--				</td>
 				</tr>
 		</table>
 	</form>
-</center>
+</center>-->
 </div>
 <script>
 function recoverSuite(mySuite){
@@ -136,6 +282,12 @@ function loadReport(reportName,reportType){
 			parent.topPage.connection.location.href='pythonAccess.asp?azione=analyzeATMReport&reportName=' + reportName;
 			}
 	}
+}
+
+
+function exportReport(){
+	report.action='/taws/collectReports/';
+	report.submit();
 }
 
 </script>
