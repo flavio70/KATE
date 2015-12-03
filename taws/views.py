@@ -666,12 +666,12 @@ def viewBuildDetails(request):
 			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._Main','')
 			for stderr in suites.iter('stderr'):
 				testStatus='Failed'
-				bgcolor='danger'
+				bgcolor='red'
 				fontcolor="white"
 				break
 			else:
 				testStatus='Passed'
-				bgcolor='info'
+				bgcolor='lightgreen'
 				fontcolor="black"
 			tpsList=[]
 			for tps in root.findall(".suites/suite"):
@@ -680,11 +680,11 @@ def viewBuildDetails(request):
 					tpsName=tpsTemp[1].replace('-','.')
 					tpsArea=tpsTemp[0].replace('-','.')
 					tpsTestStatus='Passed'
-					tpsBgcolor='info'
+					tpsBgcolor='lightgreen'
 					tpsFontcolor="black"
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
-						tpsBgcolor='danger'
+						tpsBgcolor='red'
 						tpsFontcolor="white"
 						break
 					tpsList.append({'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
@@ -779,14 +779,12 @@ def collectReports(request):
 			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._Main','')
 			for stderr in suites.iter('stderr'):
 				testStatus='Failed'
-				bgcolor='danger'
-				bgimage='thumbs-down'
+				bgcolor='red'
 				fontcolor="white"
 				break
 			else:
 				testStatus='Passed'
-				bgcolor='info'
-				bgimage='thumbs-up'
+				bgcolor='lightgreen'
 				fontcolor="black"
 			tpsList=[]
 			for tps in root.findall(".suites/suite"):
@@ -795,11 +793,11 @@ def collectReports(request):
 					tpsName=tpsTemp[1].replace('-','.')
 					tpsArea=tpsTemp[0].replace('-','.')
 					tpsTestStatus='Passed'
-					tpsBgcolor='info'
+					tpsBgcolor='lightgreen'
 					tpsFontcolor="black"
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
-						tpsBgcolor='danger'
+						tpsBgcolor='red'
 						tpsFontcolor="white"
 						break
 					tpsList.append({'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
@@ -810,8 +808,7 @@ def collectReports(request):
 				'testStatus':testStatus,
 				'testDuration':suites.find('duration').text,
 				'tpsList':tpsList,
-				'numTps':len(tpsList),
-				'bgimage':bgimage})
+				'numTps':len(tpsList)})
 			counter+=1
 
 	context_dict={'login':request.session['login'],
