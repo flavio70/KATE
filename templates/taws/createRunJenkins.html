@@ -5,40 +5,35 @@
 <HEAD>
 <TITLE>Run Creator</TITLE>
 <script>
-	function fitText(){
-		mytable=document.getElementByID('createRun');
-		if(mytable.rows[1].cells[0].innerHTML.length > maxLength)
-        {
-            mytable.rows[1].cells[0].style.fontSize = "8px";
-        }
+	var benchTable;
+
+	function fillSelectCreator(valueStr,myObj,selection){
+		if(valueStr!=''){document.getElementById('swp_'+myObj).disabled=false;}
+			else{document.getElementById('swp_'+myObj).disabled=true;}
+		tempAry1=valueStr.split('%');
+		selectBody='<option>PKG</option>';
+		for(i=0;i<tempAry1.length;i++){
+			tempAry2=tempAry1[i].split('|');
+			selectBody+='<option value="'+tempAry2[1]+'">'+tempAry2[0]+'</option>';
+		}
+		document.getElementById('swp_'+myObj).innerHTML=selectBody;
 	}
-	function fillSelectCreator(valueStr,myselect,selection){
-	  if(valueStr!=''){myselect.disabled=false;}
-	    else{myselect.disabled=true;}
-	  myselect.length=1;
-	  tempAry1=valueStr.split('%');
-	  for(i=0;i<tempAry1.length;i++){
-	    tempAry2=tempAry1[i].split('|');
-	    var addTest = document.createElement('option');
-	    addTest.text = tempAry2[0];
-	    addTest.value = tempAry2[1];
-	    myselect.add(addTest);
-	  }
-	}
+
 	function runJob(){
 		mytable=document.getElementById('benchTable');
 		tempStr=''
-		for(i=3;i<benchTable.rows().data().length;i++){
+		for(i=1;i<=benchTable.rows().data().length;i++){
 			swp=0;
 			forceLoad=0;
+			RowId=mytable.rows[i].id;
 			//alert(mytable.rows[i].cells[4].innerHTML);
-			if(mytable.rows(i).data()[0].swrel!='N.A.'){
-				swp=mytable.rows(i).data()[0].SWP;
+			if(mytable.rows[i].cells[3].innerHTML!='N.A.'){
+				swp=document.getElementById('swp_'+RowId).value;
 			}
-			if(mytable.rows[i].cells[5].childNodes[1].disabled==false&&mytable.rows[i].cells[5].childNodes[1].checked==true){
+			if(document.getElementById('checkbox_'+RowId).disabled==false&&document.getElementById('checkbox_'+RowId).checked==true){
 				forceLoad=1;
 			}
-			tempStr+=mytable.rows[i].cells[4].id+'#'+swp+'#'+forceLoad+'$';
+			tempStr+=RowId+'#'+swp+'#'+forceLoad+'$';
 		}
 		runTest.target.value=tempStr.slice(0,-1);
 		runTest.submit();
@@ -123,13 +118,13 @@
 		</tfoot>
 		<tbody>
 		{% for eqpt in swRelMatrix %}
-			<tr>
+			<tr id="{{ eqpt.id_equipmet }}">
 				<td>{{ eqpt.prodName }}</td>
 				<td>{{ eqpt.eqptName }}</td>
 				<td>{{ eqpt.owner }}</td>
 				<td>
 					{% if eqpt.packageList != 'None'%}
-						<select onchange="fillSelectCreator(this.value,$(this).closest(\'tr\'),'');">
+						<select onchange="fillSelectCreator(this.value,$(this).closest('tr')[0].id,'');">
 							<option value="" >REL</option>
 							{% for swRel in eqpt.packageList %}
 								<option value="{{ swRel.packList }}" >{{ swRel.swRelList }}</option>
@@ -137,16 +132,18 @@
 						</select>
 					{% else %}N.A.{% endif %}
 				</td>
-				<td id="{{ eqpt.id_equipmet }}">
+				<td>
 					{% if eqpt.packageList != 'None'%}
-						<select disabled id="swp">
+						<select disabled id="swp_{{ eqpt.id_equipmet }}">
 							<option value="" >PKG</option>
 						</select>
 					{% else %}N.A.{% endif %}
 				</td>
-				<td id="{{ eqpt.id_equipmet }}">
-					<input type="checkbox" {% if eqpt.packageList == 'None'%}disabled{% endif %} />
+				<td></td>
+				<td>
+					<input  id="checkbox_{{ eqpt.id_equipmet }}" type="checkbox" {% if eqpt.packageList == 'None'%}disabled{% endif %} />
 				</td>
+				<td></td>
 			</tr>
 		{% endfor %}
 		</tbody>

@@ -636,6 +636,9 @@ def viewBuildDetails(request):
 	buildId=request.POST.get('buildId')
 	target='NA'
 
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 	job_instance = server.get_job(job_name)
@@ -680,7 +683,10 @@ def viewBuildDetails(request):
 					tpsTemp=tps.find('name').text.replace('(','').replace('.XML)','').replace(testName+'.','').split('_')
 					tpsName=tpsTemp[2].replace('-','.')
 					tpsArea=tpsTemp[1]
-					tpsProd=tpsTemp[0]
+
+					myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0]+" limit 1")
+
+					tpsProd=myRecordSet.fetchone()['eType']
 					tpsTestStatus='Passed'
 					tpsBgcolor='info'
 					tpsFontcolor="black"
@@ -695,7 +701,7 @@ def viewBuildDetails(request):
 				'counter':counter,
 				'testName':testName,
 				'testStatus':testStatus,
-				'testDuration':suites.find('duration').text,
+				'testDurattpsAreaion':suites.find('duration').text,
 				'tpsList':tpsList,
 				'numTps':len(tpsList)})
 			counter+=1
