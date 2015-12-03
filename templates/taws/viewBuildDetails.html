@@ -118,15 +118,15 @@
 			<tbody>
 				{% for build in buildMatrix %}
 					<tr>
-						<td>
+						<td style="vertical-align:middle;">
 							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="View Job Id Details" role="group">
-								<button type="button" id='{{ build.testName }}' onclick="report.action='/taws/viewReport/';report1.testName.value='{{ build.testName }}';submit();" class="btn btn-default btn-{{ build.bgcolor }}"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+								<button type="button" id='{{ build.testName }}' onclick="report.action='/taws/viewReport/';report.testName.value='{{ build.testName }}';submit();" class="btn btn-default btn-{{ build.bgcolor }}"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
 							</div>
 						</td>
-						<td>{{ build.counter }}</td>
-						<td>{{ build.testName }}</td>
-						<td>{{ build.testStatus }}</td>
-						<td>{{ build.testDuration }}</td>
+						<td style="vertical-align:middle;">{{ build.counter }}</td>
+						<td style="vertical-align:middle;">{{ build.testName }}</td>
+						<td style="vertical-align:middle;">{{ build.testStatus }}</td>
+						<td style="vertical-align:middle;">{{ build.testDuration }}</td>
 						<td>
 							<ul class="list-group">
 								{% for tps in build.tpsList %}
