@@ -90,7 +90,8 @@ DATABASES = {
 
 JENKINS = {
     'HOST': 'http://151.98.52.72:7001',
-    'SUITEFOLDER': '/tools/jksadmin/SERVER_POOL/JEN001/jobs/'
+    'SUITEFOLDER': '/tools/jksadmin/SERVER_POOL/JEN001/jobs/',
+    'JOB_STRUCT': '/workspace/'
 }
 
 

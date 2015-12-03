@@ -388,7 +388,7 @@ def tuningEngine(request):
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
 	
-	tempStr+='Working folder : '+suiteFolder+suiteName+'/workspace/suite\n\n'
+	tempStr+='Working folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'\n\n'
 	
 	if localTesting == 'off':
 		tempStr+='Creating workspace structure...\n'
@@ -426,37 +426,37 @@ def tuningEngine(request):
 		#server.build_job(suiteName)
 		#server.stop(suiteName)
 		#os.chmod(suiteFolder+suiteName,511)
-		os.makedirs(suiteFolder+suiteName+'/workspace')
-		os.chmod(suiteFolder+suiteName+'/workspace',511)
-		os.makedirs(suiteFolder+suiteName+'/workspace/suite')
-		os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
-		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
-		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
+		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
+		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
+		#os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
+		#os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
 	myIDX=1
 	test_plan=''
-	myRepo=Repo('/tools/smotools'+settings.GIT_REPO+'.git')
+	myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
 	git=myRepo.git
 	for row in rows:
 		test_name=str(myIDX).zfill(6)+'_'+str(row['test_id'])+'_'+ntpath.basename(row['test_name'])
 		if localTesting == 'off':
 			tempStr+='GETTING '+test_name+'...'
-			out_file = open(suiteFolder+suiteName+'/workspace/suite/'+test_name,"w")
+			out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,"w")
 			out_file.write(git.show(row['revision']+':'+row['test_name']))
 			out_file.close()
-			os.chmod(suiteFolder+suiteName+'/workspace/suite/'+test_name,511)
+			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,511)
 		else:
 			tempStr+='CREATING LINK FOR '+test_name+'...'
-			if os.path.exists(suiteFolder+suiteName+'/workspace/suite/'+test_name):
-				tempStr+='Link '+suiteFolder+suiteName+'/workspace/suite/'+test_name+' already present,deleting...'
-				shutil.rmtree(suiteFolder+suiteName+'/workspace/suite/'+test_name)
+			if os.path.exists(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name):
+				tempStr+='Link '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+' already present,deleting...'
+				shutil.rmtree(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name)
 				tempStr+='DONE!\n'
-			localPath=suiteFolder+suiteName+'/workspace/suite/'+test_name
+			localPath=suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name
 			remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/'+row['test_name']
 			os.symlink(remotePath,localPath)
-		with open(suiteFolder+suiteName+'/workspace/suite/'+test_name+'.prs',"w") as out_file:
+		with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
 			json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
 		out_file.close()
-		os.chmod(suiteFolder+suiteName+'/workspace/suite/'+test_name+'.prs',511)
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',511)
 		myIDX+=1
 		runSection=row["run_section"]
 		runSectonStr=''
@@ -465,20 +465,20 @@ def tuningEngine(request):
 		if runSection[2]=='2':runSectonStr+=' --testBody'
 		if runSection[3]=='2':runSectonStr+=' --testClean'
 		if runSection[4]=='2':runSectonStr+=' --DUTClean'
-		test_plan+=suiteFolder+suiteName+'/workspace/suite/'+test_name+runSectonStr+'\n'
+		test_plan+=suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+runSectonStr+'\n'
 		#test_plan+=suiteFolder+suiteName+'/workspace/suite/'+test_name+' --pattern '+row["run_section"]+'\n'
 		tempStr+='DONE!\n'
 	if localTesting == 'off':
 		tempStr+='\nCreating Test plan...'
-		out_file = open(suiteFolder+suiteName+'/workspace/suite/suite.txt',"w")
+		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w")
 		out_file.write(test_plan)
 		out_file.close()
-		os.chmod(suiteFolder+suiteName+'/workspace/suite/suite.txt',511)
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
 		tempStr+='DONE!\n'
 	tempStr+='\nCreating Node List...'
-	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset=48 and elemName like '%#%'")
+	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%'")
 	nodeList=myRecordSet.fetchone()['nodeList']
-	out_file = open(suiteFolder+suiteName+'/workspace/suite/nodeList.txt',"w")
+	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.txt',"w")
 	out_file.write(nodeList)
 	out_file.close()
 	tempStr+='DONE!\n'
