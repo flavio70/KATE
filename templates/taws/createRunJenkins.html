@@ -1,11 +1,9 @@
 {% load static %}
+{% include "taws/header.txt" %}
+
 <HTML>
 <HEAD>
 <TITLE>Run Creator</TITLE>
-<LINK rel="stylesheet" type="text/css" href='{% static "css/style.css" %}'>
-<link rel='stylesheet' type='text/css' href='{% static "css/datepicker_vista/datepicker_vista.css" %}' />
-<script type='text/javascript' src='{% static "js/bundle.js" %}'></script>
-<script type='text/javascript' src='{% static "js/datepicker.js" %}'></script>
 <script>
 	function fitText(){
 		mytable=document.getElementByID('createRun');
@@ -28,14 +26,14 @@
 	  }
 	}
 	function runJob(){
-		mytable=document.getElementById('createRun');
+		mytable=document.getElementById('benchTable');
 		tempStr=''
-		for(i=3;i<mytable.rows.length-1;i++){
+		for(i=3;i<benchTable.rows().data().length;i++){
 			swp=0;
 			forceLoad=0;
 			//alert(mytable.rows[i].cells[4].innerHTML);
-			if(mytable.rows[i].cells[4].innerHTML.indexOf('N.A.')<0){
-				swp=mytable.rows[i].cells[4].childNodes[1].value;
+			if(mytable.rows(i).data()[0].swrel!='N.A.'){
+				swp=mytable.rows(i).data()[0].SWP;
 			}
 			if(mytable.rows[i].cells[5].childNodes[1].disabled==false&&mytable.rows[i].cells[5].childNodes[1].checked==true){
 				forceLoad=1;
@@ -46,6 +44,49 @@
 		runTest.submit();
 		//alert(runTest.target.value);
 	}
+
+		$(document).ready(function() {
+
+			benchTable = $('#benchTable').DataTable({
+				scrollY:'380px',
+				scrollCollapse:true,"columns": [
+				{
+					"data": "type", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "name",
+					"className": "dt-center" 
+				},
+				{
+					"data": "owner", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "swrel", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "SWPSelect", 
+					"className": "dt-center"
+				},
+				{
+					"data": "SWP", 
+					"className": "dt-center",
+					"visible" : false
+				},
+				{
+					"data": "forceLoadCheckbox", 
+					"className": "dt-center"
+				},
+				{
+					"data": "forceLoad", 
+					"className": "dt-center",
+					"visible" : false
+				}]
+			});
+		});
+
 </script>
 </HEAD>
 <script type="text/javascript" src='{% static "js/TCA_scripts.js" %}'></script>
@@ -55,19 +96,40 @@
 	<input type="hidden" name="gowr" value='CONTINUE'>
 	<input type="hidden" value="{{ job_name }}" name="jobName">
 	<input type="hidden" value="" name="suiteTime">
-	<table align="center" id="createRun" style="width:100%" border="0" style="border-collapse: collapse;border-color:#D6E0F4;table-layout:fixed;">
-		<tr><td colspan="6" align="left" height="20px"><h2>Provide Run Settings For Suite : {{ job_name }}</h2></td></tr>
-		<tr height="30px" align='center' bgcolor="#660099" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;">
-			<td colspan="6" style="border:1px #660099 solid;color=#000000;">Suite Parameters</td>
-		<tr>
+	<table class="table table-striped table-hover table-condensed" cellspacing="0" id="benchTable">
+		<thead>
+			<tr>
+				<th>Type</th>
+				<th>Name</th>
+				<th>Owner</th>
+				<th>SW Release</th>
+				<th>SW Package</th>
+				<th></th>
+				<th>Force Load</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<th>Type</th>
+				<th>Name</th>
+				<th>Owner</th>
+				<th>SW Release</th>
+				<th>SW Package</th>
+				<th></th>
+				<th>Force Load</th>
+				<th></th>
+			</tr>
+		</tfoot>
+		<tbody>
 		{% for eqpt in swRelMatrix %}
-			<tr height="30px" bgcolor="#D6E0F4" style="font-size :9pt;text-decoration:none; font-family:verdana, sans-serif; font-weight: bold;text-align:center;">
-				<td style="border:1px #660099 solid">{{ eqpt.prodName }}</td>
-				<td style="border:1px #660099 solid">{{ eqpt.eqptName }}</td>
-				<td style="border:1px #660099 solid">{{ eqpt.owner }}</td>
-				<td style="border:1px #660099 solid">
+			<tr>
+				<td>{{ eqpt.prodName }}</td>
+				<td>{{ eqpt.eqptName }}</td>
+				<td>{{ eqpt.owner }}</td>
+				<td>
 					{% if eqpt.packageList != 'None'%}
-						<select onchange="fillSelectCreator(this.value,swp,'');">
+						<select onchange="fillSelectCreator(this.value,$(this).closest(\'tr\'),'');">
 							<option value="" >REL</option>
 							{% for swRel in eqpt.packageList %}
 								<option value="{{ swRel.packList }}" >{{ swRel.swRelList }}</option>
@@ -75,20 +137,23 @@
 						</select>
 					{% else %}N.A.{% endif %}
 				</td>
-				<td style="border:1px #660099 solid" id="{{ eqpt.id_equipmet }}">
+				<td id="{{ eqpt.id_equipmet }}">
 					{% if eqpt.packageList != 'None'%}
 						<select disabled id="swp">
 							<option value="" >PKG</option>
 						</select>
 					{% else %}N.A.{% endif %}
 				</td>
-				<td style="border:1px #660099 solid" id="{{ eqpt.id_equipmet }}">
+				<td id="{{ eqpt.id_equipmet }}">
 					<input type="checkbox" {% if eqpt.packageList == 'None'%}disabled{% endif %} />
 				</td>
 			</tr>
 		{% endfor %}
+		</tbody>
+	</table>
+	<table>
 		<tr height="40px">
-			<td style="border:1px #660099 solid;" align="center" colspan="6">
+			<td style="border:1px #660099 solid;" align="center">
 				<input type="button" class="stylishButton" value="RUN" style="font-size : 8pt;" id="RUNbtn" onclick="runJob();">
 				<input type="button" disabled class="stylishButton" value="SCHEDULE" style="font-size : 8pt;width:114px;" id="SCHEDULEbtn" onclick="alert(SWRelease.value);runTest.action='accesso.asp?azione=scheduleSuite';target.value=document.getElementById('benchLabel').innerHTML;submit();window.close();">
 			</td>

@@ -555,7 +555,7 @@ def viewJobDetails(request):
 		job_instance = server.get_job(job_name)
 		buildNumber=job_instance.get_next_build_number()
 		print(str(buildNumber)+' build(s) retrieved...')
-		for buildId in range(buildNumber,0,-1):
+		for buildId in range(buildNumber-1,0,-1):
 			bgcolor=""
 			if os.path.isfile(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml'):
 				#build_instance=job_instance.get_build(buildId)
@@ -662,23 +662,25 @@ def viewBuildDetails(request):
 	counter=1
 	#for suites in root[0]:
 	for suites in root.findall(".suites/suite"):
-		if suites.find('name').text.rfind('_Main')>=0:
-			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._Main','')
-			for stderr in suites.iter('stderr'):
-				testStatus='Failed'
-				bgcolor='danger'
-				fontcolor="white"
-				break
-			else:
-				testStatus='Passed'
-				bgcolor='info'
-				fontcolor="black"
+		if (suites.find('name').text.rfind('_main')>=0 or suites.find('name').text.rfind('_Main')>=0) and suites.find('name').text.rfind('EnvSettings')<0:
+			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._main','').replace('._Main','')
+			for myCase in suites.findall('.cases/case'):
+				if myCase.find('skipped').text=='false' and myCase.find('stderr')!=None:
+					testStatus='Failed'
+					bgcolor='danger'
+					fontcolor="white"
+					break
+				else:
+					testStatus='Passed'
+					bgcolor='info'
+					fontcolor="black"
 			tpsList=[]
 			for tps in root.findall(".suites/suite"):
-				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_Main')<0:
+				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_main')<0 and tps.find('name').text.rfind('_Main')<0:
 					tpsTemp=tps.find('name').text.replace('(','').replace('.XML)','').replace(testName+'.','').split('_')
-					tpsName=tpsTemp[1].replace('-','.')
-					tpsArea=tpsTemp[0].replace('-','.')
+					tpsName=tpsTemp[2].replace('-','.')
+					tpsArea=tpsTemp[1]
+					tpsProd=tpsTemp[0]
 					tpsTestStatus='Passed'
 					tpsBgcolor='info'
 					tpsFontcolor="black"
@@ -687,7 +689,7 @@ def viewBuildDetails(request):
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
 						break
-					tpsList.append({'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+					tpsList.append({'tpsProd':tpsProd,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
 			buildMatrix.append({'bgcolor':bgcolor,
 				'fontcolor':fontcolor,
 				'counter':counter,
@@ -775,8 +777,8 @@ def collectReports(request):
 	counter=1
 	#for suites in root[0]:
 	for suites in root.findall(".suites/suite"):
-		if suites.find('name').text.rfind('_Main')>=0:
-			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._Main','')
+		if suites.find('name').text.rfind('_main')>=0 or suites.find('name').text.rfind('_Main')>=0:
+			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._main','')
 			for stderr in suites.iter('stderr'):
 				testStatus='Failed'
 				bgcolor='danger'
@@ -790,7 +792,7 @@ def collectReports(request):
 				fontcolor="black"
 			tpsList=[]
 			for tps in root.findall(".suites/suite"):
-				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_Main')<0:
+				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_main')<0:
 					tpsTemp=tps.find('name').text.replace('(','').replace('.XML)','').replace(testName+'.','').split('_')
 					tpsName=tpsTemp[1].replace('-','.')
 					tpsArea=tpsTemp[0].replace('-','.')
