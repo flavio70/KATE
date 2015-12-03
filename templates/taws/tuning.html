@@ -22,11 +22,16 @@
 	
 	owner='{{ login }}';
 	var myURL = "{% url 'accesso' %}";
+	var valueTable;
+	var presetID='';
+	var presetName='';
+	var presetSelection = '';
 	
 </script> 
 
 
 
+<div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 
 
 <div style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;">
@@ -60,32 +65,32 @@
 					</ul>
 					<ul class="nav navbar-btn navbar-right">
 						<div class="btn-group btn-group-sm" role="group">
-							<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="dropdownUserPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+							<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="sharedPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 								Shared Presets <span class="caret"></span>
 							</button>
-							<ul class="dropdown-menu" aria-labelledby="dropdownUserPreset">
+							<ul class="dropdown-menu" id="sharedPresetDropdow">
 									{% for myItem in sharedPreset %}
-										<li><a id="{{ myItem.sharedPresetID }}" name="{{myItem.sharedPresetName}}">{{ myItem.sharedPresetName }}</a></li>
+										<li><a id="{{ myItem.sharedPresetID }}" name="{{myItem.sharedPresetTitle}}" onclick="presetID={{ myItem.sharedPresetID }};presetName='{{ myItem.sharedPresetTitle }}';document.getElementById('sharedPreset').innerHTML='{{ myItem.sharedPresetName }} <span class=caret></span>';">{{ myItem.sharedPresetName }}</a></li>
 									{% endfor %}
 							</ul>
-							<button type="button" data-toggle="tooltip" title="Load Shared Preset" onclick="" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>
-							<button type="button" data-toggle="tooltip" title="Save Shared Preset" onclick="" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>
-							<button type="button" data-toggle="tooltip" title="Delete Shared Preset" onclick="" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Load Shared Preset" onclick="doAccess('loadPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Save Shared Preset" onclick="checkSave('sharedPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Delete Shared Preset" onclick="if(confirm('Are you sure you want to delete '+presetName+'?')){doAccess('deletePreset');}" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 						</div><!-- end btn_group-->
 					</ul>
 					<ul class="nav navbar-btn navbar-right">
 						<div class="btn-group btn-group-sm" role="group">
-							<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="dropdownUserPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+							<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="userPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 								User Presets <span class="caret"></span>
 							</button>
-							<ul id="userPreset" class="dropdown-menu" aria-labelledby="dropdownUserPreset">
+							<ul class="dropdown-menu" id="userPresetDropdown">
 								{% for myItem in userPreset %}
-									<li><a id="{{ myItem.userPresetID }}" name="{{myItem.userPresetName}}">{{ myItem.userPresetName }}</a></li>
+									<li><a id="{{ myItem.userPresetID }}" name="{{myItem.userPresetTitle}}" onclick="presetID={{ myItem.userPresetID }};presetName='{{ myItem.userPresetTitle }}';document.getElementById('userPreset').innerHTML='{{ myItem.userPresetName }} <span class=caret></span>';">{{ myItem.userPresetName }}</a></li>
 								{% endfor %}
 							</ul>
-							<button type="button" data-toggle="tooltip" title="Load User Preset" onclick="" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>
-							<button type="button" data-toggle="tooltip" title="Save User Preset" onclick="" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>
-							<button type="button" data-toggle="tooltip" title="Delete User Preset" onclick="" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Load User Preset" onclick="doAccess('loadPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Save User Preset" onclick="checkSave('userPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Delete User Preset" onclick="if(confirm('Are you sure you want to delete '+presetName+'?')){doAccess('deletePreset');}" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 						</div><!-- end btn_group-->
 						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 					</ul>
@@ -199,6 +204,17 @@
 	
 	});
 	
+function showalert(message,alerttype) {
+
+    $('#alert_placeholder').html('<div id="alertdiv" class="alert ' +  alerttype + '"><a class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>')
+	$("#alert_placeholder").fadeToggle("slow");
+    setTimeout(function() { // this will automatically close the alert and remove this if the users doesnt close it in 5 secs
+
+
+      $("#alert_placeholder").fadeToggle("slow");
+
+    }, 5000);
+  }
 	
 	
 	
@@ -260,12 +276,12 @@
 			buttonText='...';
 			if(topologies[currentTopology][3][progressiveID]!=''){buttonText=topologies[currentTopology][3][progressiveID]}
 			valueID=progressiveID+'$'+eqptType+'$'+idEntity;
-			value='<button onclick="window.open(\'/taws/selectEqpt/?myVars=\'+valueTable.row($(this).closest(\'tr\')).data().valueID,\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+buttonText+'</button>';
+			value='<button onclick="$(\'#showedTable tr td button\').removeClass(\'selected\');$(this).addClass(\'selected\');window.open(\'/taws/selectEqpt/?myVars=\'+valueTable.row($(this).closest(\'tr\')).data().valueID,\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+buttonText+'</button>';
 		}else{
 			valueID=progressiveID;
 			if(topologies[currentTopology][3][progressiveID]!=''){myValue=topologies[currentTopology][3][progressiveID];}
 				else{myValue="";}
-			value='<input type="text" onchange="topologies[currentTopology][3][this.id]=this.value;" value="'+myValue+'">';
+			value='<input id="'+progressiveID+'" type="text" onchange="topologies[currentTopology][3][this.id]=this.value;" value="'+myValue+'">';
 		}
 		//myCell = myRow.insertCell();
 		//myCell.appendChild(flagsInput);
@@ -336,54 +352,51 @@
 		return tuningString;
 	}
 
-	function checkSave(presetSelect){
-		if(changeScript.personalPreset.value!=''){oldPreset=changeScript.personalPreset.value;}
-			else{oldPreset='newPreset';}
+	function checkSave(presetType){
+		foundSuite=false;
+		//if(presetID!=''){oldPreset=presetName;}
+		//	else{oldPreset='newPreset';}
 		myValues=getTuningValues();
 		if(myValues){
-			mySelect=document.getElementById("personalPreset");
+			//mySelect=document.getElementById("personalPreset");
 			//changeScript.action='accesso.asp?azione=savePreset';
 			//changeScript.target='connection';
-			changeScript.presetBody.value=myValues;
-			if(mySelect.value==''){
-				presetName=prompt('Insert Preset Name...',oldPreset);
-				if(presetName!='Insert Preset'&&presetName!=null){confirmed=true;}
-				//if(presetName.substr((presetName.length - 4),(presetName.length - 1))!='.prs'){presetName+='.prs'};
-				changeScript.presets.value=presetName.replace(/'/g,"");
+			//changeScript.presetBody.value=myValues;
+			if(presetID==''){
+				zq_preset=prompt('Insert Preset Name...','newPreset');
+				for(zq_j=0;zq_j<document.getElementById(presetType+'Dropdown').children.length;zq_j++){
+					if(zq_preset==document.getElementById(presetType+'Dropdown').children[zq_j].children[0].name){foundSuite=true;presetID=document.getElementById(presetType+'Dropdown').children[zq_j].children[0].id;}
+				}
+				if(foundSuite==false){presetID=zq_preset;presetName=zq_preset;}
 			}else{
-				confirmed=confirm('Are you sure you want to overwrite '+mySelect.options[mySelect.selectedIndex].text+'?');
-				if(confirmed){
-					changeScript.presets.value=mySelect.options[mySelect.selectedIndex].value;
-					changeScript.newPreset.value='off';
+				zq_preset=prompt('Insert Preset Name...',presetName);
+				if(zq_preset==presetName){
+					foundSuite=true;
 				}else{
-					changeScript.presets.value=prompt('Insert Preset Name...','newPreset');
-					confirmed=true;
-					//changeScript.presets.value=mySelect.options[mySelect.selectedIndex].text;
-					changeScript.newPreset.value='on';
+					presetID=zq_preset;
 				}
 			}
-			//if(confirmed){changeScript.submit();}
-			if(confirmed){doAccess('savePreset');}
+			if((((foundSuite==true&&confirm("Overwrite " + zq_preset +"?"))||foundSuite==false))&&(presetID!=''&&presetID!='null')&&(zq_preset!=null)){
+				document.getElementById(presetType).innerHTML=presetName+' <span class="caret"></span>';
+				presetSelection=presetType;
+				doAccess('savePreset');
+				//alert(presetID);
+			}
+			//a=1;
 		}
 	}
 
-	function updatePresetList(preset,target,currentPreset){
+	function updatePresetList(preset,target,currentPresetName,currentPresetID,currentPresetTitle){
 		tempPresetVersion = preset.split('?');
-		mySelect=document.getElementById(target);
-		mySelect.options.length=0;
-		var addTest = document.createElement('option');
-		addTest.text = "Select Here...";
-		addTest.value = "";
-		mySelect.add(addTest);
-		obsoletePreset='';
-		for(i=0;i<preset.length;i++){
-			tempValue=tempPresetVersion[i].split('|');
-			var addTest = document.createElement('option');
-			addTest.text = tempValue[0];
-			addTest.value = tempValue[1];
-			mySelect.add(addTest);
-			if(tempValue[1]==currentPreset){mySelect.selectedIndex = i+1;}
+		tempStr='';
+		for(i=0;i<tempPresetVersion.length;i++){
+			tempPreset=tempPresetVersion[i].split('|');
+			tempStr+='<li><a id="'+tempPreset[1]+'" name=\''+tempPreset[2]+'\' onclick="presetID='+tempPreset[1]+';presetName=\''+tempPreset[2]+'\';document.getElementById(\''+target+'\').innerHTML=\''+tempPreset[0]+' <span class=caret></span>\'">'+tempPreset[0]+'</a></li>';
 		}
+		document.getElementById('userPresetDropdown').innerHTML=tempStr;
+		presetName=currentPresetName;
+		presetID=currentPresetID;
+		document.getElementById('userPreset').innerHTML=currentPresetTitle+' <span class="caret"></span>';
 	}
 
 	function loadPreset(target,preset){
@@ -404,16 +417,14 @@
 			}
 		}
 		show(0);
-		if(target!='SHARED'){changeScript.sharedPreset.selectedIndex=0;}
-			else{changeScript.personalPreset.selectedIndex=0;}
+		//if(target!='SHARED'){changeScript.sharedPreset.selectedIndex=0;}
+		//	else{changeScript.personalPreset.selectedIndex=0;}
 	}
 
 	function deletePreset(selectObj,preset,ownership){
-		if(selectObj.value!=''){
-			presetStr=selectObj[selectObj.selectedIndex].text;
-			presetValue=selectObj.value;
-			if(confirm('Are you sure you want to delete '+presetStr+'?')){
-				window.opener.pivot.action='accesso.asp?azione=deletePreset&presetID='+presetValue;
+		if(presetID!=''){
+			if(confirm('Are you sure you want to delete '+presetName+'?')){
+				window.opener.pivot.action='accesso.asp?azione=deletePreset&presetID='+presetID;
 				window.opener.pivot.submit();
 			}
 		}

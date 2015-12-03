@@ -111,8 +111,14 @@ function jsaveFile(suiteType){
 		}
 	}else{
 		newText = prompt('Insert Suite Name!','newSuite');
-		for(j=0;j<serverPersonalSuite.children.length;j++){
-			if(newText==serverPersonalSuite.children[j].children[0].name){foundSuite=true;saveID=serverPersonalSuite.children[j].children[0].id;}
+		if(suiteType=='userSuites'){
+			for(j=0;j<serverPersonalSuite.children.length;j++){
+				if(newText==serverPersonalSuite.children[j].children[0].name){foundSuite=true;saveID=serverPersonalSuite.children[j].children[0].id;}
+			}
+		}else{
+			for(j=0;j<serverSharedSuite.children.length;j++){
+				if(newText==serverSharedSuite.children[j].children[0].name){foundSuite=true;saveID=serverSharedSuite.children[j].children[0].id;}
+			}
 		}
 		if(foundSuite==false){saveID=newText;}
 	}

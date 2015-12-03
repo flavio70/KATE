@@ -205,10 +205,10 @@ def tuning(request):
 	myRecordSet.execute("SET group_concat_max_len = 200000")
 	dbConnection.commit()
 	#myRecordSet.execute("select concat(presetName,'[',convert(group_concat(distinct topoID separator ',') using utf8),']') as presetname,presetID from presets join presetbody using(presetID) join topologybody using(label) join topologies using(topoID) where username='"+Session("login")+"' group by presetID")
-	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
-	userPreset=[{'userPresetName':row["description"],'userPresetID':row["id_preset"]} for row in myRecordSet]
-	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
-	sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"]} for row in myRecordSet]
+	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
+	userPreset=[{'userPresetName':row["description"],'userPresetID':row["id_preset"],'userPresetTitle':row["preset_title"]} for row in myRecordSet]
+	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
+	sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"],'sharedPresetTitle':row["preset_title"]} for row in myRecordSet]
 
 	myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,name from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) where id_suite="+suiteID)
 	#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,suitename from jsuites join jsuiteBody using(jsuiteID) join  Jenkinslist using(JID,livraison) where jsuiteID='"+fileName+"'")
@@ -1560,17 +1560,17 @@ def accesso(request):
 
 		fileName = request.POST.get('presetName','')
 		savingString = request.POST.get('presetBody','')
-		newPreset = request.POST.get('newPreset','')
+		presetType = request.POST.get('presetType','')
 
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 		myRecordSet=dbConnection.cursor(dictionary=True)
 
 		#myRecordSet.execute("SELECT count(preset_title) as myCount from T_PRESETS WHERE preset_title='"+fileName+"'")
 		#row=myRecordSet.fetchone()
-		if newPreset=='on':
+		if fileName.isdigit() == False:
 			myRecordSet.execute("INSERT INTO T_PRESETS (preset_title,owner,preset_description) VALUES('"+fileName+"','"+request.session['login']+"','')")
 			dbConnection.commit()
-			myRecordSet.execute("SELECT id_preset from T_PRESETS where preset_title='"+fileName+"'")
+			myRecordSet.execute("SELECT id_preset from T_PRESETS where preset_title='"+fileName+"' and owner='"+request.session['login']+"'")
 			row=myRecordSet.fetchone()
 			presetID = row['id_preset']
 		else:
@@ -1587,19 +1587,19 @@ def accesso(request):
 
 		userPreset=''
 		sharedPreset=''
-		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
-		for row in myRecordSet:userPreset+=row["description"]+'|'+str(row["id_preset"])+'?'
-		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
-		for row in myRecordSet:sharedPreset+=row["description"]+'|'+str(row["id_preset"])+'?' 
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
+		for row in myRecordSet:userPreset+=row["description"]+'|'+str(row["id_preset"])+'|'+str(row["preset_title"])+'?'
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
+		for row in myRecordSet:sharedPreset+=row["description"]+'|'+str(row["id_preset"])+'|'+str(row["preset_title"])+'?' 
 
-		myRecordSet.execute("SELECT group_concat(concat(T_TPY_ENTITY_id_entity,'|',T_EQUIPMENT_id_equipment,'|',pstValue) separator '?') as presetBody,owner,preset_title FROM T_PST_ENTITY join T_PRESETS on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) left join (select T_EQUIPMENT.name as name,T_EQUIP_TYPE.name as myType,id_equipment from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type)) as myEquipment on(id_equipment=T_EQUIPMENT_id_equipment and replace(elemName,'#','')=myType) WHERE id_preset="+str(presetID))
+		myRecordSet.execute("SELECT group_concat(concat(T_TPY_ENTITY_id_entity,'|',T_EQUIPMENT_id_equipment,'|',pstValue) separator '?') as presetBody,owner,preset_title,id_preset,concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct T_TOPOLOGY_id_topology separator ',') using utf8),']') as description FROM T_PST_ENTITY join T_PRESETS on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) left join (select T_EQUIPMENT.name as name,T_EQUIP_TYPE.name as myType,id_equipment from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type)) as myEquipment on(id_equipment=T_EQUIPMENT_id_equipment and replace(elemName,'#','')=myType) WHERE id_preset="+str(presetID))
 		row=myRecordSet.fetchone()
 
 				
 		dbConnection.close()
 		presetAry=""
 
-		return  JsonResponse({'presetAry': row['presetBody'],'userPreset': userPreset[:-1],'sharedPreset': sharedPreset[:-1],'fileName':presetID}, safe=False)
+		return  JsonResponse({'presetAry': row['presetBody'],'userPreset': userPreset[:-1],'sharedPreset': sharedPreset[:-1],'fileName':row['preset_title'],'fileID':row['id_preset'],'fileTitle':row['description'],'presetType':presetType}, safe=False)
 
 	if myAction=='loadPreset':
 
@@ -1619,6 +1619,32 @@ def accesso(request):
 		dbConnection.close()
 
 		return  JsonResponse({'presetAry': row['presetBody'],'username':row['owner']}, safe=False)
+
+	if myAction=='deletePreset':
+
+		presetID = request.POST.get('presetID','')
+		presetName = request.POST.get('presetName','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+
+		myRecordSet.execute("DELETE FROM T_PST_ENTITY WHERE T_PRESETS_id_preset="+presetID)
+		dbConnection.commit()
+
+		myRecordSet.execute("DELETE FROM T_PRESETS WHERE id_preset="+presetID)
+		dbConnection.commit()
+
+		userPreset=''
+		sharedPreset=''
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
+		userSuiteAry=[{'presetName':row["description"],'presetID':row["id_preset"]} for row in myRecordSet]
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
+		sharedSuiteAry=[{'presetName':row["description"],'presetID':row["id_preset"]} for row in myRecordSet]
+
+		dbConnection.close()
+
+		return  JsonResponse({'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry,'username':row['owner'],'presetName':presetName}, safe=False)
+
 
 	if myAction=='localBrowsing':
 

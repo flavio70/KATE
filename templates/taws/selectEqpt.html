@@ -1,12 +1,12 @@
 {% load static %}
+{% include "taws/header.txt" %}
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="{% static "css/sortable.css" %}" />
-	<script type="text/javascript" src="{% static "js/sorttable.js" %}"> </script>
 	<script>
 		function selectEquip(myID,myName,myVars){
-			myObj=myVars.split('$')
-			window.opener.document.getElementById(myVars).value=myName;
+			myObj=myVars.split('$');
+			window.opener.$('.selected')[0].innerHTML=myName;
+			//window.opener.document.getElementById(myVars).value=myName;
 			myTopologyID='null';
 			for(i=0;i<window.opener.topologies.length;i++){
 				for(k=0;k<window.opener.topologies[i][1].length;k++){
@@ -30,36 +30,87 @@
 				window.close();
 			}
 		}
+
+		$(document).ready(function() {
+
+			benchTable = $('#benchTable').DataTable({
+				scrollY:'380px',
+				scrollCollapse:true,"columns": [
+				{
+					"data": "name",
+					"className": "dt-center" 
+				},
+				{
+					"data": "owwner", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "description", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "domain", 
+					"className": "dt-center"
+				},
+				{
+					"data": "location", 
+					"className": "dt-center"
+				},
+				{
+					"data": "net",
+					 "className": "dt-center"
+				}]
+			});
+		});
+
 	</script>
+
+
 </head>
-<table class="sortable" id="selectedStats" style="font-size : 10pt" border=1>
-	<tr>
-		<th>Name</th>
-		<th>Owner</th>
-		<th>Description</th>
-		<th>Domain</th>
-		<th>Location</th>
-		<th>Net</th>
-	</tr>
-	{% for myItem in eqptAry %}
-		<tr style="font-size : 10pt;" align="center" id="" onclick="selectEquip({{ myItem.eqptID }},'{{ myItem.eqptName }}','{{ myItem.myVars }}');">
-			<td align="center" style="font-size : 10pt">{{ myItem.eqptName }}</td>
-			<td align="center" style="font-size : 10pt">{{ myItem.owner }}</td>
-			<td align="center" style="font-size : 10pt">{{ myItem.equipDescription }}</td>
-			<td align="center" style="font-size : 10pt">{{ myItem.scopeDescription }}</td>
-			<td align="left" style="font-size : 10pt">
-				Site: {{ myItem.site }}<br>
-				Room: {{ myItem.room }}<br>
-				Row:  {{ myItem.row }}<br>
-				Rack: {{ myItem.rack }}<br>
-				Pos:  {{ myItem.pos }}<br>
-			</td>
-			<td align="left" style="font-size : 10pt">
-				IP: {{ myItem.IP }}<br>
-				NM: {{ myItem.NM }}<br>
-				GW: {{ myItem.GW }}<br>
-			</td>
-		<tr>
-	{% endfor %}
-</table>
+<body>
+	<table class="table table-striped table-hover table-condensed" cellspacing="0" id="benchTable">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Owner</th>
+				<th>Description</th>
+				<th>Domain</th>
+				<th>Location</th>
+				<th>Net</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<th>Name</th>
+				<th>Owner</th>
+				<th>Description</th>
+				<th>Domain</th>
+				<th>Location</th>
+				<th>Net</th>
+			</tr>
+		</tfoot>
+		<tbody>
+			{% for myItem in eqptAry %}
+				<tr onclick="selectEquip({{ myItem.eqptID }},'{{ myItem.eqptName }}','{{ myItem.myVars }}');">
+					<td>{{ myItem.eqptName }}</td>
+					<td>{{ myItem.owner }}</td>
+					<td>{{ myItem.equipDescription }}</td>
+					<td>{{ myItem.scopeDescription }}</td>
+					<td>
+						Site: {{ myItem.site }}<br>
+						Room: {{ myItem.room }}<br>
+						Row:  {{ myItem.row }}<br>
+						Rack: {{ myItem.rack }}<br>
+						Pos:  {{ myItem.pos }}<br>
+					</td>
+					<td>
+						IP: {{ myItem.IP }}<br>
+						NM: {{ myItem.NM }}<br>
+						GW: {{ myItem.GW }}<br>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</body>
 </html>

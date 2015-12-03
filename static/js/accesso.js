@@ -154,16 +154,27 @@ function doAccess(myAction){
 		modRecordToTable(sersverResponse_data['testString'],lineNumber,currentTable);
 	};
 	var savePreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
-		//alert('Preset '+sersverResponse_data['fileName']+' Saved!');
+		//alert('Preset '+sersverResponse_data['username']+' Saved!');
 		//alert(sersverResponse_data['userPreset'],sersverResponse_data['fileName']);
-		updatePresetList(sersverResponse_data['userPreset'],'personalPreset',sersverResponse_data['fileName'])
+		updatePresetList(sersverResponse_data['userPreset'],sersverResponse_data['presetType'],sersverResponse_data['fileName'],sersverResponse_data['fileID'],sersverResponse_data['fileTitle'])
 		loadPreset(sersverResponse_data['username'],sersverResponse_data['presetAry']);
+		showalert("Preset "+sersverResponse_data['fileName']+" correctly saved","alert-success")
 		//tempPresetAry=sersverResponse_data['presetAry'].split('$');
 		//var preset=new Array();
 		//for(zq_i=0;zq_1<tempPresetAry.length();zq_i++){
 		//	preset.push(tempPresetAry[i]);
 		//}
 		//fillSelect(preset,document.getElementById('personalPreset'),'Select Here','<%=fileName%>');
+	};
+	var deletePreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		userSelection='';
+		sharedSelection='';
+		if(sersverResponse_data['userPreset']=='SHARED'){sharedSelection=sersverResponse_data['fileName'];}
+			else{userSelection=sersverResponse_data['fileName'];}
+		updatePresetList(sersverResponse_data['userPreset'],'personalPreset',userSelection);
+		updatePresetList(sersverResponse_data['sharedPreset'],'sharedPreset',sharedSelection);
+		valueTable.clear().draw();
+		showalert("Preset "+sersverResponse_data['fileName']+" correctly deleted","alert-success")
 	};
 	var getPreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['presetAry']);
@@ -300,9 +311,9 @@ function doAccess(myAction){
 			url: myURL,
 			data: {
 				action: myAction,
-				presetBody: changeScript.presetBody.value,
-				presetName: changeScript.presets.value,
-				newPreset: changeScript.newPreset.value
+				presetBody: myValues,
+				presetName: presetID,
+				presetType:presetSelection
 				},
 			success: savePreset,
 			error: function(xhr, textStatus, errorThrown) {
@@ -317,9 +328,26 @@ function doAccess(myAction){
 			url: myURL,
 			data: {
 				action: myAction,
-				presetID: document.getElementById('personalPreset').value
+				presetID: presetID
 				},
 			success: getPreset,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+
+	if(myAction=='deletePreset'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				presetID: presetID,
+				presetName: presetName
+				},
+			success: deletePreset,
 			error: function(xhr, textStatus, errorThrown) {
 					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
 				}
