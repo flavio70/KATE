@@ -620,7 +620,7 @@ def viewJobDetails(request):
 
 def viewBuildDetails(request):
 
-	import MySQLdb
+	import mysql.connector
 	import xml.etree.ElementTree as ET
 	from os.path import basename
 	from datetime import timedelta, datetime
@@ -638,6 +638,8 @@ def viewBuildDetails(request):
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	#myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0].replace('[','').replace(']','')+" limit 1")
 
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
@@ -684,7 +686,7 @@ def viewBuildDetails(request):
 					tpsName=tpsTemp[2].replace('-','.')
 					tpsArea=tpsTemp[1]
 
-					myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0]+" limit 1")
+					myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0].replace('[','').replace(']','')+" limit 1")
 
 					tpsProd=myRecordSet.fetchone()['eType']
 					tpsTestStatus='Passed'
