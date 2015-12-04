@@ -312,6 +312,7 @@ function showalert(message,alerttype) {
 		changeScript.action='/taws/tuningEngine/';
 		changeScript.target='_blank';
 		tuningFields = getTuningValues();
+		document.changeScript.presets.value=presetID;
 		if(tuningFields!=''){
 			document.changeScript.changeValues.value=tuningFields;
 			//document.changeScript.tuningList.value=tuneList;
