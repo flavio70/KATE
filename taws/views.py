@@ -1290,15 +1290,19 @@ def viewReport(request):
 	root = tree.getroot()
 
 	treeView=''
-	counter1=1
-	counter2=1
+	counter1=0
+	tempTreeView=''
 	for suites in root.findall(".suites/suite"):
 		if suites.find('name').text.rfind(testName)>=0 and suites.find('name').text.rfind('_Main')<0 and suites.find('name').text.rfind('_main')<0:
-			tempTreeView=''
-			tempTreeView+="<li><label for='folder"+str(counter1)+"'>"+suites.find('name').text.replace('(','').replace('.XML)','')+"([MAINRESULT])</label> <input type='checkbox' id='folder"+str(counter1)+"' />"
-			tempTreeView+="<ol>"
+			#tempTreeView+="<li><label for='folder"+str(counter1)+"'>"+suites.find('name').text.replace('(','').replace('.XML)','')+"([MAINRESULT])</label> <input type='checkbox' id='folder"+str(counter1)+"' />"
+			#tempTreeView+="<ol>"
+			tempTreeView+="{text:'"+suites.find('name').text.replace('(','').replace('.XML)','')+"',"+\
+				"href:'#"+suites.find('name').text.replace('(','').replace('.XML)','')+"',"+\
+				"tags:['[counterMain]'],"+\
+				"nodes:["
 			mainResult="<span style='color:green;font-weight: bold;'>Passed</span>"
 			for case in suites.findall('cases/case'):
+				counter2=0
 				testStatus="<span style='color:green;font-weight: bold;'>Passed</span>"
 				if case.find('stderr')!=None:
 					testStatus="<span style='color:red;font-weight: bold;'>Failed</span>"
@@ -1306,24 +1310,56 @@ def viewReport(request):
 				if case.find('skipped').text=='true':
 					testStatus="<span style='color:gray;font-weight: bold;'>Skipped</span>"
 					if mainResult.rfind('Failed')<0:mainResult="<span style='color:gray;font-weight: bold;'>Skipped</span>"
-				tempTreeView+="<li><label for='subfolder"+str(counter2)+"'>"+case.find('testName').text+" ("+testStatus+")</label> <input type='checkbox' id='subfolder"+str(counter2)+"' />"
-				tempTreeView+="<ol>"
-				tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>STDOUT:\n"+case.find('stdout').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
-				tempTreeView+="</li>"
+				#tempTreeView+="<li><label for='subfolder"+str(counter2)+"'>"+case.find('testName').text+" ("+testStatus+")</label> <input type='checkbox' id='subfolder"+str(counter2)+"' />"
+				#tempTreeView+="<ol>"
+				tempTreeView+="{text:'"+case.find('testName').text+"',"+\
+					"href:'#"+case.find('testName').text+"',"+\
+					"tags:['[counterPartial]'],"+\
+					"nodes:["
+				#tempTreeView+="<ol>"
+				#tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>STDOUT:\n"+case.find('stdout').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
+				#tempTreeView+="</li>"
+				tempTreeView+="{text:'STDOUT',"+\
+					"href:'#STDOUT',"+\
+					"tags:['0'],"+\
+					"nodes:[{"+\
+					"text:'"+case.find('stdout').text+"',"+\
+					"href:'#"+case.find('stdout').text+"',"+\
+					"tags:['0']}]},"
 				if testStatus.rfind('Failed')>=0:
 					counter2+=1
-					tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>STDERR:\n"+case.find('stderr').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
-					tempTreeView+="</li>"
-				counter2+=1
-				tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>DURATION:\n"+case.find('duration').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
-				tempTreeView+="</li>"
-				tempTreeView+="</ol>"
-				tempTreeView+="</li>"
-				counter2+=1
-			tempTreeView+="</ol>"
-			tempTreeView+="</li>"
-			treeView+=tempTreeView.replace('[MAINRESULT]',mainResult)
+					counter1+=1
+					#tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>STDERR:\n"+case.find('stderr').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
+					#tempTreeView+="</li>"
+					tempTreeView+="{text:'STDERR',"+\
+						"href:'#STDERR',"+\
+						"tags:['0'],"+\
+						"nodes:[{"+\
+						"text:'"+case.find('stderr').text+"',"+\
+						"href:'#"+case.find('stderr').text+"',"+\
+						"tags:['0']}]},"
+				#counter2+=1
+				#tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>DURATION:\n"+case.find('duration').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
+				#tempTreeView+="</li>"
+				#tempTreeView+="</ol>"
+				#tempTreeView+="</li>"
+				tempTreeView+="{text:'DURATION',"+\
+						"href:'#DURATION',"+\
+						"tags:['0'],"+\
+						"nodes:[{"+\
+						"text:'"+case.find('duration').text+"',"+\
+						"href:'#"+case.find('duration').text+"',"+\
+						"tags:['0']}]}"
+				tempTreeView+="]},"
+				counter2+=2
+				counter1+=2
+				tempTreeView=tempTreeView.replace('[counterPartial]',str(counter2))
+			#tempTreeView+="</ol>"
+			#tempTreeView+="</li>"
+			tempTreeView=tempTreeView[:-1]
+			tempTreeView+="]},"
 			counter1+=1
+	treeView+=tempTreeView[:-1].replace('\n','\\n').replace('[counterMain]',str(counter1))
 
 	context_dict={'login':request.session['login'],
 		'job_name':job_name,
