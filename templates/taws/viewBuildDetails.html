@@ -76,8 +76,6 @@
 				<td>Status</td>
 				<td>Name</td>
 				<td>Owner</td>
-				<td>Target</td>
-				<td>SWP</td>
 				<td>Start</td>
 				<td>Duration</td>
 				<td>KATE DB</td>
@@ -86,10 +84,8 @@
 		<tbody>
 			<tr class="active">
 				<td id='JKSStatus'>{{ status }}</td>
-				<td id='suite'>Job {{ job_name }} Build # {{ build_name }}</td>
-				<td id='owner'>NA</td>
-				<td id='targetBench'>{{ target }}</td>
-				<td id='SWP'>NA</td>
+				<td id='suite'>Job {{ job_name }} Build # {{ instance }}</td>
+				<td id='owner'>{{ owner }}</td>
 				<td id='start'>{{ timeStamp }}</td>
 				<td id='end'>{{ duration }}</td>
 				<td id='tawsdb'>NA</td>
@@ -109,6 +105,9 @@
 					<th>Test List</th>
 					<th>Report</th>
 					<th>Duration</th>
+					<th>NodeName</th>
+					<th>NodeType</th>
+					<th>NodeSWP</th>
 					<th>Story</th>
 					<th>Task</th>
 				</tr>
@@ -127,6 +126,27 @@
 						<td style="vertical-align:middle;">{{ build.testName }}</td>
 						<td style="vertical-align:middle;">{{ build.testStatus }}</td>
 						<td style="vertical-align:middle;">{{ build.testDuration }}</td>
+						<td>
+							<ul class="list-group">
+								{% for tps in build.tpsList %}
+									<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.nodeName }}</li>
+								{% endfor %}
+							</ul>
+						</td>
+						<td>
+							<ul class="list-group">
+								{% for tps in build.tpsList %}
+									<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.nodeType }}</li>
+								{% endfor %}
+							</ul>
+						</td>
+						<td>
+							<ul class="list-group">
+								{% for tps in build.tpsList %}
+									<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.nodeSWP }}</li>
+								{% endfor %}
+							</ul>
+						</td>
 						<td>
 							<ul class="list-group">
 								{% for tps in build.tpsList %}

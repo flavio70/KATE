@@ -635,11 +635,24 @@ def viewBuildDetails(request):
 	job_name=request.POST.get('jobName')
 	buildId=request.POST.get('buildId')
 	target='NA'
+	owner='NA'
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	#myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0].replace('[','').replace(']','')+" limit 1")
+	#myRecordSet.execute("select *,count(*) as myCount,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode from T_RUNTIME join T_RTM_BODY on(id_run=T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	
+	swp_ref = {}
+
+	for row in myRecordSet:
+		owner=row['suiteOwner']
+		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'])
+
+	#row=myRecordSet.fetchone()
+	
+	#if row['myCount'] > 0:
+	#	owner=row['owner']
 
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
@@ -652,13 +665,13 @@ def viewBuildDetails(request):
 	#print build_instance.get_artifacts()
 	#print build_instance.get_result_url()
 	#print build_instance.get_actions()
-	if 'parameters' in build_instance.get_actions():
-		for myTuple in build_instance.get_actions()['parameters']:
-			if myTuple['name']=='TB_NODE_IP':
-				target=myTuple['value']
-				break
-	else:
-		target='NA'
+	#if 'parameters' in build_instance.get_actions():
+	#	for myTuple in build_instance.get_actions()['parameters']:
+	#		if myTuple['name']=='TB_NODE_IP':
+	#			target=myTuple['value']
+	#			break
+	#else:
+	#	target='NA'
 	#print build_instance.get_resultset().keys()
 	tree = ET.parse(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml')
 	root = tree.getroot()
@@ -686,9 +699,18 @@ def viewBuildDetails(request):
 					tpsName=tpsTemp[2].replace('-','.')
 					tpsArea=tpsTemp[1]
 
-					myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0].replace('[','').replace(']','')+" limit 1")
+					#myRecordSet.execute("select T_EQUIP_TYPE.name as eType from T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) where id_equipment="+tpsTemp[0].replace('[','').replace(']','')+" limit 1")
+					
+					nodeName='NA'
+					nodeType='NA'
+					nodeSWP='NA'
+					if tpsTemp[0].replace('[','').replace(']','') in swp_ref:
+						nodeName=swp_ref[tpsTemp[0].replace('[','').replace(']','')][0]
+						nodeType=swp_ref[tpsTemp[0].replace('[','').replace(']','')][1]
+						nodeSWP=swp_ref[tpsTemp[0].replace('[','').replace(']','')][2]
+						
 
-					tpsProd=myRecordSet.fetchone()['eType']
+					#tpsProd=myRecordSet.fetchone()['eType']
 					tpsTestStatus='Passed'
 					tpsBgcolor='info'
 					tpsFontcolor="black"
@@ -697,13 +719,13 @@ def viewBuildDetails(request):
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
 						break
-					tpsList.append({'tpsProd':tpsProd,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
 			buildMatrix.append({'bgcolor':bgcolor,
 				'fontcolor':fontcolor,
 				'counter':counter,
 				'testName':testName,
 				'testStatus':testStatus,
-				'testDurattpsAreaion':suites.find('duration').text,
+				'testDuration':suites.find('duration').text,
 				'tpsList':tpsList,
 				'numTps':len(tpsList)})
 			counter+=1
@@ -711,6 +733,7 @@ def viewBuildDetails(request):
 	context_dict={'login':request.session['login'],
 		'job_name':job_name,
 		'instance': str(buildId),
+		'owner':owner,
 		'status':build_instance.get_status(),
 		'duration':str(build_instance.get_duration()),
 		'failCount':str(build_instance.get_actions()['failCount']),
@@ -1264,7 +1287,7 @@ def viewReport(request):
 	counter1=1
 	counter2=1
 	for suites in root.findall(".suites/suite"):
-		if suites.find('name').text.rfind(testName)>=0:
+		if suites.find('name').text.rfind(testName)>=0 and suites.find('name').text.rfind('_Main')<0 and suites.find('name').text.rfind('_main')<0:
 			tempTreeView=''
 			tempTreeView+="<li><label for='folder"+str(counter1)+"'>"+suites.find('name').text.replace('(','').replace('.XML)','')+"([MAINRESULT])</label> <input type='checkbox' id='folder"+str(counter1)+"' />"
 			tempTreeView+="<ol>"
