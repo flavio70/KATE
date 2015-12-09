@@ -119,12 +119,16 @@
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="reportTable">
 		<thead>
 			<tr>
-				<th></th>
-				<th>N.</th>
-				<th>Test Name</th>
-				<th>Domain</th>
-				<th>Test</th>
-				<th>Notes</th>
+					<th></th>
+					<th>N.</th>
+					<th>Test List</th>
+					<th>Report</th>
+					<th>NodeName</th>
+					<th>NodeType</th>
+					<th>NodeSWP</th>
+					<th>Story</th>
+					<th>Task</th>
+					<th>Notes</th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -138,6 +142,28 @@
 				</td>
 				<td style="vertical-align:middle;">{{ build.counter }}</td>
 				<td style="vertical-align:middle;">{{ build.testName }}</td>
+				<td style="vertical-align:middle;">{{ build.testStatus }}</td>
+				<td>
+					<ul class="list-group">
+						{% for tps in build.tpsList %}
+							<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.nodeName }}</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul class="list-group">
+						{% for tps in build.tpsList %}
+							<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.nodeType }}</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul class="list-group">
+						{% for tps in build.tpsList %}
+							<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.nodeSWP }}</li>
+						{% endfor %}
+					</ul>
+				</td>
 				<td>
 					<ul class="list-group">
 						{% for tps in build.tpsList %}
@@ -168,36 +194,6 @@
 	
 
 	<table align="center" id="maxiTable" width="95%" height="90%" cellspacing="0" style="border-collapse:collapse;table-layout:fixed;" border="1">
-	<thead>
-		<tr style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;height:29px;' align="center">
-			<th style="width:15px">N.</th>
-			<th style="width:600px">Test</th>
-			<th colspan="2">TPS</th>
-			{% if azione == 'process'%}
-				<th>Notes</th>
-			{% endif %}
-		</tr>
-	</thead>
-	<tbody style="overflow-y: auto;">
-		{% for build in buildMatrix %}
-			<tr bgcolor='{{ build.bgcolor }}'>
-				<td style='width:25px;text-align:center;color:{{ build.fontcolor }};border-bottom:1px;' rowspan="{{ build.numTps }}">{{ build.counter }}</td>
-				<td style="text-align:left;margin-left:20px;color:{{ build.fontcolor }};border-bottom:1px;" rowspan="{{ build.numTps }}">{{ build.testName }}</td>
-				{% for tps in build.tpsList %}
-					<td bgcolor='{{ tps.tpsBgcolor }}' style='text-align:center;color:{{ tps.tpsFontcolor }};width:70px;'>{{ tps.tpsArea }}</td>
-					<td bgcolor='{{ tps.tpsBgcolor }}' style='text-align:center;color:{{ tps.tpsFontcolor }};width:60px;'>{{ tps.tpsName }}</td>
-					{% if azione == 'process'%}
-						<td style='border-bottom:1px solid #660099;' bgcolor='{{ tps.tpsBgcolor }}'>
-							<input type='textarea' style='font-size:7pt;' value=''>
-						</td>
-					{% endif %}
-					{% if not forloop.last %}
-						</tr>
-						<tr>
-					{% endif %}
-				{% endfor %}
-			</tr>
-		{% endfor %}
 		<tr>
 			<td bgcolor="#D6E0F4" style="height:30px" colspan="5" align="center">
 				<input type="button" id="addResult" class="stylishButton" style="font-size : 7pt;" value="ADD RESULTS" disabled onclick="sendTawsDB();">
@@ -207,8 +203,7 @@
 				<input type="hidden" name="TPSValues" value="">
 			</td>	
 		</tr>
-	</tbody>
-</table>
+	</table>
 </form>
 {% endblock %}
 

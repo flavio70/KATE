@@ -762,7 +762,7 @@ def viewBuildDetails(request):
 
 def collectReports(request):
 
-	import MySQLdb
+	import mysql.connector
 	import xml.etree.ElementTree as ET
 	from os.path import basename
 	from datetime import timedelta, datetime
@@ -778,10 +778,22 @@ def collectReports(request):
 	buildId=request.POST.get('buildId')
 	azione=request.POST.get('azione')
 
-#	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	
+	swp_ref = {}
+
+	for row in myRecordSet:
+		owner=row['suiteOwner']
+		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'])
+
+	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
-#	job_instance = server.get_job(job_name)
-#	build_instance=job_instance.get_build(int(buildId))
+	job_instance = server.get_job(job_name)
+	build_instance=job_instance.get_build(int(buildId))
 
 #	if azione == "addResult1":
 #		try:
@@ -823,8 +835,8 @@ def collectReports(request):
 	counter=1
 	#for suites in root[0]:
 	for suites in root.findall(".suites/suite"):
-		if suites.find('name').text.rfind('_main')>=0 or suites.find('name').text.rfind('_Main')>=0:
-			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._main','')
+		if (suites.find('name').text.rfind('_main')>=0 or suites.find('name').text.rfind('_Main')>=0) and suites.find('name').text.rfind('EnvSettings')<0:
+			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._main','').replace('._Main','')
 			for stderr in suites.iter('stderr'):
 				testStatus='Failed'
 				bgcolor='danger'
@@ -838,10 +850,22 @@ def collectReports(request):
 				fontcolor="black"
 			tpsList=[]
 			for tps in root.findall(".suites/suite"):
-				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_main')<0:
+				if tps.find('name').text.rfind(testName)>=0 and tps.find('name').text.rfind('_main')<0 and tps.find('name').text.rfind('_Main')<0:
 					tpsTemp=tps.find('name').text.replace('(','').replace('.XML)','').replace(testName+'.','').split('_')
-					tpsName=tpsTemp[1].replace('-','.')
-					tpsArea=tpsTemp[0].replace('-','.')
+					tpsName=tpsTemp[2].replace('-','.')
+					tpsArea=tpsTemp[1]
+
+
+					nodeName='NA'
+					nodeType='NA'
+					nodeSWP='NA'
+					if tpsTemp[0].replace('[','').replace(']','') in swp_ref:
+						nodeName=swp_ref[tpsTemp[0].replace('[','').replace(']','')][0]
+						nodeType=swp_ref[tpsTemp[0].replace('[','').replace(']','')][1]
+						nodeSWP=swp_ref[tpsTemp[0].replace('[','').replace(']','')][2]
+						
+
+
 					tpsTestStatus='Passed'
 					tpsBgcolor='info'
 					tpsFontcolor="black"
@@ -850,7 +874,7 @@ def collectReports(request):
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
 						break
-					tpsList.append({'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
 			buildMatrix.append({'bgcolor':bgcolor,
 				'fontcolor':fontcolor,
 				'counter':counter,
@@ -863,6 +887,11 @@ def collectReports(request):
 			counter+=1
 
 	context_dict={'login':request.session['login'],
+		'status':build_instance.get_status(),
+		'duration':str(build_instance.get_duration()),
+		'failCount':str(build_instance.get_actions()['failCount']),
+		'totalCount':str(build_instance.get_actions()['totalCount']),
+		'skipCount':str(build_instance.get_actions()['skipCount']),
 		'job_name':job_name,
 		'azione':azione,
 		'instance': str(buildId),
@@ -891,14 +920,21 @@ def createRunJenkins(request):
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
 	in_file = open(suiteFolder+job_name+'/workspace/nodeList.txt',"r")
-	tempFile=in_file.read()
+	nodeFile=in_file.read()
 	in_file.close()
+
+	tempFile=nodeFile.split(',')
+
+	sqlStr=''
+	for myFile in tempFile:
+		if sqlStr != '':sqlStr+=' OR '
+		sqlStr+='id_equipment='+myFile
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
 	#myRecordSet.execute("select *,group_concat(piddu) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,concat(sw_rel_name,'#',group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%')) as piddu,T_EQUIPMENT.name as eqptName,owner,T_EQUIPMENT.description,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
-	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
+	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where "+sqlStr+" group by T_PROD.product,sw_rel_name) as mytable group by prodName")
 
 	for row in myRecordSet:
 		if str(row['swRelList'])!='None':
