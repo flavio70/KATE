@@ -1,7 +1,7 @@
 {% extends "taws/report_template.html" %}
 {% block body %}
 {% load static %}
-
+<link rel="stylesheet" type="text/css" href="{% static "css/report.css" %}" />
 <script>
 	function goToJob(){
 		report.action='/taws/viewJobDetails/?jobName={{ job_name }}';
@@ -36,7 +36,7 @@
 	</form>
 	<div class="row">
         <div class="col-sm-12">
-          <h2>Tags as Badges</h2>
+          <h4>Report Details</h4>
           <div id="treeview6" class=""></div>
         </div>
       </div>
@@ -57,25 +57,13 @@
 
       
 
-        $('#treeview4').treeview({
-
-          color: "#428bca",
-          data: defaultData
-        });
-
-        $('#treeview5').treeview({
-          color: "#428bca",
-          expandIcon: 'glyphicon glyphicon-chevron-right',
-          collapseIcon: 'glyphicon glyphicon-chevron-down',
-          nodeIcon: 'glyphicon glyphicon-bookmark',
-          data: defaultData
-        });
+        
 
         $('#treeview6').treeview({
+          levels: 1,
           color: "#428bca",
-          expandIcon: "glyphicon glyphicon-stop",
-          collapseIcon: "glyphicon glyphicon-unchecked",
-          nodeIcon: "glyphicon glyphicon-user",
+          expandIcon: "glyphicon glyphicon-plus",
+          collapseIcon: "glyphicon glyphicon-minus",
           showTags: true,
           data: defaultData
         });

@@ -1,0 +1,26 @@
+.list-group-item-report {
+	display:block;
+	padding: unset;
+}
+.item-input {
+	font-size:8.5pt;
+}
+.badge-for-test {
+
+	display: inline-block;
+	min-width: 18px;
+	padding: 3px 7px;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 1;
+	color: #C9302C;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	background-color: #C9302C;
+	border-radius: 10px;
+}
+
+
+
+
