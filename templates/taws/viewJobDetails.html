@@ -51,7 +51,7 @@ $(document).ready(function() {
 <!--<div style="width:30px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:1px;">
 	<h3>/<a href="/taws/runJenkins/"><u>Jobs</u></a>/{{ job_name }}/<h3>
 </div>-->
-<div style="width:1024px;position:fixed;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:30px">
+<div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
 <div>
 	<ol class="breadcrumb">
 		<li><a href="/taws/runJenkins/">Jobs</a></li>
@@ -61,7 +61,7 @@ $(document).ready(function() {
 <form name="jobDetails" method="post" target="_self" action="/taws/viewBuildDetails/">{% csrf_token %}
 	<input type="hidden" name="jobName">
 	<input type="hidden" name="buildId">
-	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="jobTable">
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="jobTable" style="width:100%">
 			<thead>
 				<tr>
 					<th></th>
