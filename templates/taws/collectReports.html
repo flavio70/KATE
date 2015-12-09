@@ -1,7 +1,76 @@
-{% extends "taws/development_template.html" %}
+{% extends "taws/report_template.html" %}
 {% block body %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "css/report.css" %}" />
 <script>
+	
+	function goToJob(){
+		sendDBReport.action='/taws/viewJobDetails/?jobName={{ job_name }}';
+		sendDBReport.submit();
+	}
+	
+	
+	
+	function goToBuild(){
+		sendDBReport.action='/taws/viewBuildDetails/';
+		sendDBReport.submit();
+	}
+	
+	
+	
+	
+	$(document).ready(function() {
+	document.getElementById('mainTitle').innerHTML='Report Collection';
+	jobTable = $('#reportTable').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'},
+		{
+			text:'<i class="fa fa-database fa"></i>',
+			titleAttr: 'Export report to K@TE Database',
+			action:function(){exportReport();},
+			className:'btn-custom'
+		},
+		
+		],
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+			{
+				"data": "report_status", 
+				"className": "dt-center" 
+			},
+			{
+				"data": "reportTest_id", 
+				"className": "dt-center" 
+			},
+			{ "data": "reportTest_name",
+			"className": "dt-center"
+			},
+			{
+				"data": "report_jiraStory", 
+				"className": "dt-center"
+			},
+			{
+				"data": "report_jiraTask", 
+				"className": "dt-center"
+			},
+						{
+				"data": "report_notes", 
+				"className": "dt-center"
+			}
+			]
+	});//end DataTable
+	
+	
+});// end ready function
+
+
 	function alignReportTable(){
 		var sxTable=top.principale.document.getElementById('testTable');
 		var dxTable=top.principale.document.getElementById('reportTable');
@@ -25,16 +94,80 @@
 		sendTAWSDBReport.submit()
 	}
 </script>
-<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
-	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Report Collection</h2>
-</div>
-<div style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:99;height:700px;margin-top:60px;">
-<h2><center><i>Result Collector</i></center></h2>
-<form name="sendTAWSDBReport" action="tawsreport.asp?azione=addResult" method="post" target="_self">
+
+
+<div style="width:1024px;position:fixed;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:30px">
+	<div>
+		<ol class="breadcrumb">
+			<li><a href="/taws/runJenkins/">Jobs</a></li>
+			<li><a href="#" onclick="goToJob()">{{ job_name }}</a></li>
+			<li><a href="#" onclick="goToBuild()">{{ instance }}</a></li>
+			<li class="active">Results</li>
+		</ol>
+	</div>
+
+
+
+
+
+
+<form name="sendDBReport" action="" method="post" target="_self">{% csrf_token %}
 	<input type="hidden" name="jobName" value="{{ job_name }}">
 	<input type="hidden" name="buildId" value="{{ instance }}">
 	<input type="hidden" name="azione" value="">
-<table align="center" id="maxiTable" width="95%" height="90%" cellspacing="0" style="border-collapse:collapse;table-layout:fixed;" border="1">
+
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="reportTable">
+		<thead>
+			<tr>
+				<th></th>
+				<th>N.</th>
+				<th>Test Name</th>
+				<th>Domain</th>
+				<th>Test</th>
+				<th>Notes</th>
+			</tr>
+		</thead>
+		<tfoot>
+		</tfoot>
+		<tbody>
+		
+			{% for build in buildMatrix %}
+			<tr>
+				<td style="vertical-align:middle;">
+					<span class="label label-{{ build.bgcolor }}"><span class="glyphicon glyphicon-{{ build.bgimage }}" aria-hidden="true"></span></span>
+				</td>
+				<td style="vertical-align:middle;">{{ build.counter }}</td>
+				<td style="vertical-align:middle;">{{ build.testName }}</td>
+				<td>
+					<ul class="list-group">
+						{% for tps in build.tpsList %}
+							<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.tpsArea }}</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul class="list-group">
+						{% for tps in build.tpsList %}
+							<li class="list-group-item list-group-item-{{tps.tpsBgcolor}}">{{ tps.tpsName }}</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul class="list-group">
+						{% for tps in build.tpsList %}
+								<li class="list-group-item-report"><input type='textarea' class="item-input" value=''></li>
+						{% endfor %}
+					</ul>
+				</td>
+		
+			</tr>
+			{% endfor %}
+			
+		</tbody>
+	</table>
+	
+
+	<table align="center" id="maxiTable" width="95%" height="90%" cellspacing="0" style="border-collapse:collapse;table-layout:fixed;" border="1">
 	<thead>
 		<tr style='text-decoration:none; font-family:verdana, sans-serif; color:#fff; font-weight: bold;background-color:#660099;height:29px;' align="center">
 			<th style="width:15px">N.</th>

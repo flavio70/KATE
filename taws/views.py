@@ -1363,7 +1363,7 @@ def viewReport(request):
 				#counter2+=2
 				#counter1+=2
 				if counter2 > 0:
-					counter2='KO'
+					counter2='i'
 				else:
 					counter2=''
 				tempTreeView=tempTreeView.replace('[counterPartial]',str(counter2))
@@ -1373,7 +1373,7 @@ def viewReport(request):
 			tempTreeView+="]},"
 			#counter1+=1
 	if counter1 > 0:
-		counter1='KO'
+		counter1='i'
 	else:
 		counter1=''
 	treeView+=tempTreeView[:-1].replace('\n','\\n').replace('[counterMain]',str(counter1))
