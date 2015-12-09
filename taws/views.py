@@ -443,8 +443,8 @@ def tuningEngine(request):
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
 		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
 		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
-		#os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
-		#os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
+		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
 	myIDX=1
 	test_plan=''
 	myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
@@ -1007,11 +1007,11 @@ def add_bench(request):
 	description=''
 
 	if action == 'create' or action == 'update':
-		myRecordSet.execute("SELECT count(*) as myCount from T_EQUIPMENT WHERE name='"+POSTname+"' and id_equipment<>'"+bench+"'")
+		myRecordSet.execute("SELECT count(*) as myCount from T_EQUIPMENT WHERE name='"+POSTname+"' and id_equipment<>'"+bench+"' limit 1")
 		#createReport+="SELECT count(*) as myCount from T_EQUIPMENT WHERE name='"+POSTname+"' and id_equipment<>'"+bench+"'"
 		row=myRecordSet.fetchone()
 		if row['myCount'] > 0:createReport+='Bench Name '+POSTname+' already present\\n'
-		myRecordSet.execute("SELECT count(*) as myCount from T_NET WHERE IP='"+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+"' and inUse=1 and T_EQUIPMENT_id_equipment<>'"+bench+"'")
+		myRecordSet.execute("SELECT count(*) as myCount from T_NET WHERE IP='"+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+"' and inUse=1 and T_EQUIPMENT_id_equipment<>'"+bench+"' limit 1")
 		#createReport+="SELECT count(*) as myCount from T_NET WHERE IP='"+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+"' and inUse=1 and T_EQUIPMENT_id_equipment<>'"+bench+"'"
 		row=myRecordSet.fetchone()
 		if row['myCount'] > 0:createReport+='IP ADDRESS '+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+' already in use\\n'
@@ -1019,40 +1019,36 @@ def add_bench(request):
 			debugInterface=debugInterface.split('$')
 			for myITF in debugInterface:
 				tempFields=myITF.split('#')
-				myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET_id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_SERIAL.T_EQUIPMENT_id_equipment<>"+bench)
+				myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET_id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_SERIAL.T_EQUIPMENT_id_equipment<>"+bench+" limit 1")
 				#createReport+="SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET.id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_NET.T_EQUIPMENT_id_equipment<>'"+bench+"'"
 				row=myRecordSet.fetchone()
 				if row['myCount'] > 0:createReport+='SERIAL IP ADDRESS '+tempFields[0]+' port '+tempFields[1]+' already in use\\n'
 	if createReport!='': bench=request.GET.get('bench','')
 	if createReport=='' and (action == 'create' or action == 'update'):
-		myRecordSet.execute("SELECT id_type from T_EQUIP_TYPE WHERE name='"+POSTproduct+"'")
+		myRecordSet.execute("SELECT id_type from T_EQUIP_TYPE WHERE name='"+POSTproduct+"' limit 1")
 		id_type=myRecordSet.fetchone()['id_type']
-		myRecordSet.execute("SELECT id_location from T_LOCATION WHERE site='"+POSTsite+"' and room='"+POSTroom+"' and row='"+POSTrow+"' and rack='"+POSTrack+"' and pos='"+POSTpos+"'")
+		myRecordSet.execute("SELECT id_location,count(*) as locationCounter from T_LOCATION WHERE site='"+POSTsite+"' and room='"+POSTroom+"' and row='"+POSTrow+"' and rack='"+POSTrack+"' and pos='"+POSTpos+"' limit 1")
 		row=myRecordSet.fetchone()
-		if row['id_location'] == '':
+		if row['locationCounter'] == 0:
 			myRecordSet.execute("INSERT INTO T_LOCATION (site,room,row,rack,pos) VALUES ('"+POSTsite+"','"+POSTroom+"','"+POSTrow+"','"+POSTrack+"','"+POSTpos+"')")
 			dbConnection.commit()
 			myRecordSet.execute("SELECT id_location from T_LOCATION WHERE site='"+POSTsite+"' and room='"+POSTroom+"' and row='"+POSTrow+"' and rack='"+POSTrack+"' and pos='"+POSTpos+"'")
 		id_location=row['id_location']
-		myRecordSet.execute("SELECT id_scope from T_SCOPE WHERE description='"+POSTscope+"'")
+		myRecordSet.execute("SELECT id_scope from T_SCOPE WHERE description='"+POSTscope+"' limit 1")
 		id_scope=myRecordSet.fetchone()['id_scope']
 		if action == 'create':
 			myRecordSet.execute("INSERT INTO T_EQUIPMENT (name, T_EQUIP_TYPE_id_type, T_LOCATION_id_location, T_SCOPE_id_scope, T_PACKAGES_id_pack, owner, inUse, description, note) VALUES ('"+POSTname+"', "+str(id_type)+", "+str(id_location)+", "+str(id_scope)+", null, '"+POSTreference+"', 1, '"+POSTdescription+"', '"+POSTnote+"')")
 			dbConnection.commit()
-			myRecordSet.execute("SELECT id_equipment from T_EQUIPMENT WHERE name='"+POSTname+"'")
+			myRecordSet.execute("SELECT id_equipment from T_EQUIPMENT WHERE name='"+POSTname+"' limit 1")
 			id_equipment=myRecordSet.fetchone()['id_equipment']
 		else:
 			myRecordSet.execute("UPDATE T_EQUIPMENT set name='"+POSTname+"', T_EQUIP_TYPE_id_type="+str(id_type)+", T_LOCATION_id_location="+str(id_location)+", T_SCOPE_id_scope="+str(id_scope)+", owner='"+POSTreference+"', inUse=1, description='"+POSTdescription+"', note='"+POSTnote+"' WHERE id_equipment="+bench)
 			dbConnection.commit()
 			id_equipment=bench
-		myRecordSet.execute("SELECT count(id_ip) as myCount from T_NET WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
-		row=myRecordSet.fetchone()
-		if row['myCount'] > 0:
-			myRecordSet.execute("UPDATE T_NET SET inUse=1,T_EQUIPMENT_id_equipment="+str(id_equipment)+" where IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
-			dbConnection.commit()
-		else:
-			myRecordSet.execute("INSERT INTO T_NET (inUse,description,T_EQUIPMENT_id_equipment,protocol,IP,NM,GW) VALUES (1,'',"+str(id_equipment)+",'v4','"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"','"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"','"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"')")
-			dbConnection.commit()
+		myRecordSet.execute("DELETE FROM T_NET WHERE T_EQUIPMENT_id_equipment='"+str(id_equipment)+"'")
+		dbConnection.commit()
+		myRecordSet.execute("INSERT INTO T_NET (inUse,description,T_EQUIPMENT_id_equipment,protocol,IP,NM,GW) VALUES (1,'',"+str(id_equipment)+",'v4','"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"','"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"','"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"')")
+		dbConnection.commit()
 		myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
 		id_ip=myRecordSet.fetchone()['id_ip']
 		myRecordSet.execute("DELETE from T_SERIAL where T_EQUIPMENT_id_equipment="+str(id_equipment))
@@ -1299,9 +1295,9 @@ def viewReport(request):
 	root = tree.getroot()
 
 	treeView=''
-	counter1=0
 	tempTreeView=''
 	for suites in root.findall(".suites/suite"):
+		counter1=0
 		if suites.find('name').text.rfind(testName)>=0 and suites.find('name').text.rfind('_Main')<0 and suites.find('name').text.rfind('_main')<0:
 			#tempTreeView+="<li><label for='folder"+str(counter1)+"'>"+suites.find('name').text.replace('(','').replace('.XML)','')+"([MAINRESULT])</label> <input type='checkbox' id='folder"+str(counter1)+"' />"
 			#tempTreeView+="<ol>"
@@ -1372,11 +1368,12 @@ def viewReport(request):
 			tempTreeView=tempTreeView[:-1]
 			tempTreeView+="]},"
 			#counter1+=1
-	if counter1 > 0:
-		counter1='i'
-	else:
-		counter1=''
-	treeView+=tempTreeView[:-1].replace('\n','\\n').replace('[counterMain]',str(counter1))
+		if counter1 > 0:
+			counter1='i'
+		else:
+			counter1=''
+		tempTreeView=tempTreeView.replace('\n','\\n').replace('[counterMain]',str(counter1))
+	treeView+=tempTreeView[:-1]
 
 	context_dict={'login':request.session['login'],
 		'job_name':job_name,

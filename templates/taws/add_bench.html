@@ -215,7 +215,7 @@ if('{{ createReport }}'!=''){
 							<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
 								<select name="scope" style="width:150px;" tabindex="19">
 									{% for myScope in scopes %}
-											<option {% if myScope == scope %}selected{% endif %} value='{{ scope }}'>{{ scope }}</option>
+											<option {% if myScope == scope %}selected{% endif %} value='{{ myScope }}'>{{ myScope }}</option>
 									{% endfor %}
 								</select>
 								<!--<input list="scopes" name="scope" value="{{ scope }}" style="width:150px;" tabindex="17">

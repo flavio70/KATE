@@ -29,7 +29,7 @@ Leave empty for local Building</description>
     <hudson.tasks.Shell>
       <command>echo &quot;workspace is: &quot; ${WORKSPACE}
 echo &quot;running suite&quot;
-${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite/suite.txt ${KateRunId}</command>
+${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite.txt ${JOB_NAME} ${BUILD_NUMBER} ${BUILD_USER_ID} ${KateRunId}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -39,6 +39,11 @@ ${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite/suite
       <healthScaleFactor>1.0</healthScaleFactor>
     </hudson.tasks.junit.JUnitResultArchiver>
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.2">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+    <org.jenkinsci.plugins.builduser.BuildUser plugin="build-user-vars-plugin@1.4"/>
+  </buildWrappers>
 </project>
 

@@ -158,12 +158,12 @@
 	</table>
 </form>
 </BODY>
-{% if action == '' %}
   <script language='javascript'>
-    window.opener.top.principale.location.href='runJenkins.asp';
-		window.close();
+    if('{{ action }}'!=''){
+      window.opener.top.principale.location.href='runJenkins.asp';
+      window.close();
+    }
   </script>
-{% endif %}
 
 </HTML>
 
