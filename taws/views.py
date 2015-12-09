@@ -11,11 +11,21 @@ from django.conf import settings
 
 from django.http import HttpResponse
 
+def thread_jenkins():
+	from jenkinsapi.jenkins import Jenkins
+	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
+	request.session['thread_jenkins']='OK'
+
 def index(request):
+	#request.session['thread_jenkins']='KO'
+	#from thread import thread
+	#thread.start_new_thread ( thread_jenkins())
 	context = RequestContext(request)
+	#context_dict = {'nothing':'nothing','thread_jenkins':request.session['thread_jenkins']}
 	context_dict = {'nothing':'nothing'}
 	if 'login' in request.session:
 		login=request.session['login']
+		#context_dict = {'login':login,'thread_jenkins':request.session['thread_jenkins']}
 		context_dict = {'login':login}
 	return render_to_response('taws/index.html', context_dict, context)
 
@@ -361,7 +371,6 @@ def tuningEngine(request):
 		tempNibble = myVar.split("|")
 		myRecordSet.execute("INSERT into T_PST_ENTITY (T_PRESETS_id_preset,T_TPY_ENTITY_id_entity,pstvalue,T_EQUIPMENT_id_equipment) VALUES ('"+str(presetID)+"','"+tempNibble[0]+"','"+tempNibble[1]+"','"+tempNibble[2]+"')")
 		dbConnection.commit()
-
 
 	tempStr=''
 	#tempStr+="PresetID :"+str(presetID)+"\n"
@@ -1321,11 +1330,11 @@ def viewReport(request):
 				#tempTreeView+="</li>"
 				tempTreeView+="{text:'STDOUT',"+\
 					"href:'#STDOUT',"+\
-					"tags:['0'],"+\
+					"tags:[],"+\
 					"nodes:[{"+\
 					"text:'"+case.find('stdout').text+"',"+\
 					"href:'#"+case.find('stdout').text+"',"+\
-					"tags:['0']}]},"
+					"tags:[]}]},"
 				if testStatus.rfind('Failed')>=0:
 					counter2+=1
 					counter1+=1
@@ -1333,11 +1342,11 @@ def viewReport(request):
 					#tempTreeView+="</li>"
 					tempTreeView+="{text:'STDERR',"+\
 						"href:'#STDERR',"+\
-						"tags:['0'],"+\
+						"tags:[],"+\
 						"nodes:[{"+\
 						"text:'"+case.find('stderr').text+"',"+\
 						"href:'#"+case.find('stderr').text+"',"+\
-						"tags:['0']}]},"
+						"tags:[]}]},"
 				#counter2+=1
 				#tempTreeView+="<li><label for='subsubfolder"+str(counter2)+"'>DURATION:\n"+case.find('duration').text+"</label> <input type='checkbox' id='subsubfolder"+str(counter2)+"' />"
 				#tempTreeView+="</li>"
@@ -1345,20 +1354,28 @@ def viewReport(request):
 				#tempTreeView+="</li>"
 				tempTreeView+="{text:'DURATION',"+\
 						"href:'#DURATION',"+\
-						"tags:['0'],"+\
+						"tags:[],"+\
 						"nodes:[{"+\
 						"text:'"+case.find('duration').text+"',"+\
 						"href:'#"+case.find('duration').text+"',"+\
-						"tags:['0']}]}"
+						"tags:[]}]}"
 				tempTreeView+="]},"
-				counter2+=2
-				counter1+=2
+				#counter2+=2
+				#counter1+=2
+				if counter2 > 0:
+					counter2='KO'
+				else:
+					counter2=''
 				tempTreeView=tempTreeView.replace('[counterPartial]',str(counter2))
 			#tempTreeView+="</ol>"
 			#tempTreeView+="</li>"
 			tempTreeView=tempTreeView[:-1]
 			tempTreeView+="]},"
-			counter1+=1
+			#counter1+=1
+	if counter1 > 0:
+		counter1='KO'
+	else:
+		counter1=''
 	treeView+=tempTreeView[:-1].replace('\n','\\n').replace('[counterMain]',str(counter1))
 
 	context_dict={'login':request.session['login'],

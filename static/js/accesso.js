@@ -121,6 +121,7 @@ function doAccess(myAction){
 		//document.getElementById('serverPersonalSuite').innerHTML=myUserSuite;
 		//fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
 		//fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
+		suiteID=sersverResponse_data['suiteID'];
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
 		//alert(sersverResponse_data['testString']);
@@ -240,7 +241,7 @@ function doAccess(myAction){
 		});
 	}
 	if(myAction=='saveSuite'){
-		alert(savingString);
+		//alert(savingString);
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
