@@ -14,6 +14,7 @@
 	<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.css" %}" />
 	<link rel="stylesheet"  href="{% static "font-awesome-4.4.0/css/font-awesome.min.css" %}" />
 	<link rel="stylesheet" type="text/css" href="{% static "css/customTables.css" %}" />
+	<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}" />
       
 	<!--<link rel="stylesheet" type="text/css" href="{% static "css/_styles.css" %}" />
 	<link type="text/css" href="{% static "css/tooltip.css" %}" />
@@ -68,6 +69,7 @@
 	<script type="text/javascript" src="{% static "js/vfs_fonts.js" %}"></script>
 	<script type="text/javascript" src="{% static "js/jquery.smartmenu.js" %}"></script>
 	<script type="text/javascript" src="{% static "js/jquery.smartmenus.bootstrap.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/dataTables.select.min.js" %}"></script>
 
 	<script type="text/javascript">
 

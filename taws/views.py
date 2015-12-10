@@ -450,7 +450,7 @@ def tuningEngine(request):
 	myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
 	git=myRepo.git
 	for row in rows:
-		test_name=str(myIDX).zfill(6)+'_'+str(row['test_id'])+'_'+ntpath.basename(row['test_name'])
+		test_name=str(myIDX).zfill(6)+'_'+str(row['id_TestRev'])+'_'+ntpath.basename(row['test_name'])
 		if localTesting == 'off':
 			tempStr+='GETTING '+test_name+'...'
 			out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,"w")
@@ -662,7 +662,7 @@ def viewBuildDetails(request):
 
 	for row in myRecordSet:
 		owner=row['suiteOwner']
-		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'])
+		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'],row['id_pack'])
 
 	#row=myRecordSet.fetchone()
 	
@@ -723,6 +723,7 @@ def viewBuildDetails(request):
 						nodeName=swp_ref[tpsTemp[0].replace('[','').replace(']','')][0]
 						nodeType=swp_ref[tpsTemp[0].replace('[','').replace(']','')][1]
 						nodeSWP=swp_ref[tpsTemp[0].replace('[','').replace(']','')][2]
+						id_pack=swp_ref[tpsTemp[0].replace('[','').replace(']','')][3]
 						
 
 					#tpsProd=myRecordSet.fetchone()['eType']
@@ -734,7 +735,7 @@ def viewBuildDetails(request):
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
 						break
-					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'id_pack':id_pack,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
 			buildMatrix.append({'bgcolor':bgcolor,
 				'fontcolor':fontcolor,
 				'counter':counter,
@@ -782,61 +783,32 @@ def collectReports(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by id_run) as myReport using(id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
 	
 	swp_ref = {}
 
 	for row in myRecordSet:
 		owner=row['suiteOwner']
-		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'])
+		id_run=row['id_run']
+		KateDB=row['KateDB']
+		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'],row['id_pack'])
 
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 	job_instance = server.get_job(job_name)
 	build_instance=job_instance.get_build(int(buildId))
 
-#	if azione == "addResult1":
-#		try:
-#			note=req[str(testCount)].value
-#		except:
-#			note='NA'
-#		myRecordSet.execute("INSERT INTO resultReporter (SELECT null as resultID,"+IDAry[testIndex]+" as ID,'"+result+"' as result,null as SWRelease,'"+Session("login")+"' as tester,'"+note+"' as notes,'"+endingDate+"' as executionDate,"+req['s1'].value+" as SWPID,'' as failedReport)")
-#		dbConnection.commit()
-#		myRecordSet.execute("UPDATE testlist set teststatus='A' where ID="+IDAry[testIndex])
-#		dbConnection.commit()
-#		myRecordSet.execute("SELECT MAX(resultID) as last from resultReporter")
-#		myRecord=myRecordSet.fetchone()
-#		lastID=myRecord['last']
-#		for tpsIndex in range(1,len(tempTps)-1):
-#			if tempTps[tpsIndex].rfind(','):
-#				tpsreport=tempTps[tpsIndex].split(',')
-#				myRecordSet.execute("INSERT INTO tpsreport (tps,area,result,resultID) VALUES('"+tpsreport[1]+"','"+tpsreport[0].strip()+"','"+tpsreport[2]+"','"+str(lastID)+"')")
-#				dbConnection.commit()
-#		myRecordSet.execute("UPDATE atmruntime set tawsdb='OK' where runID="+str(runID))
-#		dbConnection.commit()
-
-#if suiteName != '':
-# 	myRecordSet.execute("select id,concat(product,' ',SWRelease,' SWPs ','<select onchange=\"if((\\\'"+azione+"\\\'==\\\'process\\\')&&(this.value!=\\'\\')){addResult.disabled=false;}else{addResult.disabled=true;}\" name=\"s1\"><option>Select SWP</option>',convert(group_concat(distinct concat('<option value=\"',swpid,'\">',swp,'</option>') order by product,SWRelease,convert(replace(SWP,'.',''),unsigned) desc separator '') using utf8),'</select>') as myresult from compatibility join testarea using(areaID) join availableSWP using(product,SWRelease) where ("+IDStr+") and ordine<>0 group by concat(product,SWRelease)")
-#	myRecord=myRecordSet.fetchone()
-#	Response.Write(myRecord['myresult'])
-
-#	if 'parameters' in build_instance.get_actions():
-#		for myTuple in build_instance.get_actions()['parameters']:
-#			if myTuple['name']=='TB_NODE_IP':
-#				target=myTuple['value']
-#				break
-#	else:
-#		target='NA'
-	#print build_instance.get_resultset().keys()
 	tree = ET.parse(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml')
 	root = tree.getroot()
 
 	buildMatrix=[]
 	counter=1
+	noteCounter=1
 	#for suites in root[0]:
 	for suites in root.findall(".suites/suite"):
 		if (suites.find('name').text.rfind('_main')>=0 or suites.find('name').text.rfind('_Main')>=0) and suites.find('name').text.rfind('EnvSettings')<0:
 			testName=suites.find('name').text.replace('(','').replace('.XML)','').replace('._main','').replace('._Main','')
+			testID=testName.split('_')[1]
 			for stderr in suites.iter('stderr'):
 				testStatus='Failed'
 				bgcolor='danger'
@@ -863,18 +835,30 @@ def collectReports(request):
 						nodeName=swp_ref[tpsTemp[0].replace('[','').replace(']','')][0]
 						nodeType=swp_ref[tpsTemp[0].replace('[','').replace(']','')][1]
 						nodeSWP=swp_ref[tpsTemp[0].replace('[','').replace(']','')][2]
-						
+						id_pack=swp_ref[tpsTemp[0].replace('[','').replace(']','')][3]
 
 
 					tpsTestStatus='Passed'
 					tpsBgcolor='info'
 					tpsFontcolor="black"
+					errMsg="NA"
+
+					
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
+						errMsg=stderr.text
 						break
-					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+
+					if azione == "addResult":
+						#myRecordSet.execute("INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')")
+						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"',"+str(id_run)+" FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"')")
+						#nodeType="INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')"
+						#myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
+						dbConnection.commit()
+					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'noteCounter':noteCounter,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
+					noteCounter+=1
 			buildMatrix.append({'bgcolor':bgcolor,
 				'fontcolor':fontcolor,
 				'counter':counter,
@@ -894,6 +878,7 @@ def collectReports(request):
 		'skipCount':str(build_instance.get_actions()['skipCount']),
 		'job_name':job_name,
 		'azione':azione,
+		'KateDB':KateDB,
 		'instance': str(buildId),
 		'buildMatrix':buildMatrix}
 	return render(request,'taws/collectReports.html',context_dict)
@@ -989,7 +974,7 @@ def add_bench(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	bench=request.GET.get('bench','')
+	bench=request.GET.get('bench','NONE')
 	action=request.GET.get('action','')
 
 	POSTname=request.POST.get('name','')
@@ -1055,7 +1040,7 @@ def add_bench(request):
 			debugInterface=debugInterface.split('$')
 			for myITF in debugInterface:
 				tempFields=myITF.split('#')
-				myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET_id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_SERIAL.T_EQUIPMENT_id_equipment<>"+bench+" limit 1")
+				myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET_id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_SERIAL.T_EQUIPMENT_id_equipment<>'"+bench+"' limit 1")
 				#createReport+="SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET.id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_NET.T_EQUIPMENT_id_equipment<>'"+bench+"'"
 				row=myRecordSet.fetchone()
 				if row['myCount'] > 0:createReport+='SERIAL IP ADDRESS '+tempFields[0]+' port '+tempFields[1]+' already in use\\n'
@@ -1110,7 +1095,7 @@ def add_bench(request):
 
 
 
-	if bench != '':
+	if bench != 'NONE':
 		SQL="SELECT *,T_NET.IP as benchIP,T_NET.NM as benchNM,T_NET.GW as benchGW,T_EQUIPMENT.description as benchDescription,T_EQUIPMENT.note as benchNote,group_concat(concat(ip1.ip,'#',port,'#',if(slot is null,'-',slot),'#',if(subslot is null,'-',subslot)) separator '|') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET on(T_NET.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) where id_equipment="+str(bench)+" group by id_equipment"
 		#SQL="SELECT * from T_EQUIPMENT join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where id_equipment="+str(bench)
 		myRecordSet.execute(SQL)
