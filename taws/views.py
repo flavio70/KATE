@@ -1405,6 +1405,20 @@ def viewReport(request):
 		'testName':testName}
 	return render(request,'taws/viewReport.html',context_dict)
 
+def statistics_sw_executed(request):
+
+	import mysql.connector
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':fromPage}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	context_dict={'login':request.session['login']}
+
+
+	return render(request,'taws/statistics_sw_executed.html',context_dict)
   
 def accesso(request):
 	from taws.models import TTest,TTestRevs

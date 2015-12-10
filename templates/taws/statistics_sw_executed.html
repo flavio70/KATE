@@ -1,0 +1,254 @@
+{% extends "taws/mainCompact_template.html" %}
+{% block body %}
+{% load static %}
+
+
+<form name="filtro" method="post" action="statistics_sw_executed.asp">
+<input type="hidden" name="swpid1" value="<%=pack1%>" />
+<input type="hidden" name="swpid2" value="<%=pack2%>" />
+<input type="hidden" name="swpid3" value="<%=pack3%>" />
+<input type="hidden" name="area" value="" />
+
+<table width="100%">
+<tr>
+<td align="left">
+
+<table width="100%" cellspacing="0" cellpadding="0">
+
+<tr style="height:20px; postion:left;" bgcolor="gray">
+
+<td valign="middle" align="center">
+<table>
+<tr>
+<td style="padding-left:10px;padding-right:5px;"><a href="#"><img src="images/xls.png" border="0" onclick="Export();"><a></td>
+<td style="padding-left:5px;padding-right:10px;"><a href="#"><img src="images/print.png" border="0" onclick="window.print()"></a></td>
+<td style="padding-left:5px;padding-right:10px;"></td>
+
+</tr>
+</table>
+</td>
+
+<td valign="bottom" align="center">
+<table width="100%">
+    <tr>
+    <td align="left" style="padding-left:10px;">
+    
+    </td>
+    </tr>
+    </table>
+</td>
+
+<td valign="bottom" align="left">
+<table>
+<tr>
+<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>SWP QUALITY</center></b></td>
+<td><input type="radio" value="quality" name="tipo" onclick="View();" /></td>
+<td width="50px;">&nbsp;</td>
+<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>TEST EXECUTION</center></b></td>
+<td><input type="radio" value="execution" name="tipo" onclick="View();" /></td>
+</tr>
+</table>
+</td>
+
+	<td align="left" colspan="4">
+    <table>
+    <tr>
+	<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
+	<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
+    </td>
+	<td align="center" width="100%">
+		<font color="white"><b><span id='label1' align="center"></span>&nbsp;</b></font>
+	</td>
+    </tr>
+	<tr>
+	<td align="left">
+		<input type="text" name="select1" id="select1" value=""/>
+		<ul id="select1menu" class="mcdropdown_menu">
+		</ul>
+	</td>
+	</tr>
+    </table>
+	</td>
+
+	<td align="left" colspan="4">
+    <table>
+    <tr>
+	<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
+	<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
+    </td>
+	<td align="center" width="100%">
+		<font color="white"><b><span id='label2' align="center"></span>&nbsp;</b></font>
+	</td>
+	</tr>
+	<tr>
+	<td align="left">
+		<input type="text" name="select2" id="select2" value=""/>
+		<ul id="select2menu" class="mcdropdown_menu">
+		</ul>
+	</td>
+    </tr>
+    </table>
+	</td>
+
+	<td align="left" colspan="4">
+    <table>
+    <tr>
+	<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
+	<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
+    </td>
+	<td align="center" width="100%">
+		<font color="white"><b><span id='label3' align="center"></span>&nbsp;</b></font>
+	</td>
+    </tr>
+	<tr>
+	<td align="left">
+		<input type="text" name="select3" id="select3" value=""/>
+		<ul id="select3menu" class="mcdropdown_menu">
+		</ul>
+	</td>
+    </tr>
+    </table>
+	</td>
+
+	</tr>
+
+<tr>
+
+	<td width="100px" align="center" style="padding-left:10px;color:#fff;height:20px;" bgcolor=<%=viola%>><strong>AREA</strong></td>
+
+	<td align="left" colspan="2" style="padding-left:10px;color:#fff;" bgcolor=<%=viola%>><strong>AREA NAME</strong></td>
+
+	<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
+	<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
+	<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
+	<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
+
+	<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
+	<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
+	<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
+	<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
+	
+	<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
+	<td width="50px" align="center" style="color:#fff;" bgcolor=<%=verde%>><strong>OK</strong></td>
+	<td width="50px" align="center" style="color:#fff;" bgcolor=<%=rosso%>><strong>KO</strong></td>
+	<td width="50px" align="center" style="color:#fff;" bgcolor=<%=nero%>><strong>TRG</strong></td>
+
+	</tr>
+				
+		<tr align="center">
+			<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
+			<td></td>			
+			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+			<td style="font-size:11px;"><strong></strong></td>
+		</tr>
+	<tr>
+    <td bgcolor="#ffffff" colspan="15">&nbsp;</td>
+    </tr>
+    <tr>
+    <td color="#000000" align="center"><font style="font-size:12px;"><strong></strong></font></td>
+    <td color="#000000" colspan="14">&nbsp;</td>
+    </tr>
+	
+        
+<tr>
+<td valign="middle" style="border-right:#999999 solid 1px; border-left:#999999 solid 1px;" align="center"></td>
+<td valign="middle" colspan="2" align="left" style="padding-left:10px;"></td>
+
+<td valign="middle" align="center" style="border-left: 1px solid #999999;">
+</td>
+<td valign="middle" align="center"></td>
+<td valign="middle" align="center"></td>
+<td valign="middle" align="center"></td>
+
+
+<td valign="middle" align="center" style="border-left: 1px solid #999999;">
+</td>
+
+
+<td valign="middle" align="center"></td>
+<td valign="middle" align="center"></td>
+<td valign="middle" align="center"></td>
+
+
+<td valign="middle" align="center" style="border-left: 1px solid #999999;">
+</td>
+
+<td valign="middle" align="center"></td>
+<td valign="middle" align="center"></td>
+<td valign="middle" align="center" style="border-right: 1px solid #999999;"></td>
+</tr>
+
+
+	
+	
+		<tr align="center">
+			<td align="left"  colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
+			<td ></td>
+			
+			<td c style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			
+			<td style="font-size:12px;"><strong></strong></td>
+			<td  style="font-size:12px;"><strong></strong></td>
+			<td  style="font-size:12px;"><strong></strong></td>
+			
+			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			
+			<td  style="font-size:12px;"><strong></strong></td>
+			<td  style="font-size:12px;"><strong></strong></td>
+			<td  style="font-size:12px;"><strong></strong></td>
+			
+			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			
+			<td style="font-size:12px;"><strong></strong></td>
+			<td  style="font-size:12px;"><strong></strong></td>
+			<td  style="font-size:12px;"><strong></strong></td>
+		</tr>
+		<tr><td colspan="15"  height='5px'></td></tr>
+		<tr align="center">
+			<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL OVERALL</strong></font></td>
+			<td ></td>
+			
+			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			
+			<td id="OK1"  style="font-size:12px;"><strong></strong></td>
+			<td id="KO1"  style="font-size:12px;"><strong></strong></td>
+			<td id="TG1"  style="font-size:12px;"><strong></strong></td>
+			
+			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			
+			<td id="OK2" style="font-size:12px;"><strong></strong></td>
+			<td id="KO2"  style="font-size:12px;"><strong></strong></td>
+			<td id="TG2" style="font-size:12px;"><strong></strong></td>
+			
+			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
+			</strong></td>
+			
+			<td id="OK3"  style="font-size:12px;"><strong></strong></td>
+			<td id="KO3" style="font-size:12px;"><strong></strong></td>
+			<td id="TG3"  style="font-size:12px;"><strong></strong></td>
+		</tr>
+		<tr><td colspan="15" height='5px'></td></tr>
+</table>
+
+</form>
+
+{% endblock %}
+

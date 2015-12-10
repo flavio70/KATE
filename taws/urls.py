@@ -22,5 +22,6 @@ urlpatterns = [
 	url(r'^viewReport/$', views.viewReport),
 	url(r'^collectReports/$', views.collectReports),
 	url(r'^add_bench/$', views.add_bench),
-	url(r'^bench/$', views.bench)
+	url(r'^bench/$', views.bench),
+	url(r'^statistics_sw_executed/$', views.statistics_sw_executed)
 ]
