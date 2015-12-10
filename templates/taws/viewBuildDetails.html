@@ -66,6 +66,7 @@
 });// end ready function
 
 </script>
+<div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 
 <div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
 	<div>
@@ -93,7 +94,7 @@
 				<td id='owner'>{{ owner }}</td>
 				<td id='start'>{{ timeStamp }}</td>
 				<td id='end'>{{ duration }}</td>
-				<td id='tawsdb'>NA</td>
+				<td id='tawsdb'>{{ KateDB }}</td>
 			</tr>
 		</tbody>
 	</table>
@@ -312,7 +313,8 @@ function loadReport(reportName,reportType){
 
 function exportReport(){
 	report.action='/taws/collectReports/';
-	report.submit();
+	if('{{ KateDB }}'=='KO'){report.submit();}
+		else{showalert("Result already exported to KATE DB...","alert-danger")}
 }
 
 </script>

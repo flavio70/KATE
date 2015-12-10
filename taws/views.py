@@ -656,12 +656,13 @@ def viewBuildDetails(request):
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
 	#myRecordSet.execute("select *,count(*) as myCount,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode from T_RUNTIME join T_RTM_BODY on(id_run=T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
-	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by id_run) as myReport using(id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
 	
 	swp_ref = {}
 
 	for row in myRecordSet:
 		owner=row['suiteOwner']
+		KateDB=row['KateDB']
 		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'],row['id_pack'])
 
 	#row=myRecordSet.fetchone()
@@ -750,6 +751,7 @@ def viewBuildDetails(request):
 		'job_name':job_name,
 		'instance': str(buildId),
 		'owner':owner,
+		'KateDB':KateDB,
 		'status':build_instance.get_status(),
 		'duration':str(build_instance.get_duration()),
 		'failCount':str(build_instance.get_actions()['failCount']),
