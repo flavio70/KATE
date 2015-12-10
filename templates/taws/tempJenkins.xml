@@ -29,7 +29,7 @@ Leave empty for local Building</description>
     <hudson.tasks.Shell>
       <command>echo &quot;workspace is: &quot; ${WORKSPACE}
 echo &quot;running suite&quot;
-${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite.txt ${JOB_NAME} ${BUILD_NUMBER} ${BUILD_USER_ID} ${KateRunId}</command>
+${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite.txt ${JOB_NAME} ${BUILD_NUMBER} ${KateRunId} --UserId ${BUILD_USER_ID}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

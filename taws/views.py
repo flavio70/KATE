@@ -651,12 +651,13 @@ def viewBuildDetails(request):
 	buildId=request.POST.get('buildId')
 	target='NA'
 	owner='NA'
+	KateDB="NA"
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
 	#myRecordSet.execute("select *,count(*) as myCount,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode from T_RUNTIME join T_RTM_BODY on(id_run=T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
-	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by id_run) as myReport using(id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by T_RUNTIME_id_run) as myReport on(id_run=myReport.T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
 	
 	swp_ref = {}
 
@@ -720,6 +721,7 @@ def viewBuildDetails(request):
 					nodeName='NA'
 					nodeType='NA'
 					nodeSWP='NA'
+					id_pack="NA"
 					if tpsTemp[0].replace('[','').replace(']','') in swp_ref:
 						nodeName=swp_ref[tpsTemp[0].replace('[','').replace(']','')][0]
 						nodeType=swp_ref[tpsTemp[0].replace('[','').replace(']','')][1]
@@ -785,7 +787,7 @@ def collectReports(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by id_run) as myReport using(id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by T_RUNTIME_id_run) as myReport on(id_run=myReport.T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
 	
 	swp_ref = {}
 
@@ -855,7 +857,7 @@ def collectReports(request):
 
 					if azione == "addResult":
 						#myRecordSet.execute("INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')")
-						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"',"+str(id_run)+" FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"')")
+						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"' FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"')")
 						#nodeType="INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')"
 						#myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
 						dbConnection.commit()
