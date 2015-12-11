@@ -1412,10 +1412,6 @@ def statistics_sw_executed(request):
 	import mysql.connector
 
 	context = RequestContext(request)
-	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
-		return render_to_response('taws/login.html',context_dict,context)
 
 	context_dict={'login':request.session['login']}
 
