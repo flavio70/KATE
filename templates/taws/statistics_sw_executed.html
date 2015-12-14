@@ -3,252 +3,426 @@
 {% load static %}
 
 
-<form name="filtro" method="post" action="statistics_sw_executed.asp">
-<input type="hidden" name="swpid1" value="<%=pack1%>" />
-<input type="hidden" name="swpid2" value="<%=pack2%>" />
-<input type="hidden" name="swpid3" value="<%=pack3%>" />
-<input type="hidden" name="area" value="" />
 
-<table width="100%">
-<tr>
-<td align="left">
-
-<table width="100%" cellspacing="0" cellpadding="0">
-
-<tr style="height:20px; postion:left;" bgcolor="gray">
-
-<td valign="middle" align="center">
-<table>
-<tr>
-<td style="padding-left:10px;padding-right:5px;"><a href="#"><img src="images/xls.png" border="0" onclick="Export();"><a></td>
-<td style="padding-left:5px;padding-right:10px;"><a href="#"><img src="images/print.png" border="0" onclick="window.print()"></a></td>
-<td style="padding-left:5px;padding-right:10px;"></td>
-
-</tr>
-</table>
-</td>
-
-<td valign="bottom" align="center">
-<table width="100%">
-    <tr>
-    <td align="left" style="padding-left:10px;">
-    
-    </td>
-    </tr>
-    </table>
-</td>
-
-<td valign="bottom" align="left">
-<table>
-<tr>
-<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>SWP QUALITY</center></b></td>
-<td><input type="radio" value="quality" name="tipo" onclick="View();" /></td>
-<td width="50px;">&nbsp;</td>
-<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>TEST EXECUTION</center></b></td>
-<td><input type="radio" value="execution" name="tipo" onclick="View();" /></td>
-</tr>
-</table>
-</td>
-
-	<td align="left" colspan="4">
-    <table>
-    <tr>
-	<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
-	<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
-    </td>
-	<td align="center" width="100%">
-		<font color="white"><b><span id='label1' align="center"></span>&nbsp;</b></font>
-	</td>
-    </tr>
-	<tr>
-	<td align="left">
-		<input type="text" name="select1" id="select1" value=""/>
-		<ul id="select1menu" class="mcdropdown_menu">
-		</ul>
-	</td>
-	</tr>
-    </table>
-	</td>
-
-	<td align="left" colspan="4">
-    <table>
-    <tr>
-	<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
-	<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
-    </td>
-	<td align="center" width="100%">
-		<font color="white"><b><span id='label2' align="center"></span>&nbsp;</b></font>
-	</td>
-	</tr>
-	<tr>
-	<td align="left">
-		<input type="text" name="select2" id="select2" value=""/>
-		<ul id="select2menu" class="mcdropdown_menu">
-		</ul>
-	</td>
-    </tr>
-    </table>
-	</td>
-
-	<td align="left" colspan="4">
-    <table>
-    <tr>
-	<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
-	<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
-    </td>
-	<td align="center" width="100%">
-		<font color="white"><b><span id='label3' align="center"></span>&nbsp;</b></font>
-	</td>
-    </tr>
-	<tr>
-	<td align="left">
-		<input type="text" name="select3" id="select3" value=""/>
-		<ul id="select3menu" class="mcdropdown_menu">
-		</ul>
-	</td>
-    </tr>
-    </table>
-	</td>
-
-	</tr>
-
-<tr>
-
-	<td width="100px" align="center" style="padding-left:10px;color:#fff;height:20px;" bgcolor=<%=viola%>><strong>AREA</strong></td>
-
-	<td align="left" colspan="2" style="padding-left:10px;color:#fff;" bgcolor=<%=viola%>><strong>AREA NAME</strong></td>
-
-	<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
-	<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
-	<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
-	<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
-
-	<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
-	<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
-	<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
-	<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
+<script>
+$(document).ready(function() {
+	document.getElementById('mainTitle').innerHTML='SW Statistics';
 	
-	<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
-	<td width="50px" align="center" style="color:#fff;" bgcolor=<%=verde%>><strong>OK</strong></td>
-	<td width="50px" align="center" style="color:#fff;" bgcolor=<%=rosso%>><strong>KO</strong></td>
-	<td width="50px" align="center" style="color:#fff;" bgcolor=<%=nero%>><strong>TRG</strong></td>
-
-	</tr>
-				
-		<tr align="center">
-			<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
-			<td></td>			
-			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-			<td style="font-size:11px;"><strong></strong></td>
-		</tr>
-	<tr>
-    <td bgcolor="#ffffff" colspan="15">&nbsp;</td>
-    </tr>
-    <tr>
-    <td color="#000000" align="center"><font style="font-size:12px;"><strong></strong></font></td>
-    <td color="#000000" colspan="14">&nbsp;</td>
-    </tr>
-	
-        
-<tr>
-<td valign="middle" style="border-right:#999999 solid 1px; border-left:#999999 solid 1px;" align="center"></td>
-<td valign="middle" colspan="2" align="left" style="padding-left:10px;"></td>
-
-<td valign="middle" align="center" style="border-left: 1px solid #999999;">
-</td>
-<td valign="middle" align="center"></td>
-<td valign="middle" align="center"></td>
-<td valign="middle" align="center"></td>
-
-
-<td valign="middle" align="center" style="border-left: 1px solid #999999;">
-</td>
-
-
-<td valign="middle" align="center"></td>
-<td valign="middle" align="center"></td>
-<td valign="middle" align="center"></td>
-
-
-<td valign="middle" align="center" style="border-left: 1px solid #999999;">
-</td>
-
-<td valign="middle" align="center"></td>
-<td valign="middle" align="center"></td>
-<td valign="middle" align="center" style="border-right: 1px solid #999999;"></td>
-</tr>
-
-
+	dTable = $('#dTable').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		scrollY:'380px',
+		scrollCollapse:true,
+		data: dataSet,
+		"columns": [
+			{ title: "Name" },
+			{ title: "Position" },
+			{ title: "Office" },
+			{ title: "Extn." },
+			{ title: "Start date" },
+			{ title: "Salary" }
+		]
+	});//end DataTable
 	
 	
-		<tr align="center">
-			<td align="left"  colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
-			<td ></td>
-			
-			<td c style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			
-			<td style="font-size:12px;"><strong></strong></td>
-			<td  style="font-size:12px;"><strong></strong></td>
-			<td  style="font-size:12px;"><strong></strong></td>
-			
-			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			
-			<td  style="font-size:12px;"><strong></strong></td>
-			<td  style="font-size:12px;"><strong></strong></td>
-			<td  style="font-size:12px;"><strong></strong></td>
-			
-			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			
-			<td style="font-size:12px;"><strong></strong></td>
-			<td  style="font-size:12px;"><strong></strong></td>
-			<td  style="font-size:12px;"><strong></strong></td>
-		</tr>
-		<tr><td colspan="15"  height='5px'></td></tr>
-		<tr align="center">
-			<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL OVERALL</strong></font></td>
-			<td ></td>
-			
-			<td style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			
-			<td id="OK1"  style="font-size:12px;"><strong></strong></td>
-			<td id="KO1"  style="font-size:12px;"><strong></strong></td>
-			<td id="TG1"  style="font-size:12px;"><strong></strong></td>
-			
-			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			
-			<td id="OK2" style="font-size:12px;"><strong></strong></td>
-			<td id="KO2"  style="font-size:12px;"><strong></strong></td>
-			<td id="TG2" style="font-size:12px;"><strong></strong></td>
-			
-			<td  style="font-size:11px;border-left:#999999 1px solid;"><strong>
-			</strong></td>
-			
-			<td id="OK3"  style="font-size:12px;"><strong></strong></td>
-			<td id="KO3" style="font-size:12px;"><strong></strong></td>
-			<td id="TG3"  style="font-size:12px;"><strong></strong></td>
-		</tr>
-		<tr><td colspan="15" height='5px'></td></tr>
-</table>
+});// end ready function
 
-</form>
+
+
+var dataSet = [
+    [ "Tiger Nixon", "System Architect", "Edinburgh", "5421", "2011/04/25", "$320,800" ],
+    [ "Garrett Winters", "Accountant", "Tokyo", "8422", "2011/07/25", "$170,750" ],
+    [ "Ashton Cox", "Junior Technical Author", "San Francisco", "1562", "2009/01/12", "$86,000" ],
+    [ "Cedric Kelly", "Senior Javascript Developer", "Edinburgh", "6224", "2012/03/29", "$433,060" ],
+    [ "Airi Satou", "Accountant", "Tokyo", "5407", "2008/11/28", "$162,700" ],
+    [ "Brielle Williamson", "Integration Specialist", "New York", "4804", "2012/12/02", "$372,000" ],
+    [ "Herrod Chandler", "Sales Assistant", "San Francisco", "9608", "2012/08/06", "$137,500" ],
+    [ "Rhona Davidson", "Integration Specialist", "Tokyo", "6200", "2010/10/14", "$327,900" ],
+    [ "Colleen Hurst", "Javascript Developer", "San Francisco", "2360", "2009/09/15", "$205,500" ],
+    [ "Sonya Frost", "Software Engineer", "Edinburgh", "1667", "2008/12/13", "$103,600" ],
+    [ "Jena Gaines", "Office Manager", "London", "3814", "2008/12/19", "$90,560" ],
+    [ "Quinn Flynn", "Support Lead", "Edinburgh", "9497", "2013/03/03", "$342,000" ],
+    [ "Charde Marshall", "Regional Director", "San Francisco", "6741", "2008/10/16", "$470,600" ],
+    [ "Haley Kennedy", "Senior Marketing Designer", "London", "3597", "2012/12/18", "$313,500" ],
+    [ "Tatyana Fitzpatrick", "Regional Director", "London", "1965", "2010/03/17", "$385,750" ],
+    [ "Michael Silva", "Marketing Designer", "London", "1581", "2012/11/27", "$198,500" ],
+    [ "Paul Byrd", "Chief Financial Officer (CFO)", "New York", "3059", "2010/06/09", "$725,000" ],
+    [ "Gloria Little", "Systems Administrator", "New York", "1721", "2009/04/10", "$237,500" ],
+    [ "Bradley Greer", "Software Engineer", "London", "2558", "2012/10/13", "$132,000" ],
+    [ "Dai Rios", "Personnel Lead", "Edinburgh", "2290", "2012/09/26", "$217,500" ],
+    [ "Jenette Caldwell", "Development Lead", "New York", "1937", "2011/09/03", "$345,000" ],
+    [ "Yuri Berry", "Chief Marketing Officer (CMO)", "New York", "6154", "2009/06/25", "$675,000" ],
+    [ "Caesar Vance", "Pre-Sales Support", "New York", "8330", "2011/12/12", "$106,450" ],
+    [ "Doris Wilder", "Sales Assistant", "Sidney", "3023", "2010/09/20", "$85,600" ],
+    [ "Angelica Ramos", "Chief Executive Officer (CEO)", "London", "5797", "2009/10/09", "$1,200,000" ],
+    [ "Gavin Joyce", "Developer", "Edinburgh", "8822", "2010/12/22", "$92,575" ],
+    [ "Jennifer Chang", "Regional Director", "Singapore", "9239", "2010/11/14", "$357,650" ],
+    [ "Brenden Wagner", "Software Engineer", "San Francisco", "1314", "2011/06/07", "$206,850" ],
+    [ "Fiona Green", "Chief Operating Officer (COO)", "San Francisco", "2947", "2010/03/11", "$850,000" ],
+    [ "Shou Itou", "Regional Marketing", "Tokyo", "8899", "2011/08/14", "$163,000" ],
+    [ "Michelle House", "Integration Specialist", "Sidney", "2769", "2011/06/02", "$95,400" ],
+    [ "Suki Burks", "Developer", "London", "6832", "2009/10/22", "$114,500" ],
+    [ "Prescott Bartlett", "Technical Author", "London", "3606", "2011/05/07", "$145,000" ],
+    [ "Gavin Cortez", "Team Leader", "San Francisco", "2860", "2008/10/26", "$235,500" ],
+    [ "Martena Mccray", "Post-Sales support", "Edinburgh", "8240", "2011/03/09", "$324,050" ],
+    [ "Unity Butler", "Marketing Designer", "San Francisco", "5384", "2009/12/09", "$85,675" ]
+];
+
+
+ 
+
+</script>
+
+
+
+<div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
+
+	<form name="filtro" method="post" action="">
+		<input type="hidden" name="swpid1" value="<%=pack1%>" />
+		<input type="hidden" name="swpid2" value="<%=pack2%>" />
+		<input type="hidden" name="swpid3" value="<%=pack3%>" />
+		<input type="hidden" name="area" value="" />
+		
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#"></a>
+				</div>
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav navbar-left">
+						<div class="btn-group" data-toggle="buttons">
+							<label class="btn btn-primary navbar-btn">
+								<input type="radio" id="q156" name="tipo" value="quality" onclick="View();" />
+								<span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> SWP Quality
+							</label> 
+							<label class="btn btn-primary navbar-btn active">
+								<input type="radio" id="q157" name="tipo" checked="checked" value="execution" onclick="View();" />
+								<span class="glyphicon glyphicon-tasks" aria-hidden="true"></span> Test Execution
+							</label> 
+						</div><!-- end btn group-->
+					</ul><!-- end navbar ul-->
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+							<div class="btn-group btn-group-xs navbar-btn" data-toggle="tooltip" title="..." role="group">
+									<button type="button" id='{{ build.testName }}' onclick="morgue" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+							</div>
+						</li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown3 <span class="caret"></span></a>
+							<ul class="dropdown-menu" id="select3menu" >
+								<li><a href="#">Action</a></li>
+								<li><a href="#">Another action</a></li>
+								<li><a href="#">Something else here</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="#">Separated link</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="#">One more separated link</a></li>
+							</ul>
+						</li>
+					</ul><!-- end navbar ul-->
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+							<div class="btn-group btn-group-xs navbar-btn" data-toggle="tooltip" title="..." role="group">
+									<button type="button" id='{{ build.testName }}' onclick="morgue" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+							</div>
+						</li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown2 <span class="caret"></span></a>
+							<ul class="dropdown-menu" id="select2menu" >
+								<li><a href="#">Action</a></li>
+								<li><a href="#">Another action</a></li>
+								<li><a href="#">Something else here</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="#">Separated link</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="#">One more separated link</a></li>
+							</ul>
+						</li>
+					</ul><!-- end navbar ul-->
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+							<div class="btn-group btn-group-xs navbar-btn" data-toggle="tooltip" title="..." role="group">
+									<button type="button" id='{{ build.testName }}' onclick="morgue" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+							</div>
+						</li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown1 <span class="caret"></span></a>
+							<ul class="dropdown-menu" id="select1menu" >
+								<li><a href="#">Action</a></li>
+								<li><a href="#">Another action</a></li>
+								<li><a href="#">Something else here</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="#">Separated link</a></li>
+								<li role="separator" class="divider"></li>
+								<li><a href="#">One more separated link</a></li>
+							</ul>
+						</li>
+					</ul><!-- end navbar ul-->
+				</div><!-- end collapse navbar-->
+			</div><!-- end container -->
+		</nav>
+		<div class="row">
+			<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+				<li class="active" ><a href="#summary-tab" data-toggle="tab">Summary</a></li>
+				<li><a href="#common-tab" data-toggle="tab">COMMON</a></li>
+				<li><a href="#data-tab" data-toggle="tab">DATA</a></li>
+				<li><a href="#tdm-tab" data-toggle="tab">TDM</a></li>
+				<li><a href="#odn-tab" data-toggle="tab">ODN</a></li>
+				<li><a href="#wdm-tab" data-toggle="tab">WDM</a></li>
+			</ul>
+
+			
+			<div id="my-tab-content" class="tab-content">
+
+        <div class="tab-pane active" id="summary-tab">
+            <h1>Summary</h1>
+            <p>orange orange orange orange orange</p>
+        </div>
+        <div class="tab-pane" id="common-tab">
+            <h1>Common</h1>
+            <p>yellow yellow yellow yellow yellow</p>
+        </div>
+        <div class="tab-pane" id="data-tab">
+            <h1>Data</h1>
+            <table id="dTable" class="display" width="100%"></table>
+        </div>
+        <div class="tab-pane" id="tdm-tab">
+            <h1>TDM</h1>
+            <p>blue blue blue blue blue</p>
+        </div>
+        <div class="tab-pane" id="odn-tab">
+            <h1>ODN</h1>
+            <p>blue blue blue blue blue</p>
+        </div>
+        <div class="tab-pane" id="wdm-tab">
+            <h1>WDM</h1>
+            <p>blue blue blue blue blue</p>
+        </div>
+    </div>
+			
+			
+			
+			
+			
+
+			
+		</div>
+	</form>
+
+
+</div>
 
 {% endblock %}
+
+
+<!--############################################################################
+									OLD CODE
+#################################################################################-->
+<!--<form name="filtro" method="post" action="statistics_sw_executed.asp">
+	<input type="hidden" name="swpid1" value="<%=pack1%>" />
+	<input type="hidden" name="swpid2" value="<%=pack2%>" />
+	<input type="hidden" name="swpid3" value="<%=pack3%>" />
+	<input type="hidden" name="area" value="" />
+
+	<table width="100%">
+	<tr>
+		<td align="left">
+			<table width="100%" cellspacing="0" cellpadding="0">
+				<tr style="height:20px; postion:left;" bgcolor="gray">
+					<td valign="middle" align="center">
+						<table>
+							<tr>
+								<td style="padding-left:10px;padding-right:5px;"><a href="#"><img src="images/xls.png" border="0" onclick="Export();"><a></td>
+								<td style="padding-left:5px;padding-right:10px;"><a href="#"><img src="images/print.png" border="0" onclick="window.print()"></a></td>
+								<td style="padding-left:5px;padding-right:10px;"></td>
+							</tr>
+						</table>
+					</td>
+					<td valign="bottom" align="center">
+						<table width="100%">
+							<tr>
+								<td align="left" style="padding-left:10px;"></td>
+							</tr>
+						</table>
+					</td>
+					<td valign="bottom" align="left">
+						<table>
+							<tr>
+								<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>SWP QUALITY</center></b></td>
+								<td><input type="radio" value="quality" name="tipo" onclick="View();" /></td>
+								<td width="50px;">&nbsp;</td>
+								<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>TEST EXECUTION</center></b></td>
+								<td><input type="radio" value="execution" name="tipo" onclick="View();" /></td>
+							</tr>
+						</table>
+					</td>
+					<td align="left" colspan="4">
+						<table>
+							<tr>
+								<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
+									<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
+								</td>
+								<td align="center" width="100%">
+									<font color="white"><b><span id='label1' align="center"></span>&nbsp;</b></font>
+								</td>
+							</tr>
+							<tr>
+								<td align="left">
+									<input type="text" name="select1" id="select1" value=""/>
+									<ul id="select1menu" class="mcdropdown_menu"></ul>
+								</td>
+							</tr>
+						</table>
+					</td>
+					<td align="left" colspan="4">
+						<table>
+							<tr>
+								<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
+									<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
+								</td>
+								<td align="center" width="100%">
+									<font color="white"><b><span id='label2' align="center"></span>&nbsp;</b></font>
+								</td>
+							</tr>
+							<tr>
+								<td align="left">
+									<input type="text" name="select2" id="select2" value=""/>
+									<ul id="select2menu" class="mcdropdown_menu"></ul>
+								</td>
+							</tr>
+						</table>
+					</td>
+					<td align="left" colspan="4">
+						<table>
+							<tr>
+								<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
+									<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
+								</td>
+								<td align="center" width="100%">
+									<font color="white"><b><span id='label3' align="center"></span>&nbsp;</b></font>
+								</td>
+							</tr>
+							<tr>
+								<td align="left">
+									<input type="text" name="select3" id="select3" value=""/>
+									<ul id="select3menu" class="mcdropdown_menu"></ul>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td width="100px" align="center" style="padding-left:10px;color:#fff;height:20px;" bgcolor=<%=viola%>><strong>AREA</strong></td>
+					<td align="left" colspan="2" style="padding-left:10px;color:#fff;" bgcolor=<%=viola%>><strong>AREA NAME</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
+					<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
+					<td width="50px" align="center" style="color:#fff;" bgcolor=<%=verde%>><strong>OK</strong></td>
+					<td width="50px" align="center" style="color:#fff;" bgcolor=<%=rosso%>><strong>KO</strong></td>
+					<td width="50px" align="center" style="color:#fff;" bgcolor=<%=nero%>><strong>TRG</strong></td>
+				</tr>
+				<tr align="center">
+					<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
+					<td></td>			
+					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+					<td style="font-size:11px;"><strong></strong></td>
+				</tr>
+				<tr>
+					<td bgcolor="#ffffff" colspan="15">&nbsp;</td>
+				</tr>
+				<tr>
+					<td color="#000000" align="center"><font style="font-size:12px;"><strong></strong></font></td>
+					<td color="#000000" colspan="14">&nbsp;</td>
+				</tr>
+				<tr>
+					<td valign="middle" style="border-right:#999999 solid 1px; border-left:#999999 solid 1px;" align="center"></td>
+					<td valign="middle" colspan="2" align="left" style="padding-left:10px;"></td>
+					<td valign="middle" align="center" style="border-left: 1px solid #999999;"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center" style="border-left: 1px solid #999999;"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center" style="border-left: 1px solid #999999;"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center"></td>
+					<td valign="middle" align="center" style="border-right: 1px solid #999999;"></td>
+				</tr>
+				<tr align="center">
+					<td align="left"  colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
+					<td ></td>
+					<td c style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:12px;"><strong></strong></td>
+				</tr>
+				<tr>
+					<td colspan="15"  height='5px'></td>
+				</tr>
+				<tr align="center">
+					<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL OVERALL</strong></font></td>
+					<td ></td>
+					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td id="OK1"  style="font-size:12px;"><strong></strong></td>
+					<td id="KO1"  style="font-size:12px;"><strong></strong></td>
+					<td id="TG1"  style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td id="OK2" style="font-size:12px;"><strong></strong></td>
+					<td id="KO2"  style="font-size:12px;"><strong></strong></td>
+					<td id="TG2" style="font-size:12px;"><strong></strong></td>
+					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
+					<td id="OK3"  style="font-size:12px;"><strong></strong></td>
+					<td id="KO3" style="font-size:12px;"><strong></strong></td>
+					<td id="TG3"  style="font-size:12px;"><strong></strong></td>
+				</tr>
+				<tr>
+					<td colspan="15" height='5px'></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+</form>
+
 
