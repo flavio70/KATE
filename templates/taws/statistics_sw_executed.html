@@ -80,15 +80,12 @@ var dataSet = [
 
 </script>
 
-
-
 <div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
 
-	<form name="filtro" method="post" action="">
-		<input type="hidden" name="swpid1" value="<%=pack1%>" />
-		<input type="hidden" name="swpid2" value="<%=pack2%>" />
-		<input type="hidden" name="swpid3" value="<%=pack3%>" />
-		<input type="hidden" name="area" value="" />
+	<form name="filtro" method="post" action="/taws/statistics_sw_executed/">{% csrf_token %}
+		<input type="hidden" name="id_pack1" value="" />
+		<input type="hidden" name="id_pack2" value="" />
+		<input type="hidden" name="id_pack3" value="" />
 		
 		<nav class="navbar navbar-default">
 			<div class="container-fluid">
@@ -123,15 +120,9 @@ var dataSet = [
 							</div>
 						</li>
 						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown3 <span class="caret"></span></a>
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">SW Package 3 <span class="caret"></span></a>
 							<ul class="dropdown-menu" id="select3menu" >
-								<li><a href="#">Action</a></li>
-								<li><a href="#">Another action</a></li>
-								<li><a href="#">Something else here</a></li>
-								<li role="separator" class="divider"></li>
-								<li><a href="#">Separated link</a></li>
-								<li role="separator" class="divider"></li>
-								<li><a href="#">One more separated link</a></li>
+								{{ swp_dropdown }}
 							</ul>
 						</li>
 					</ul><!-- end navbar ul-->
@@ -142,15 +133,9 @@ var dataSet = [
 							</div>
 						</li>
 						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown2 <span class="caret"></span></a>
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">SW Package 2 <span class="caret"></span></a>
 							<ul class="dropdown-menu" id="select2menu" >
-								<li><a href="#">Action</a></li>
-								<li><a href="#">Another action</a></li>
-								<li><a href="#">Something else here</a></li>
-								<li role="separator" class="divider"></li>
-								<li><a href="#">Separated link</a></li>
-								<li role="separator" class="divider"></li>
-								<li><a href="#">One more separated link</a></li>
+								{{ swp_dropdown }}
 							</ul>
 						</li>
 					</ul><!-- end navbar ul-->
@@ -161,15 +146,9 @@ var dataSet = [
 							</div>
 						</li>
 						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown1 <span class="caret"></span></a>
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">SW Package 1 <span class="caret"></span></a>
 							<ul class="dropdown-menu" id="select1menu" >
-								<li><a href="#">Action</a></li>
-								<li><a href="#">Another action</a></li>
-								<li><a href="#">Something else here</a></li>
-								<li role="separator" class="divider"></li>
-								<li><a href="#">Separated link</a></li>
-								<li role="separator" class="divider"></li>
-								<li><a href="#">One more separated link</a></li>
+								{{ swp_dropdown1 }}
 							</ul>
 						</li>
 					</ul><!-- end navbar ul-->
@@ -179,11 +158,7 @@ var dataSet = [
 		<div class="row">
 			<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
 				<li class="active" ><a href="#summary-tab" data-toggle="tab">Summary</a></li>
-				<li><a href="#common-tab" data-toggle="tab">COMMON</a></li>
-				<li><a href="#data-tab" data-toggle="tab">DATA</a></li>
-				<li><a href="#tdm-tab" data-toggle="tab">TDM</a></li>
-				<li><a href="#odn-tab" data-toggle="tab">ODN</a></li>
-				<li><a href="#wdm-tab" data-toggle="tab">WDM</a></li>
+				{% if selected_tab != 'None' %} {{ selected_tab }} {% endif %}
 			</ul>
 
 			
@@ -193,26 +168,7 @@ var dataSet = [
             <h1>Summary</h1>
             <p>orange orange orange orange orange</p>
         </div>
-        <div class="tab-pane" id="common-tab">
-            <h1>Common</h1>
-            <p>yellow yellow yellow yellow yellow</p>
-        </div>
-        <div class="tab-pane" id="data-tab">
-            <h1>Data</h1>
-            <table id="dTable" class="display" width="100%"></table>
-        </div>
-        <div class="tab-pane" id="tdm-tab">
-            <h1>TDM</h1>
-            <p>blue blue blue blue blue</p>
-        </div>
-        <div class="tab-pane" id="odn-tab">
-            <h1>ODN</h1>
-            <p>blue blue blue blue blue</p>
-        </div>
-        <div class="tab-pane" id="wdm-tab">
-            <h1>WDM</h1>
-            <p>blue blue blue blue blue</p>
-        </div>
+		{% if selected_div != 'None' %} {{ selected_div }} {% endif %}
     </div>
 			
 			
