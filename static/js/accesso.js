@@ -98,7 +98,7 @@ function doAccess(myAction){
 		//updateTestTable('testTable',testListString);
 		updateTestTable('testTable',testListString);
 		//alert(sersverResponse_data['testString']);
-		//    if(myAction=='localBrowsing'){
+		if(myAction=='localBrowsing'){updateTestTable('testBundleTable',sersverResponse_data['localString'].split('$'));}
 		//      //alert(sersverResponse_data['localString']);
 		//  		testBundleString=String(sersverResponse_data['localString']).split('$');
 		//    		  updateTestTable('testBundleTable',testBundleString);
@@ -192,7 +192,7 @@ function doAccess(myAction){
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		alert(sersverResponse_data['creationReport']);
-    window.opener.doAccess('localBrowsing');
+   		 window.opener.doAccess('localBrowsing');
 	};
 
 //------------------------POST VALUES-----------------------------------------------------------------------------------

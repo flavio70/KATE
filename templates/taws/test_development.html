@@ -1,13 +1,729 @@
-{% extends "taws/development_template.html" %}
+{% extends "taws/jenkins_template.html" %}
 {% block body %}
 {% load static %}
 
-<div style="width:200px;height:31px;position:absolute;right:50%;margin-right:-512px;margin-top:-20px;background-color:#414141;">
-	<h2 style="color:white;font-size: 15px;text-align:right;font-family: Verdana;margin:2px 10px 0px 0px;">Test Development</h2>
-</div>
+<link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<script>
+	//addLoadEvent(function() {placeIt();});
+	owner='{{ login }}';
+	var myURL = "{% url 'accesso' %}";
+	var SECT = new Array();
+	SECT[1]="{% static 'images/sect1.gif' %}";
+	SECT[0]="{% static 'images/sect0.gif' %}";
+	myProduct="";
+	myLab="";
+	myUserSuite="";
+	mySharedSuite="";
+	suiteID='';
+	suiteName='';
+	userSuiteID='';
+	sharedSuiteID='';
+</script>
+{% for myItem in userSuiteAry %}
+    <script>myUserSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
+{% endfor %}
+
+{% for myItem in sharedSuiteAry %}
+    <script>mySharedSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'sharedSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ;">{{ myItem.suiteName }}</a></li>';</script>
+{% endfor %}
+
+{% for myItem in productAry %}
+    <script>myProduct+='<li><a onclick="fillButtons(\'{{ myItem.productConcat }}\',\'sw-release\',\'{{ myItem.product }}\',\'product\');">{{ myItem.product }}</a></li>';</script>
+{% endfor %}
+
+{% for myItem in labAry %}
+	<script>myLab+='<li><a href="queryDB();">{{ myItem.labName }}</a></li>';</script>
+{% endfor %}
 
 <script>
-	addLoadEvent(function() {doAccess('localBrowsing');});
+
+
+
+
+function changePerspective(){
+	if(document.getElementById('cartTitle').innerHTML.match('Cart')){show1=5;show2=10;viewStr='View Composer <span class="caret"></span>';} else{show1=10;show2=5;viewStr='View Cart <span class="caret"></span>';}
+	//document.getElementById('composerTitle').style.zIndex=show1;
+	//document.getElementById('chartTitle').style.zIndex=show2;
+	//document.getElementById('queries').style.zIndex=show1;
+	//document.getElementById('suiteCommand').style.zIndex=show2;
+	document.getElementById('testContainer').style.zIndex=show1;
+	document.getElementById('testBundleContainer').style.zIndex=show2;
+	document.getElementById('cartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> '+viewStr;
+}
+
+function format ( myRow ) {
+    return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+        '<tr>'+
+            '<td>TEST ID:</td>'+
+            '<td>'+myRow.testId+'</td>'+
+            '<td rowspan="6">TOPOLOGY</td>'+
+            '<td rowspan="6"><img width="300px" src="/static/images/'+myRow.topo+'.jpg"</img></td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Dependency:</td>'+
+            '<td>'+myRow.dependency+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Metric:</td>'+
+            '<td>'+myRow.metric+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Author:</td>'+
+            '<td>'+myRow.author+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Description:</td>'+
+            '<td>'+myRow.description+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Last Update:</td>'+
+            '<td>'+myRow.lastUpdate+'</td>'+
+        '</tr>'+
+    '</table>';
+}
+
+$(document).ready(function() {
+	doAccess('localBrowsing');
+	//testTable = $('#testTable').DataTable();myOption
+	document.getElementById('mainTitle').innerHTML='Test Development';
+	testTable = $('#testTable').DataTable({
+		dom:'<"row"<"col-sm-7"<"dbquery">><"col-sm-5"<"dbaction">>>\
+				<"row"<"col-sm-2"l><"col-sm-5"><"col-sm-2"><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		"order": [[ 2, "desc" ]],
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+			{
+				"className":      'details-control',
+				"orderable":      false,
+				"data":           "control",
+				"defaultContent": 'aaa'
+			},
+		{
+			"data": "num", 
+			"orderable":      false,
+			"className": "dt-center" 
+		},
+		{
+			"data": "tps", 
+		},
+		{ "data": "test" },
+		{
+			"data": "lab", 
+			"className": "dt-center"
+		},
+		{ "data": "rev" },
+		{
+			"data": "time", 
+			"className": "dt-center"
+		},
+		{
+			"data": "topo",
+			 "className": "dt-center"
+		},
+		{
+			"data": "sect1",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect2",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect3",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect4",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect5",
+			"className": "dt-center"
+		 },
+		{ 
+			"data": "testId",
+			"visible": false 
+		},
+		{ 
+			"data": "dependency",
+			"visible": false 
+		},
+		{ 
+			"data": "metric",
+			"visible": false 
+		},
+		{ 
+			"data": "assignment",
+			"visible": false 
+		},
+		{ 
+			"data": "author",
+			"visible": false 
+		},
+		{ 
+			"data": "description",
+			"visible": false 
+		},
+		{ 
+			"data": "relDate",
+			"visible": false 
+		},
+		{ 
+			"data": "lastUpdate",
+			"visible": false 
+		},
+		{ 
+			"data": "testString",
+			"visible": false 
+		}
+]
+	});
+
+	new $.fn.dataTable.Buttons( testTable, {'buttons': [
+							{
+								text:'<i class="fa fa-play fa"></i>',
+								titleAttr: 'ADD SELECTED TCs TO SUITE',
+								action:function(){insertBundleList(1,'');},
+								className:'btn-custom'
+							},
+							{
+								text:'<i class="fa fa-forward fa"></i>',
+								titleAttr: 'ADD ALL TCs TO SUITE',
+								action:function(){insertAllBundleList();},
+								className:'btn-custom'
+							},
+							{
+								text:'<i class="fa fa-step-forward fa"></i>',
+								titleAttr: 'ADD SELECTED TCs AT SUITE POSITION',
+								action:function(){insertBundleList(1,prompt('Insert Position',''));},
+								className:'btn-custom'
+							},
+							{
+								text:'<i class="fa fa-eject fa"></i>',
+								titleAttr: 'PERFORM DELETE REQUEST TO DB MANAGER',
+								action:function(){deleteTest();},
+								className:'btn-custom'
+							},
+
+						]} );
+
+	//testTable.buttons(1,null).container().appendTo($('.col-sm-2:eq(1)',testTable.table().container() ));
+	
+	$("div.buttonGroup1").html('\
+						<div class="input-group input-group-sm">\
+							<span class="input-group-addon" id="sizing-addon2">DB Query</span>\
+							<div class="input-group-btn">\
+								<div class="btn-group btn-group-sm" role="group">\
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="product">Product <span class="caret"></span></button>\
+									<ul class="dropdown-menu dropdown-menu-right">'+myProduct+'</ul>\
+								</div><!-- end btn_group-->\
+								<div class="btn-group btn-group-sm" role="group">\
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="sw-release" disabled>SW Version <span class="caret"></span></button>\
+									<ul class="dropdown-menu dropdown-menu-right" id="sw-release-dropdown"></ul>\
+								</div><!-- end btn_group-->\
+								<div class="btn-group btn-group-sm" role="group">\
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="domain" disabled>Domain <span class="caret"></span></button>\
+									<ul class="dropdown-menu dropdown-menu-right" id="domain-dropdown"></ul>\
+								</div><!-- end btn_group-->\
+								<div class="btn-group btn-group-sm" role="group">\
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="area" disabled>Area <span class="caret"></span></button>\
+									<ul class="dropdown-menu dropdown-menu-right" id="area-dropdown"></ul>\
+								</div><!-- end btn_group-->\
+							</div><!-- end input-group-btn-->\
+						</div><!-- end input-group-->\
+		');
+    
+    
+	$("div.selections").html('<ul class="list-group"><li class="list-group-item">Selection counters</li></ul>');
+	$("div.totTests").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-test" class="badge">0</span>Total tests</li></ul>');
+	$("div.totTPS").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-tps" class="badge">0</span>Total TPS</li></ul>');
+	$("div.totTime").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-time" class="badge">00:00:00</span>Total Time</li></ul>');
+	$("div.totMetric").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-metric" class="badge">0</span>Total Metric</li></ul>');
+
+	$("div.dbquery").html('\
+		<nav class="navbar navbar-default">\
+			<div class="container-fluid">\
+				<!-- Brand and toggle get grouped for better mobile display -->\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a class="navbar-brand">DB Query</a>\
+				</div><!-- end navbar-header -->\
+				<!-- Collect the nav links, forms, and other content for toggling -->\
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">\
+					<ul class="nav navbar-nav">\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="product">Product <span class="caret"></span></button>\
+							<ul class="dropdown-menu dropdown-menu-right">'+myProduct+'</ul>\
+						</div><!-- end btn_group-->\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="sw-release" disabled>SW Version <span class="caret"></span></button>\
+							<ul class="dropdown-menu dropdown-menu-right" id="sw-release-dropdown"></ul>\
+						</div><!-- end btn_group-->\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="domain" disabled>Domain <span class="caret"></span></button>\
+							<ul class="dropdown-menu dropdown-menu-right" id="domain-dropdown"></ul>\
+						</div><!-- end btn_group-->\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="area" disabled>Area <span class="caret"></span></button>\
+							<ul class="dropdown-menu dropdown-menu-right" id="area-dropdown"></ul>\
+						</div><!-- end btn_group-->\
+						<div class="btn-group btn-group-sm" data-toggle="tooltip" title="remove Selected test from DB"" role="group">\
+							<button type="button" data-toggle="popover" title="DELETE BUTTON" data-content="Use this button to delete selected tests" onclick="deleteTest();"class="btn btn-default navbar-btn btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete</button>\
+						</div><!-- end btn_group-->\
+					</ul>\
+				</div><!-- end navbar-collapse -->\
+			</div><!-- end container-fluid -->\
+		</nav><!-- end navbar -->\
+	');
+	
+		$("div.dbaction").html('\
+		<nav class="navbar navbar-default">\
+			<div class="container-fluid">\
+				<!-- Brand and toggle get grouped for better mobile display -->\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2" aria-expanded="false">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a class="navbar-brand">Job Cart</a>\
+				</div><!-- end navbar-header -->\
+				<!-- Collect the nav links, forms, and other content for toggling -->\
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">\
+					<ul class="nav navbar-nav">\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Use this button to add selected Test to your Suite" onclick="insertBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-play" aria-hidden="true"></span> Add</button>\
+						</div><!-- end btn_group-->\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Use this button to add ALL the Tests browsed to your Suite" onclick="insertAllBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Add All</button>\
+						</div><!-- end btn_group-->\
+						<div class="btn-group btn-group-sm" role="group">\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON to Index" data-content="Use this button to add selected Test to your Suite at specified position" onclick="insertBundleList(1,prompt(\'Insert Position\',\'\'));" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span> Add To</button>\
+						</div><!-- end btn_group-->\
+					</ul>\
+				</div><!-- end navbar-collapse -->\
+			</div><!-- end container-fluid -->\
+		</nav><!-- end navbar -->\
+	');
+	
+
+	$('#testTable tbody').on('click', 'td.details-control', function () {
+		var tr = $(this).closest('tr');
+		var row = testTable.row( tr );
+	 
+		if ( row.child.isShown() ) {
+		    // This row is already open - close it
+		    row.child.hide();
+		    tr.removeClass('shown');
+		}
+		else {
+		    // Open this row
+		    row.child( format(row.data()) ).show();
+		    tr.addClass('shown');
+		}
+	    } );
+
+	    
+	    
+	$('#testTable tbody').on('click','tr',function(e){
+		$(this).toggleClass('info');
+		updateStats('selection');
+	})
+
+	testTable.on( 'order.dt search.dt', function () {
+		testTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+		    cell.innerHTML = i+1;
+		} );
+	    } ).draw();		 
+	    
+	testBundleTable = $('#testBundleTable').DataTable({
+		dom:'<"row"<"col-sm-12"<"suiteAction">>>\
+			<"row"<"col-sm-3"l><"col-sm-3"<"suiteNavigation">><"col-sm-3"<"suiteNavigation2">><"col-sm-3"f>>\
+			<"row"<"col-sm-12"tr>>\
+			<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+			<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		"order": [[ 1, "asc" ]],
+		"bSort" : false,
+		scrollY:'380px',
+		scrollCollapse:true,"columns": [
+            {
+                "className":      'details-control',
+                "orderable":      false,
+                "data":           "control",
+                "defaultContent": ''
+            },
+						{
+							"data": "num", 
+							"className": "dt-center" 
+						},
+						{
+							"data": "tps", 
+							"className": "dt-center" 
+						},
+						{ "data": "test" },
+						{
+							"data": "lab", 
+							"className": "dt-center"
+						},
+						{ "data": "rev" },
+						{
+							"data": "time", 
+							"className": "dt-center"
+						},
+						{
+							"data": "topo",
+							"className": "dt-center"
+						},
+						{
+							"data": "sect1",
+							"className": "dt-center"
+						},
+						{
+							"data": "sect2",
+							"className": "dt-center"
+						},
+						{
+							"data": "sect3",
+							"className": "dt-center"
+						},
+						{
+							"data": "sect4",
+							"className": "dt-center"
+						},
+						{
+							"data": "sect5",
+							"className": "dt-center"
+						},
+						{ 
+							"data": "testId",
+							"visible": false 
+						},
+						{ 
+							"data": "dependency",
+							"visible": false 
+						},
+						{ 
+							"data": "metric",
+							"visible": false 
+						},
+						{ 
+							"data": "assignment",
+							"visible": false 
+						},
+						{ 
+							"data": "author",
+							"visible": false 
+						},
+						{ 
+							"data": "description",
+							"visible": false 
+						},
+						{ 
+							"data": "relDate",
+							"visible": false 
+						},
+						{ 
+							"data": "lastUpdate",
+							"visible": false 
+						},
+						{ 
+							"data": "testString",
+							"visible": false 
+						}
+				]
+	});
+	
+	
+	$("div.suiteAction").html('\
+		<nav class="navbar navbar-default">\
+			<div class="container-fluid">\
+				<!-- Brand and toggle get grouped for better mobile display -->\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-suiteaction-navbar-collapse" aria-expanded="false">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a class="navbar-brand">Suites</a>\
+				</div><!-- end navbar-header -->\
+				<!-- Collect the nav links, forms, and other content for toggling -->\
+				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
+					<ul class="nav navbar-nav navbar-center">\
+						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Create New Test" onclick="newwindow=window.open(\'/taws/createNewTest/\',\'createTest\',\'height=600,width=800,resizable=no\');"><span class="glyphicon glyphicon-gift" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save Development Suite" onclick="saveLocalSuite();"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save Development Suite" onclick="doAccess(\'localBrowsing\');"><span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></button>\
+						</div>\
+					</ul>\
+				</div><!-- end navbar-collapse -->\
+			</div><!-- end container-fluid -->\
+		</nav><!-- end navbar -->\
+	');
+	  
+   
+    $("div.suiteNavigation").html('\
+    <nav class ="navbar navbar-xs navbar-default navbar-colored">\
+			<div class="container-fluid">\
+				<!-- Brand and toggle get grouped for better mobile display -->\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle navbar-toggle-xs collapsed" data-toggle="collapse" data-target="#LC-navbar-collapse" aria-expanded="false">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a  class="navbar-brand">Move</a>\
+				</div><!-- end navbar-header -->\
+				<!-- Collect the nav links, forms, and other content for toggling -->\
+				<div class="collapse navbar-collapse" id="LC-navbar-collapse">\
+					<ul class="nav navbar-nav navbar-left">\
+								<div class="btn-group btn-group-xs" role="group" aria-label="..." data-toggle="popover" title="MOVE TEST CASES" data-content="MOVE UP adn DOWN,to TOP or to BOTTOM selected Test Cases">\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test to Top" onclick="moveSelectedEdge(\'up\')"><i class="fa fa-forward fa-rotate-270"></i></button>\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test Up" onclick="moveSelected(\'up\')"><i class="fa fa-play fa-rotate-270"></i></button>\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test Down" onclick="moveSelected(\'down\')"><i class="fa fa-play fa-rotate-90"></i></button>\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test to Bottom" onclick="moveSelectedEdge(\'down\')"><i class="fa fa-forward fa-rotate-90"></i></button>\
+								</div>\
+						</ul>\
+				</div><!-- end navbar-collapse -->\
+			</div><!-- end container-fluid -->\
+		</nav><!-- end navbar -->\
+	');
+   
+   
+   
+   $("div.suiteNavigation2").html('\
+    <nav class ="navbar navbar-xs navbar-default navbar-colored">\
+			<div class="container-fluid">\
+				<!-- Brand and toggle get grouped for better mobile display -->\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle navbar-toggle-xs collapsed" data-toggle="collapse" data-target="#LC-navbar-collapse1" aria-expanded="false">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a  class="navbar-brand">Remove</a>\
+				</div><!-- end navbar-header -->\
+				<!-- Collect the nav links, forms, and other content for toggling -->\
+				<div class="collapse navbar-collapse" id="LC-navbar-collapse1">\
+						<ul class="nav navbar-nav navbar-center">\
+						<div class="btn-group btn-group-xs" role="group" aria-label="...">\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="popover" title="REMOVE BUTTON" data-content="Remove selected Test Cases from yout Suite" onclick="removeBundleList()"><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Selected</button>\
+									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="popover" title="REMOVE ALL BUTTON" data-content="Remove ALL Test Cases from yout Suite" onclick="removeAllBundleList()"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> All</button>\
+								</div>\
+						</ul>\
+				</div><!-- end navbar-collapse -->\
+			</div><!-- end container-fluid -->\
+		</nav><!-- end navbar -->\
+	');
+     
+   
+   
+  	$('#testBundleTable tbody').on('click','tr',function(e){
+		$(this).toggleClass('info');
+	})
+   
+   
+	//$('#suiteTable').DataTable();
+	//$('#testBundleTable tbody').on( 'click', 'tr', function () {
+	//	$(this).toggleClass('selected');
+	//	//$(this).toggleClass($(this)[0].id);
+	 //   } );
+
+	$('#testBundleTable tbody').on('click', 'td.details-control', function () {
+		var tr = $(this).closest('tr');
+		var row = testBundleTable.row( tr );
+	 
+		if ( row.child.isShown() ) {
+		    // This row is already open - close it
+		    row.child.hide();
+		    tr.removeClass('shown');
+		}
+		else {
+		    // Open this row
+		    row.child( format(row.data()) ).show();
+		    tr.addClass('shown');
+		}
+	    } );
+	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'right','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+	$('[data-toggle="popover-left"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+} );
+
+</script>
+
+<form name="selectTest" action="" method="post" >{% csrf_token %}
+	<input type="hidden" value="" name="savingName" id="savingName">
+</form>
+
+<div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
+
+
+<div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable" style="width:100%">
+		<thead>       
+			<tr>     
+				<th style="width:20px" rowspan="2"></th>        
+				<th style="width:20px" rowspan="2">Pos</th>
+				<th style="width:115px" rowspan="2">TPS</th>
+				<th rowspan="2">Test</th>
+				<th style="width:33px" rowspan="2">Lab</th>
+				<th style="width:50px" rowspan="2">Rev</th>
+				<th style="width:40px" rowspan="2">Time</th>
+				<th style="width:30px" rowspan="2">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+			<tr>     
+				<th style="width:20px">DUT<br>Setup</th>
+				<th style="width:20px">Test<br>Setup</th>
+				<th style="width:20px">Test<br>Body</th>
+				<th style="width:20px">Test<br>CleanUp</th>
+				<th style="width:20px">DUT<br>CleanUp</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+		</thead>     
+		<tfoot>       
+			<tr>
+				<th style="width:20px"></th>         
+				<th style="width:20px" title="Pos">Pos</th>
+				<th style="width:115px" title="TPS">TPS</th>
+				<th title="Test">Test</th>
+				<th style="width:33px" title="Lab">Lab</th>
+				<th style="width:50px" title="Rev">Rev</th>
+				<th style="width:40px" title="Time">Time</th>
+				<th style="width:30px" title="Tpgy">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>
+		</tfoot>
+		
+	</table>
+	
+</div>
+<div id="testBundleContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:5;">
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testBundleTable" style="width:100%" >
+		<thead>       
+				<tr>     
+					<th style="width:20px" rowspan="2"></th>        
+					<th style="width:20px" rowspan="2">Pos</th>
+					<th style="width:115px" rowspan="2">TPS</th>
+					<th rowspan="2">Test</th>
+					<th style="width:33px" rowspan="2">Lab</th>
+					<th style="width:50px" rowspan="2">Rev</th>
+					<th style="width:40px" rowspan="2">Time</th>
+					<th style="width:30px" rowspan="2">Tpgy</th>
+					<th colspan="5">Sect</th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+				</tr>     
+				<tr>     
+					<th style="width:20px">DUT<br>Setup</th>
+					<th style="width:20px">Test<br>Setup</th>
+					<th style="width:20px">Test<br>Body</th>
+					<th style="width:20px">Test<br>CleanUp</th>
+					<th style="width:20px">DUT<br>CleanUp</th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+				</tr>     
+		</thead>     
+		<tfoot>       
+				<tr>
+					<th style="width:20px"></th>         
+					<th style="width:20px">Pos</th>
+					<th style="width:115px">TPS</th>
+					<th>Test</th>
+					<th style="width:33px">Lab</th>
+					<th style="width:50px">Rev</th>
+					<th style="width:40px">Time</th>
+					<th style="width:30px">Tpgy</th>
+					<th colspan="5">Sect</th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+				</tr>     
+		</tfoot>
+	</table>
+	<!--<table>
+		<tr>
+			<td bgcolor="#D6E0F4" style="font-size : 8pt;" align="center" colspan="3">
+				<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" />
+				<input type="button" class="stylishButton" style="width:30px" value="<<" title="REMOVE ALL TCs FROM SUITE" onclick="removeAllBundleList();" />
+				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+			</td>
+		</tr>
+	</table>-->
+</div>
+
+<!--#################################################################################
+
+<script>
+	//addLoadEvent(function() {doAccess('localBrowsing');});
 	owner='{{ login }}';
 	var myURL = "{% url 'accesso' %}";
 	OK_GIF="{% static 'images/OK.gif' %}";
@@ -20,9 +736,9 @@
 <input type="hidden" value="" name="saveBody" id="saveBody">
 <input type="hidden" value="" name="tuningBundle" id="tuningBundle">
 
-<div id="bigWhite" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:600px;margin-top:60px;z-index:5;background-color:white;">
+<div id="bigWhite" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:600px;margin-top:760px;z-index:5;background-color:white;">
 </div>
-<div id="testContainer" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:550px;margin-top:60px;z-index:10;">
+<div id="testContainer" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:550px;margin-top:760px;z-index:-1;">
 	<table align="center" style="table-layout:fixed;">
 		<tr style="height:25px">
 			<td bgcolor="#D6E0F4" align="left" style="width:150px;">
@@ -64,7 +780,7 @@
 						<!--<th style="width:15px" name="17" title="Test Status">S</th>-->
 						<!--<th style="width:15px" name="12" title="Dependency">D</th>-->
 						<!--<th style="width:15px" name="10" title="Assignment">A</th>-->
-					</tr>
+					<!--</tr>
 				</table>
 			</td>
 		</tr>
@@ -76,12 +792,12 @@
 				<input type="button" class="stylishButton" style="width:30px" value=">@" title="ADD SELECTED TCs AT SUITE POSITION" onclick="insertBundleList(1,prompt('Insert Position',''));" />
 				<input type="button" class="stylishButton" style="width:90px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="DELETE" id="deleteBtn" onclick="deleteTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/>
 				<!--<input type="button" class="stylishButton" style="width:50px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="EDIT" id="deleteBtn" onclick="editTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/>-->
-				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
+				<!--<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
 			</td>
 		</tr>
 	</table>
 </div>
-<div id="testBundleContainer" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:60px;z-index:-1;">
+<div id="testBundleContainer" style="width:1024px;position:absolute;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:760px;z-index:10;">
 	<table align="center" style="table-layout:fixed;width:100%;">
 		<tr style="height:25px">
 			<td bgcolor="#D6E0F4" align="left" style="width:150px;">
@@ -113,10 +829,10 @@
 				<IMG onclick="newwindow=window.open('helpMe.asp#chapter4','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
 				<input type="button" style="font-size : 7pt;" class="stylishButton" id="createTest" value="CREATE TEST" onclick="newwindow=window.open('/taws/createNewTest/','createTest','height=600,width=800,resizable=no');">
 				<!--<input type="button" style="font-size : 7pt;" class="stylishButton" id="localFolder" value="DEVELOPMENT" onclick="doAccess('localBrowsing');">-->
-				<input type="button" style="font-size : 7pt;" class="stylishButton" id="localFolder" value="SAVE SUITE" onclick="saveLocalSuite();">
+				<!--<input type="button" style="font-size : 7pt;" class="stylishButton" id="localFolder" value="SAVE SUITE" onclick="saveLocalSuite();">
 				<!--<button class="stylishButton" style="height:20px;width:22;" title="LOAD"  onclick="if(owner!='LOCAL'){emptyTable('testTable');owner='LOCAL';}if(loadBundle.value!=''){owner='LOCAL';parent.accesso.location.href='accesso.asp?azione=loadListDB&load=' + loadBundle.value.replace('&','%26') + '&owner=LOCAL';}"><img style="height:21px;" src="../images/load.png"></button>-->
 				<!--<input id="saveLocal" disabled type="button" title="SAVE" id="saveLocal" onclick="saveLocalSuite();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/save.png' %})">-->
-			</td>				
+			<!--</td>				
 			<td valign="top" colspan="2">
 				<table class="sortable" id="testBundleTable">
 					<tr>
@@ -152,7 +868,7 @@
 <input type="button" class="stylishButton" style="width:30px" title="PERFORM DELETE REQUEST TO DB MANAGER" value="DELETE" id="deleteBtn" onclick="deleteTest();" style="border:none;height:15px;width:15px;background-size:15px 15px;background-image: url({% static 'images/delete.png' %})"/><br>
 <IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
 <script>typeEnd()</script>-->
-</form>
+<!--</form>-->
 
 {% endblock %}
 

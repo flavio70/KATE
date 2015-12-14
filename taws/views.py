@@ -147,11 +147,11 @@ def test_development(request):
 		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':fromPage}
 		return render_to_response('taws/login.html',context_dict,context)
-	else:
-		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-		myRecordSet=dbConnection.cursor(dictionary=True)
-		myRecordSet.execute("SET group_concat_max_len = 200000")
-		dbConnection.commit()
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet=dbConnection.cursor(dictionary=True)
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
 		#myRecordSet.execute("select product,CONVERT(group_concat(concat(areaConcat,'$',sw_rel_name) order by sw_rel_name desc separator '@') using utf8) as productConcat from (select product,sw_rel_name,group_concat(concat(area_name,'!',area_name) order by area_name separator '#') as areaConcat from T_DOMAIN join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name order by product asc,sw_rel_name desc) as tableArea group by product")
 		#myRecordSet.execute("select product,group_concat(release_scope_area separator '@') as productConcat from (select product,concat(sw_rel_name,'?',group_concat(scope_area separator '%')) as release_scope_area from (select product,sw_rel_name,concat(T_SCOPE.description,'#',group_concat(area_name order by area_name separator '|')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name,T_SCOPE.description order by product asc,sw_rel_name desc,T_SCOPE.description asc) as release_scope_area group by product,sw_rel_name order by product asc,sw_rel_name desc) as product_release_scope_area group by product order by product asc")
 		#productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
@@ -191,10 +191,10 @@ def test_development(request):
 		#	'wdmTopoAry':wdmTopoAry,
 		#	'labAry':labAry}
 
-		context_dict={'login':request.session['login'].upper(),
-			'permission':1}
+	context_dict={'login':request.session['login'].upper(),
+		'permission':1}
 
-		return render_to_response('taws/test_development.html',context_dict,context)
+	return render_to_response('taws/test_development.html',context_dict,context)
 
 def tuning(request):
 
@@ -1435,7 +1435,7 @@ def accesso(request):
 
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 		myRecordSet=dbConnection.cursor(dictionary=True)
-		myRecordSet.execute("select *,T_SUITES_BODY.run_section as section from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(loadID)+" group by id_TestRev,TCOrder order by TCOrder")
+		myRecordSet.execute("select *,T_SUITES_BODY.run_section as section from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(loadID)+" group by id_TestRev,TCOrder order by TCOrder")
 		rows=myRecordSet.fetchall()
 
 		testString=''
@@ -1782,26 +1782,26 @@ def accesso(request):
 
 		testString=""
 		localString=""
-		localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/suite/'
+		localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
 		for f in glob.glob(localPath+'*.py'):
 			if os.path.isfile(f+'.prs'):
 				tempTest = open(f,"r")
-				tempMetaInfo=tempTest.read().split('<METAINFO>')
-				if len(tempMetaInfo)>1:
-					metaInfo=tempMetaInfo[1].split('<DESCRIPTION>')
+				myFile=tempTest.read()
+				if myFile.rfind('[DESCRIPTION]'):
+					metaInfo=myFile.split('[DESCRIPTION]')
 					description=metaInfo[1]
-					metaInfo=tempMetaInfo[1].split('<TOPOLOGY>')
+					metaInfo=myFile.split('[TOPOLOGY]')
 					topology=metaInfo[1]
-					metaInfo=tempMetaInfo[1].split('<DEPENDENCY>')
+					metaInfo=myFile.split('[DEPENDENCY]')
 					dependency=metaInfo[1]
-					metaInfo=tempMetaInfo[1].split('<LAB>')
+					metaInfo=myFile.split('[LAB]')
 					lab=metaInfo[1]
-					metaInfo=tempMetaInfo[1].split('<TPS>')
+					metaInfo=myFile.split('[TPS]')
 					tps=metaInfo[1]
-					metaInfo=tempMetaInfo[1].split('<RUNSECTIONS>')
+					metaInfo=myFile.split('[RUNSECTIONS]')
 					runsection=metaInfo[1]
 					#if runsection.isdigit()==False:runsection='11111'
-					metaInfo=tempMetaInfo[1].split('<AUTHOR>')
+					metaInfo=myFile.split('[AUTHOR]')
 					author=metaInfo[1]
 				else:
 					description="NA"
@@ -1809,11 +1809,13 @@ def accesso(request):
 					dependency="NA"
 					lab="NA"
 					tps="NA"
-					runsection="NA"
+					runsection='00000'
 					author="NA"
 
+				if(runsection.isdigit()==False):runsection='00000'
+
 				tempTest.close()
-				testString+="NA#"+\
+				testString+=f+"#"+\
 				"NA#"+\
 				"NA#"+\
 				"0#"+\
@@ -1822,7 +1824,7 @@ def accesso(request):
 				ntpath.basename(f)+"#"+\
 				"0#"+\
 				"0#"+\
-				"NA#"+\
+				topology+"#"+\
 				"NA#"+\
 				"NA#"+\
 				dependency+"#"+\
@@ -1841,22 +1843,22 @@ def accesso(request):
 				tempLine=myLine.split('.py')
 				if os.path.isfile(tempLine[0]+'.py'):
 					tempTest = open(tempLine[0]+'.py',"r")
-					tempMetaInfo=tempTest.read().split('<METAINFO>')
-					if len(tempMetaInfo)>1:
-						metaInfo=tempMetaInfo[1].split('<DESCRIPTION>')
+					myFile=tempTest.read()
+					if myFile.rfind('[DESCRIPTION]'):
+						metaInfo=myFile.split('[DESCRIPTION]')
 						description=metaInfo[1]
-						metaInfo=tempMetaInfo[1].split('<TOPOLOGY>')
+						metaInfo=myFile.split('[TOPOLOGY]')
 						topology=metaInfo[1]
-						metaInfo=tempMetaInfo[1].split('<DEPENDENCY>')
+						metaInfo=myFile.split('[DEPENDENCY]')
 						dependency=metaInfo[1]
-						metaInfo=tempMetaInfo[1].split('<LAB>')
+						metaInfo=myFile.split('[LAB]')
 						lab=metaInfo[1]
-						metaInfo=tempMetaInfo[1].split('<TPS>')
+						metaInfo=myFile.split('[TPS]')
 						tps=metaInfo[1]
-						metaInfo=tempMetaInfo[1].split('<RUNSECTIONS>')
+						metaInfo=myFile.split('[RUNSECTIONS]')
 						runsection=metaInfo[1]
-						if runsection.isdigit()==False:runsection='11111'
-						metaInfo=tempMetaInfo[1].split('<AUTHOR>')
+						#if runsection.isdigit()==False:runsection='11111'
+						metaInfo=myFile.split('[AUTHOR]')
 						author=metaInfo[1]
 					else:
 						description="NA"
@@ -1864,8 +1866,10 @@ def accesso(request):
 						dependency="NA"
 						lab="NA"
 						tps="NA"
-						runsection="11111"
+						runsection='00000'
 						author="NA"
+
+					if(runsection.isdigit()==False):runsection='00000'
 
 					tempSection=list(runsection)
 					if myLine.rfind(' --')>=0:
@@ -1875,7 +1879,7 @@ def accesso(request):
 						if myLine.rfind('--testClean')>=0:tempSection[3]='2'
 						if myLine.rfind('--DUTClean')>=0:tempSection[4]='2'
 					tempTest.close()
-					localString+="NA#"+\
+					localString+=tempLine[0]+".py#"+\
 					"NA#"+\
 					"NA#"+\
 					"0#"+\
@@ -1895,13 +1899,13 @@ def accesso(request):
 					''.join(tempSection)+"#"+\
 					"NA#"+\
 					lab+"$"
-				
+			
 					tempTest.close()
 		    
-				localSuite.close()
+			localSuite.close()
 		
    
-		return  JsonResponse({'testString':testString,'localString':localString}, safe=False)
+		return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
 
 	if myAction=='saveLocal':
 
@@ -1910,7 +1914,7 @@ def accesso(request):
 		savingString = request.POST.get('savingString','')
 		localString=''
    
-		localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/suite/'
+		localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
 		localSuite = open(localPath+'suite.txt',"w")
 		savingStringBody=''
 		for myString in savingString.split('$'):
@@ -2004,12 +2008,14 @@ def accesso(request):
 		myRecordSet.execute("SET group_concat_max_len = 200000")
 		dbConnection.commit()
 
-		myRecordSet.execute("select concat('{',group_concat(myTuple),'}') as presets from (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+presetID+" and T_TOPOLOGY_id_topology="+topoID+" group by entityName) as presets")
+		myRecordSet.execute("select concat('{',group_concat(myTuple),'}') as presets from (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" and T_TOPOLOGY_id_topology="+topoID+" group by entityName) as presets")
+		#myRecordSet.execute("select concat('{',group_concat(myTuple),'}') as presets from (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+presetID+" and T_TOPOLOGY_id_topology="+topoID+" group by entityName) as presets")
+		#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
 		row = myRecordSet.fetchone()
 		myPreset=row['presets']   
 #json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
 
-		return  JsonResponse({'templatePreset':json.dumps(ast.literal_eval(myPreset), sort_keys=True,indent=4, separators=(',', ':'))}, safe=False)
+		return  JsonResponse({'templatePreset':json.dumps(ast.literal_eval(myPreset), ensure_ascii=False, indent=4, separators=(',', ':'))}, safe=False)
 
 	if myAction=='createTest':
    
@@ -2023,22 +2029,24 @@ def accesso(request):
 
 		username=request.session['login']
 
-		localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/suite/'+testName
+		if testName[-4:] != '.py':testName+='.py'
+
+		localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
 		remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
       
 		testTemplateFile = open(settings.TEST_TEMPLATE,"r")
 		testTemplate=testTemplateFile.read()
 		testTemplateFile.close()
       
-		localSuite = open(remotePath+'.py',"w")
+		localSuite = open(remotePath,"w")
 		localSuite.write(testTemplate)
 		localSuite.close()
-		os.chmod(remotePath+'.py',511)
+		os.chmod(remotePath,511)
 
-		localPreset = open(localPath+'.py.prs',"w")
+		localPreset = open(localPath+'.prs',"w")
 		localPreset.write(presetBody)
 		localPreset.close()
-		os.chmod(localPath+testName+'.py.prs',511)
+		os.chmod(localPath+'.prs',511)
 
 		if os.path.exists(localPath):shutil.rmtree(localPath)
 

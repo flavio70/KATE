@@ -152,10 +152,24 @@ function jsaveFile(suiteType){
 
 function saveLocalSuite(){
 	savingString=''
-	myTable=document.getElementById('testBundleTable');
-	for(i=1;i<myTable.rows.length;i++){
-		tempAry = myTable.rows[i].name.split("#");
-		savingString +=tempAry[13]+"#"+tempAry[17]+"$";
+	for(k=0;k<testBundleTable.rows().data().length;k++){
+		savingString+=testBundleTable.row(k).data().testId+'#';
+		sect1=0;
+		sect2=0;
+		sect3=0;
+		sect4=0;
+		sect5=0;
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
+		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 	}
 	savingString=savingString.slice(0,-1)
 	//alert('SAVE'+savingString);
@@ -821,15 +835,19 @@ function addRecordToTable(testString,tableName,lineNumber){
 		myNum=myTable.rows().data().length+1;
 	}
 	tempField=testString.split('#');
-	tempRev=tempField[18].split('!');
- 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
- 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
-	for(j=0;j<tempRev.length;j++){
-		myRev=tempRev[j].split('|');
-		if(j==0){revision=myRev[1];}
-		revStr+='<option value="'+myRev[1]+'">'+myRev[0]+'</option>';
+	if(tempField[18]!='NA'){
+		tempRev=tempField[18].split('!');
+	 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
+	 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
+		for(j=0;j<tempRev.length;j++){
+			myRev=tempRev[j].split('|');
+			if(j==0){revision=myRev[1];}
+			revStr+='<option value="'+myRev[1]+'">'+myRev[0]+'</option>';
+		}
+		revStr+='</select>';
+	}else{
+		revStr='<select disabled></select>';
 	}
-	revStr+='</select>';
 	sectFunct=' onclick="changeSection(this);"';
 	if(tableName=='testBundleTable'){
 		if(tempField[17][0]=='2'){sect1='<input type="checkbox" checked'+sectFunct+'>';}
