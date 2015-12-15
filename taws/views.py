@@ -1417,8 +1417,12 @@ def statistics_sw_executed(request):
 	import json
 
 	id_pack1=request.POST.get('id_pack1','0')
-	id_pack2=request.POST.get('id_pack2','')
-	id_pack3=request.POST.get('id_pack3','')
+	id_pack2=request.POST.get('id_pack2','0')
+	id_pack3=request.POST.get('id_pack3','0')
+
+	#id_pack1='0'
+	#id_pack2='0'
+	#id_pack3='0'
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
@@ -1432,7 +1436,8 @@ def statistics_sw_executed(request):
 	#myRecordSet.execute("SELECT group_concat(distinct concat('<li><a href=',char(39),'#',lcase(description),'-tab',char(39),' data-toggle=',char(39),'tab',char(39),'>',ucase(description),'</a></li>')) as selected_tab,group_concat(distinct concat('<div class=',char(39),'tab-pane',char(39),' id=',char(39),'',lcase(description),'-tab',char(39),'></div>')) as selected_div FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack="+id_pack1)
 	#myRecordSet.execute("SELECT distinct(description) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack=1")
 	#tab_list=[{'tab':row["myTab"]} for row in myRecordSet]
-	myRecordSet.execute("select description,area_name,count(*) as numTPS from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) where id_pack="+id_pack1+" group by id_domain,id_area")
+	#myRecordSet.execute("select description,area_name,count(*) as numTPS from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) where id_pack="+id_pack1+" group by id_domain,id_area")
+	myRecordSet.execute("select description,area_name,count(*) as numTPS,sum(if(T_REPORT1.result='Failed',1,0)) as KO1,sum(if(T_REPORT1.result='Passed',1,0)) as OK1,sum(if(T_REPORT1.result<>'',1,0)) as TOT1,sum(if(T_REPORT2.result='Failed',1,0)) as KO2,sum(if(T_REPORT2.result='Passed',1,0)) as OK2,sum(if(T_REPORT2.result<>'',1,0)) as TOT2,sum(if(T_REPORT3.result='Failed',1,0)) as KO3,sum(if(T_REPORT3.result='Passed',1,0)) as OK3,sum(if(T_REPORT3.result<>'',1,0)) as TOT3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack1+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT1 on(id_tps=T_REPORT1.T_TPS_id_tps) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack2+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT2 on(id_tps=T_REPORT2.T_TPS_id_tps) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack3+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT3 on(id_tps=T_REPORT3.T_TPS_id_tps) where id_pack="+id_pack3+" group by id_domain,id_area")
 	#row=myRecordSet.fetchone()
 	#selected_tab=row['selected_tab']
 	#selected_div=row['selected_div']
@@ -1440,9 +1445,9 @@ def statistics_sw_executed(request):
 	tab_list={}
 	for row in myRecordSet:
 		if row["description"] not in tab_list.keys():
-			tab_list={row["description"]:[(row['area_name'], row['numTPS'])]}
+			tab_list={row["description"]:[(row['area_name'], row['numTPS'], row['OK1'], row['KO1'], row['TOT1'], row['OK2'], row['KO2'], row['TOT2'], row['OK3'], row['KO3'], row['TOT3'])]}
 		else:
-			tab_list[row["description"]].append((row['area_name'], row['numTPS']))
+			tab_list[row["description"]].append((row['area_name'], row['numTPS'], row['OK1'], row['KO1'], row['TOT1'], row['OK2'], row['KO2'], row['TOT2'], row['OK3'], row['KO3'], row['TOT3']))
 
 
 	context = RequestContext(request)
