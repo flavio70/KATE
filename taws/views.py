@@ -651,7 +651,7 @@ def viewBuildDetails(request):
 	buildId=request.POST.get('buildId')
 	target='NA'
 	owner='NA'
-	KateDB="NA"
+	KateDB="KO"
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
@@ -782,6 +782,9 @@ def collectReports(request):
 	job_name=request.POST.get('jobName')
 	buildId=request.POST.get('buildId')
 	azione=request.POST.get('azione')
+	target='NA'
+	owner='NA'
+	KateDB="KO"
 
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
@@ -857,7 +860,7 @@ def collectReports(request):
 
 					if azione == "addResult":
 						#myRecordSet.execute("INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')")
-						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"' FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"')")
+						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"' FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) join T_TEST_REVS on(id_TestREv=T_TEST_REV_id_TestRev) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID+")")
 						#nodeType="INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')"
 						#myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
 						dbConnection.commit()
@@ -1425,14 +1428,18 @@ def statistics_sw_executed(request):
 
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
 	#swp_dropdown="select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\'[dropdown-selection]\')=',id_pack,char(39),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product"
-	myRecordSet.execute("SELECT group_concat(distinct concat('<li><a href=',char(39),'#',lcase(description),'-tab',char(39),' data-toggle=',char(39),'tab',char(39),'>',ucase(description),'</a></li>')) as selected_tab,group_concat(distinct concat('<div class=',char(39),'tab-pane',char(39),' id=',char(39),'',lcase(description),'-tab',char(39),'></div>')) as selected_div FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack="+id_pack1)
-	row=myRecordSet.fetchone()
-	selected_tab=row['selected_tab']
-	selected_div=row['selected_div']
+	#myRecordSet.execute("SELECT group_concat(distinct concat('<li><a href=',char(39),'#',lcase(description),'-tab',char(39),' data-toggle=',char(39),'tab',char(39),'>',ucase(description),'</a></li>')) as selected_tab,group_concat(distinct concat('<div class=',char(39),'tab-pane',char(39),' id=',char(39),'',lcase(description),'-tab',char(39),'></div>')) as selected_div FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack="+id_pack1)
+	myRecordSet.execute("SELECT distinct(description) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack=1")
+	tab_list=[{'tab':row["myTab"]} for row in myRecordSet]
+	#row=myRecordSet.fetchone()
+	#selected_tab=row['selected_tab']
+	#selected_div=row['selected_div']
+
 
 	context = RequestContext(request)
 
-	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'selected_tab':mark_safe(selected_tab),'selected_div':mark_safe(selected_div),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
+	#context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'selected_tab':mark_safe(selected_tab),'selected_div':mark_safe(selected_div),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
+	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'tab_list':tab_list,'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
 
 
 	return render(request,'taws/statistics_sw_executed.html',context_dict)
