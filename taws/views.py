@@ -1414,6 +1414,7 @@ def statistics_sw_executed(request):
 
 	import mysql.connector
 	from django.utils.safestring import SafeText,mark_safe
+	import json
 
 	id_pack1=request.POST.get('id_pack1','0')
 	id_pack2=request.POST.get('id_pack2','')
@@ -1447,7 +1448,7 @@ def statistics_sw_executed(request):
 	context = RequestContext(request)
 
 	#context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'selected_tab':mark_safe(selected_tab),'selected_div':mark_safe(selected_div),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
-	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'tab_list':tab_list,'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
+	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'tab_list':json.dumps(tab_list),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
 
 
 	return render(request,'taws/statistics_sw_executed.html',context_dict)
