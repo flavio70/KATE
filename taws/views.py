@@ -1443,17 +1443,21 @@ def statistics_sw_executed(request):
 	#selected_div=row['selected_div']
 
 	tab_list={}
+	curr_list={}
+	curr_tab=''
 	for row in myRecordSet:
-		if row["description"] not in tab_list.keys():
-			tab_list={row["description"]:[(row['area_name'], row['numTPS'], str(row['OK1']),  str(row['KO1']),  str(row['TOT1']),  str(row['OK2']),  str(row['KO2']),  str(row['TOT2']),  str(row['OK3']),  str(row['KO3']),  str(row['TOT3']))]}
-		else:
-			tab_list[row["description"]].append((row['area_name'], row['numTPS'],  str(row['OK1']),  str(row['KO1']),  str(row['TOT1']),  str(row['OK2']),  str(row['KO2']),  str(row['TOT2']),  str(row['OK3']),  str(row['KO3']),  str(row['TOT3'])))
+		if row["description"] != curr_tab:
+			tab_list.update(curr_list)
+			curr_list={'domain':row["description"],'values':[]}
+			curr_tab=row["description"]
+		curr_list['values'].append({'area_name':row['area_name'],'numTPS':row['numTPS'],'OK1': str(row['OK1']),'KO1':str(row['KO1']),'TOT1':str(row['TOT1']),'OK2':str(row['OK2']),'KO2':str(row['KO2']),'TOT2':str(row['TOT2']),'OK3':str(row['OK3']),'KO3':str(row['KO3']),'TOT3':str(row['TOT3'])})
+	tab_list.update(curr_list)
 
 
 	context = RequestContext(request)
 
 	#context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'selected_tab':mark_safe(selected_tab),'selected_div':mark_safe(selected_div),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
-	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'tab_list':json.dumps(tab_list),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
+	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),'tab_list':json.dumps(tab_list,ensure_ascii=True),'id_pack1':id_pack1,'id_pack2':id_pack2,'id_pack3':id_pack3}
 
 
 	return render(request,'taws/statistics_sw_executed.html',context_dict)
