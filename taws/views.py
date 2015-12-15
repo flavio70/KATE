@@ -1429,11 +1429,19 @@ def statistics_sw_executed(request):
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
 	#swp_dropdown="select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\'[dropdown-selection]\')=',id_pack,char(39),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product"
 	#myRecordSet.execute("SELECT group_concat(distinct concat('<li><a href=',char(39),'#',lcase(description),'-tab',char(39),' data-toggle=',char(39),'tab',char(39),'>',ucase(description),'</a></li>')) as selected_tab,group_concat(distinct concat('<div class=',char(39),'tab-pane',char(39),' id=',char(39),'',lcase(description),'-tab',char(39),'></div>')) as selected_div FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack="+id_pack1)
-	myRecordSet.execute("SELECT distinct(description) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack=1")
-	tab_list=[{'tab':row["myTab"]} for row in myRecordSet]
+	#myRecordSet.execute("SELECT distinct(description) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack=1")
+	#tab_list=[{'tab':row["myTab"]} for row in myRecordSet]
+	myRecordSet.execute("select description,area_name,count(*) as numTPS from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) where id_pack="+id_pack1+" group by id_domain,id_area")
 	#row=myRecordSet.fetchone()
 	#selected_tab=row['selected_tab']
 	#selected_div=row['selected_div']
+
+	tab_list={}
+	for row in myRecordSet:
+		if row["description"] not in tab_list.keys():
+			tab_list={row["description"]:[(row['area_name'], row['numTPS'])]}
+		else:
+			tab_list[row["description"]].append((row['area_name'], row['numTPS']))
 
 
 	context = RequestContext(request)
