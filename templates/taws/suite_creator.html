@@ -337,6 +337,14 @@ $(document).ready(function() {
 		}
 	    } );
 
+
+	$('#testTable tbody').on('dblclick', 'tr', function () {
+		var tr = $(this).closest('tr');
+		var row = testTable.row( tr );
+
+		newwindow=window.open('/taws/viewTestCase/?idTestRev='+row.data().testId,'viewTestCase','height=600,width=1000,resizable=1,scrollbars=yes'); 
+	    } );
+
 	    
 	    
 	$('#testTable tbody').on('click','tr',function(e){
