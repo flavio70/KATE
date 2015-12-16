@@ -1499,7 +1499,10 @@ def topology(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	context_dict={}
+	myRecordSet.execute("select topology,scope_description,count(*) as numTPS,numEntity,topo_description from T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join (select id_topology,T_TOPOLOGY.description as topo_description,count(*) as numEntity,T_SCOPE.description as scope_description from T_TOPOLOGY join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_SCOPE on(id_scope=T_SCOPE_id_scope) where elemName like '%#%' group by id_topology) as concat_topology on(id_topology=topology) group by topology")
+	topoList=[{'topology':row["topology"],'type':row["scope_description"],'numTPS':row["numTPS"],'numEntity':row["numEntity"],'topo_description':row["topo_description"]} for row in myRecordSet]
+
+	context_dict={'topoList':topoList}
 
 	return render(request,'taws/topology.html',context_dict)
 

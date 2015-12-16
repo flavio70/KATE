@@ -79,13 +79,18 @@ var dataSet = [
  
 
 </script>
-
+{% for tab in tab_list %}
+	{{ tab.domain }}
+	{% for tab1 in tab.values %}
+		{{ tab1.OK1 }}
+	{% endfor %}
+{% endfor %}
 <div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
 
 	<form name="filtro" method="post" action="/taws/statistics_sw_executed/">{% csrf_token %}
-		<input type="hidden" name="id_pack1" value="" />
-		<input type="hidden" name="id_pack2" value="" />
-		<input type="hidden" name="id_pack3" value="" />
+		<input type="hidden" name="id_pack1" value="{{ id_pack1 }}" />
+		<input type="hidden" name="id_pack2" value="{{ id_pack2 }}" />
+		<input type="hidden" name="id_pack3" value="{{ id_pack3 }}" />
 		
 		<nav class="navbar navbar-default">
 			<div class="container-fluid">
