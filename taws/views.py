@@ -1461,6 +1461,36 @@ def statistics_sw_executed(request):
 
 
 	return render(request,'taws/statistics_sw_executed.html',context_dict)
+
+def viewTestCase(request):
+
+	import mysql.connector
+	from git import Repo
+
+	idTestRev=request.GET.get('idTestRev')
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':fromPage}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	myRecordSet.execute("select revision,test_name,test_id from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where id_TestRev="+idTestRev)
+	myTest=myRecordSet.fetchone()
+
+	myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
+	git=myRepo.git
+	myFile=git.show(myTest['revision']+':'+myTest['test_name'])
+
+	myRecordSet.execute("select revision,id_TestRev from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where test_id="+str(myTest['test_id']))
+	revList=[{'rev':row["revision"],'revId':row["id_TestRev"]} for row in myRecordSet]
+
+	context_dict={'login':request.session['login'],'myFile':myFile,'testName':myTest['test_name'],'revision':myTest['revision'],'revList':revList}
+
+	return render(request,'taws/viewTestCase.html',context_dict)
   
 def accesso(request):
 	from taws.models import TTest,TTestRevs

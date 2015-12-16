@@ -1,0 +1,46 @@
+{% load static %}
+<HTML>
+<HEAD>
+{% include "taws/header.txt" %}
+<TITLE>Test Creator</TITLE>
+</HEAD>
+<BODY>
+<div style="width:100%;position:fixed;height:100%;">
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand">{{ testName }}</a>
+				</div><!-- end navbar-header -->
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-btn navbar-right">
+						<div class="btn-group btn-group-sm" role="group">
+							<button type="button" data-toggle="tooltip" title="Load User Preset" onclick="doAccess('loadPreset');" class="btn btn-default navbar-btn" disabled>Revision</button>
+							<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="userPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+								{{ revision }}<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu" id="userPresetDropdown">
+								{% for rev in revList %}
+									<li><a id="{{ rev.revId }}" onclick="window.location='/taws/viewTestCase/?idTestRev='+this.id;">{{ rev.rev }}</a></li>
+								{% endfor %}
+							</ul>
+						</div><!-- end btn_group-->
+						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+					</ul>
+				</div><!-- end navbar-collapse -->
+			</div><!-- end container-fluid -->
+		</nav><!-- end navbar -->
+<div class="form-group">
+  <textarea class="form-control" style="height:88%" id="comment">{{ myFile }}</textarea>
+</div>
+</div>
+</BODY>
+</HTML>
+
