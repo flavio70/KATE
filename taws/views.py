@@ -1467,6 +1467,43 @@ def statistics_sw_executed(request):
 
 	return render(request,'taws/statistics_sw_executed.html',context_dict)
 
+def statistics_sw_executed_details(request):
+
+	import mysql.connector
+	from django.utils.safestring import SafeText,mark_safe
+
+	id_pack1=request.POST.get('id_pack1','1')
+	id_pack2=request.POST.get('id_pack2','0')
+	id_pack3=request.POST.get('id_pack3','0')
+	area_name=request.POST.get('area','-').split('-')[1]
+	description=request.POST.get('area','-').split('-')[0]
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
+
+	myRecordSet.execute("select * from (select T_PACKAGES.name as tpack1,tps_reference,test_name,T_SCOPE.description,area_name,result as result1,id_report as id_report1,convert(info using utf8) as dump1 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestREv) join T_TEST on(test_id=T_TEST_test_id) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack1+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT1 on(id_tps=T_REPORT1.T_TPS_id_tps) where id_pack="+id_pack1+" and T_SCOPE.description='"+description+"' and area_name='"+area_name+"') as rep1 left join (select T_PACKAGES.name as tpack2,tps_reference,description,area_name,result as result2,id_report as id_report2 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack2+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT2 on(id_tps=T_REPORT2.T_TPS_id_tps) where id_pack="+id_pack2+" and description='"+description+"' and area_name='"+area_name+"') as rep2 using(tps_reference,description,area_name) left join (select T_PACKAGES.name as tpack3,tps_reference,description,area_name,result as result3,id_report as id_report3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack3+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT3 on(id_tps=T_REPORT3.T_TPS_id_tps) where id_pack="+id_pack3+" and description='"+description+"' and area_name='"+area_name+"') as rep3 using(tps_reference,description,area_name)")
+	details_row=[{'tps_reference':row["tps_reference"],'test_name':row["test_name"],'result1':row["result1"],'dump1':row["dump1"],'id_report1':row["id_report1"],'tpack1':row["tpack1"],'result2':row["result2"],'id_report2':row["id_report2"],'tpack2':row["tpack2"],'result3':row["result3"],'id_report3':row["id_report3"],'tpack3':row["tpack3"]} for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(concat(description,'-',area_name)) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) where id_pack="+id_pack1+" order by description")
+	area_row=[{'features':row["myTab"]} for row in myRecordSet]
+
+	area=area_name+'-'+description
+	if area == '-':area=''
+	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack1')),
+		'swp_dropdown2':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack2')),
+		'swp_dropdown3':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack3')),
+		'area':area,
+		'details_row':details_row,
+		'area_row':area_row,
+		'id_pack1':id_pack1,
+		'id_pack2':id_pack2,
+		'id_pack3':id_pack3}
+
+	return render(request,'taws/statistics_sw_executed_details.html',context_dict)
+
 def viewTestCase(request):
 
 	import mysql.connector
