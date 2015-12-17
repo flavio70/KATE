@@ -1,0 +1,159 @@
+{% extends "taws/mainCompact_template.html" %}
+{% block body %}
+{% load static %}
+
+
+<style>
+
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu>.dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover>.dropdown-menu {
+    display: block;
+}
+
+.dropdown-submenu>a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+    margin-right: -10px;
+}
+
+.dropdown-submenu:hover>a:after {
+    border-left-color: #fff;
+}
+
+.dropdown-submenu.pull-left {
+    float: none;
+}
+
+.dropdown-submenu.pull-left>.dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+}
+</style>
+<script>var areaList='';</script>
+
+{% for area in area_row %}
+	<script>areaList+='<li><a id="{{ area.features }}" onclick="filtro.area.value=this.id;filtro.submit()">{{ area.features }}</a></li>';</script>
+{% endfor %}
+
+<script>
+	$(document).ready(function() {
+		document.getElementById('mainTitle').innerHTML='SW Statistics Details';
+		detailsTable = $('#detailsTable').DataTable({
+			dom:'<"row"<"col-sm-4"l><"col-sm-5"<"areaSelection">><"col-sm-3"f>>\
+					<"row"<"col-sm-12"tr>>\
+					<"row"<"col-sm-4"i><"col-sm-3"B><"col-sm-5"p>>',
+			buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+			{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+			{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+			{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+			{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+			"bSort" : false,
+			"fnInitComplete": function() {
+				this.fnAdjustColumnSizing(true);
+			}
+		});//end DataTable	
+
+	$("div.areaSelection").html('\
+		<div class="btn-group btn-group-sm" role="group">\
+			<button type="button" class="btn btn-default navbar-btn" disabled>TESTING AREA</button>\
+			<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="areaDrop" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
+				{{ area }}<span class="caret"></span>\
+			</button>\
+			<ul class="dropdown-menu" id="userPresetDropdown">'+areaList+'</ul>\
+		</div>\
+	');
+
+$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'auto','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+
+	});// end ready function
+
+
+ 
+
+</script>
+
+<div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
+
+	<form name="filtro" method="post" action="/taws/statistics_sw_executed_details/">{% csrf_token %}
+		<input type="hidden" name="id_pack1" value="1" />
+		<input type="hidden" name="id_pack2" value="{{id_pack2}}" />
+		<input type="hidden" name="id_pack3" value="{{id_pack3}}" />
+		<input type="hidden" name="area" value="DATA-DATAQOS" />
+		
+		<div class="row">
+			<table class="table table-striped table-hover table-condensed" cellspacing="0" id="detailsTable" style="width:100%">
+				<thead>       
+						<tr>             
+							<th>TPS</th>
+							<th>Test Case</th>
+							<th>
+								<div class="dropdown">
+									<button type="button" onclick="{%if details_row.0.tpack1 != None %}window.location='/taws/statistics_sw_executed_details/?id_pack={{ details_row.0.tpack1 }}';{% endif %}" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{{ details_row.0.tpack1 }} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">{{ swp_dropdown1 }}</ul>
+								</div>
+							</th>
+							<th>
+								<div class="dropdown">
+									<button type="button" id='{{ details_row.0.tpack2 }}' onclick="" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{% if details_row.0.tpack2 = None %}Select SWP{% else %}{{ details_row.0.tpack2 }}{% endif %} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">{{ swp_dropdown2 }}</ul>
+								</div>
+							</th>
+							<th>
+								<div class="dropdown">
+									<button type="button" id='{{ details_row.0.tpack3 }}' onclick="" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{% if details_row.0.tpack3 = None %}Select SWP{% else %}{{ details_row.0.tpack3 }}{% endif %} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">{{ swp_dropdown3 }}</ul>
+								</div>
+							</th>
+						</tr>     
+				</thead>     
+				<tbody>
+						{% for row in details_row %}
+							<tr>
+								<td >{{ row.tps_reference }}</td>
+								<td >{{ row.test_name }}</td>
+								<td {% if row.result1 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump1 }}"{% endif %} class="{% if row.result1 = 'Failed' %}danger{% endif %}{% if row.result1 = 'Passed' %}info{% endif %}">{{ row.result1 }}</td>
+								<td {% if row.result2 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump2 }}"{% endif %} class="{% if row.result2 = 'Failed' %}danger{% endif %}{% if row.result2 = 'Passed' %}info{% endif %}">{{ row.result2 }}</td>
+								<td {% if row.result3 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump3 }}"{% endif %} class="{% if row.result3 = 'Failed' %}danger{% endif %}{% if row.result3 = 'Passed' %}info{% endif %}">{{ row.result3 }}</td>
+							</tr>
+						{% endfor %}
+				</tbody> 
+			</table>
+		</div>
+	</form>
+</div>
+
+{% endblock %}
+

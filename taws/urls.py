@@ -24,6 +24,7 @@ urlpatterns = [
 	url(r'^add_bench/$', views.add_bench),
 	url(r'^bench/$', views.bench),
 	url(r'^statistics_sw_executed/$', views.statistics_sw_executed),
+	url(r'^statistics_sw_executed_details/$', views.statistics_sw_executed_details),
 	url(r'^viewTestCase/$', views.viewTestCase),
 	url(r'^topology/$', views.topology)
 ]
