@@ -1,42 +1,144 @@
 {% extends "taws/mainCompact_template.html" %}
 {% block body %}
 {% load static %}
+{% load kate_extra %}
 
 
-
+<!--<script type="text/javascript" src="{% static "js/colorjizz.js" %}"></script>-->
 <script>
 
 
 
-	function View(show1){
-		// change visualization for each tab
-		if (show1 == "QLT") { v1 = true, v2 = false};
-		if (show1 == "EXE") { v1 = false, v2 = true};
+	$(function () {
+		// changes the table cell background colour depending from threshold
+		//var colors = new Hex(0xFF0000).range(new Hex(0x00FF00), 100, true);
+		var thr = [95,98];
+		var tdId = [2,3,7,8,12,13];
 		{% for tab in tab_list %}
+			tdId.forEach(function(entry) {
+				$('#{{ tab.domain }}Table tr td:nth-child('+ entry +')').each(function() {
+					
+					switch (true) {
+						case ( parseInt($(this).text()) > thr[1]):
+							$(this).addClass('success');
+							break;
+						case ( parseInt($(this).text()) > thr[0]):
+							$(this).addClass('warning');
+							break;
+						default:
+							$(this).addClass('danger');
+					}
+				});
+				$('#{{ tab.domain }}Table tfoot th:nth-child('+ entry +')').each(function() {
+					
+					switch (true) {
+						case ( parseInt($(this).text()) > thr[1]):
+							$(this).addClass('success');
+							break;
+						case ( parseInt($(this).text()) > thr[0]):
+							$(this).addClass('warning');
+							break;
+						default:
+							$(this).addClass('danger');
+					}
+				});
+			});
+		{% endfor %}
+	});
+
+
+	function View(show1){
+		// changes visualization for each tab
+		if (show1 == "QLT") { v1 = true; v2 = false; v3= "SWP Quality";};
+		if (show1 == "EXE") { v1 = false; v2 = true; v3= "Test execution";};
+		
+		{% for tab in tab_list %} 
+			document.getElementById('{{ tab.domain }}-view').innerHTML=v3;
 			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(1,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(2,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(3,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(4,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(5,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(6,v2);
-			
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(8,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(9,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(10,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(11,v2);
+			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(6,v1);
+			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(11,v1);
+			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(2,v2);
+			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(7,v2);
 			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(12,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(13,v2);
-			
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(15,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(16,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(17,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(18,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(19,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(20,v2);
 		{% endfor %}
 		
 	}
 
+	
+	function UpdateTfoots(){
+	
+	{% for tab in tab_list %} 
+		percq1=0;percq2=0;percq3=0;
+		perce1=0;perce2=0;perce3=0;
+		ok1=0;ok2=0;ok3=0;
+		ko1=0;ko2=0;ko3=0;
+		trg1=0;trg2=0;trg3=0;
+		count=0;
+	
+		{% for vals in tab.values %}
+		
+			count += 1;
+		
+			percq1 += {{vals.OK1|divide:vals.TOT1}}
+			percq2 += {{vals.OK2|divide:vals.TOT2}}
+			percq3 += {{vals.OK3|divide:vals.TOT3}}
+			perce1 += {{vals.TOT1|divide:vals.numTPS1}}
+			perce2 += {{vals.TOT2|divide:vals.numTPS2}}
+			perce3 += {{vals.TOT3|divide:vals.numTPS3}}
+			
+			ok1 += {{vals.OK1}}
+			ok2 += {{vals.OK2}}
+			ok3 += {{vals.OK3}}
+			
+			ko1 += {{vals.KO1}}
+			ko2 += {{vals.KO2}}
+			ko3 += {{vals.KO3}}
+			
+			trg1 += {{vals.numTPS1}}
+			trg2 += {{vals.numTPS2}}
+			trg3 += {{vals.numTPS3}}
+
+		{% endfor %}
+		
+		
+		
+		
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual1').innerHTML=(percq1/count).toFixed();
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual2').innerHTML=(percq2/count).toFixed();
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual3').innerHTML=(percq3/count).toFixed();
+		
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe1').innerHTML=(perce1/count).toFixed();
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe2').innerHTML=(perce2/count).toFixed();
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe3').innerHTML=(perce3/count).toFixed();
+		
+		document.getElementById('{{ tab.domain }}-tfoot_OK1').innerHTML=ok1;
+		document.getElementById('{{ tab.domain }}-tfoot_OK2').innerHTML=ok2;
+		document.getElementById('{{ tab.domain }}-tfoot_OK3').innerHTML=ok3;
+		
+		
+		document.getElementById('{{ tab.domain }}-tfoot_KO1').innerHTML=ko1;
+		document.getElementById('{{ tab.domain }}-tfoot_KO2').innerHTML=ko2;
+		document.getElementById('{{ tab.domain }}-tfoot_KO3').innerHTML=ko3;
+		
+		document.getElementById('{{ tab.domain }}-tfoot_TRG1').innerHTML=trg1;
+		document.getElementById('{{ tab.domain }}-tfoot_TRG2').innerHTML=trg2;
+		document.getElementById('{{ tab.domain }}-tfoot_TRG3').innerHTML=trg3;
+
+	
+	
+	
+	
+	{% endfor %}
+	
+	
+	
+	
+	}
+	
+	
+	
+	
+	
 
 	$(document).ready(function() {
 		document.getElementById('mainTitle').innerHTML='SW Statistics';
@@ -66,11 +168,11 @@
 				$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(0,true);
 			{% endfor %}
 		});
+		UpdateTfoots();
 		// initialize all tables with default view 
-		View('EXE');
+		View('QLT');
 	});// end ready function
  
-
 </script>
 
 <div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
@@ -83,7 +185,7 @@
 		<input type="hidden" name="id_pack2_val" value="{{val_pack2}}" />
 		<input type="hidden" name="id_pack3_val" value="{{val_pack3}}" />
 		
-		
+
 		<nav class="navbar navbar-default">
 			<div class="container-fluid">
 				<!-- Brand and toggle get grouped for better mobile display -->
@@ -100,12 +202,12 @@
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav navbar-left">
 						<div class="btn-group" data-toggle="buttons">
-							<label class="btn btn-primary navbar-btn" onclick="View('QLT');">
-								<input type="radio" id="q156" name="tipo" value="quality"  />
+							<label class="btn btn-primary navbar-btn active" onclick="View('QLT');">
+								<input type="radio" id="q156" name="tipo" checked="checked" value="quality"  />
 								<span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> SWP Quality
 							</label> 
-							<label class="btn btn-primary navbar-btn active" onclick="View('EXE');">
-								<input type="radio" id="q157" name="tipo" checked="checked" value="execution" />
+							<label class="btn btn-primary navbar-btn" onclick="View('EXE');">
+								<input type="radio" id="q157" name="tipo" value="execution" />
 								<span class="glyphicon glyphicon-tasks" aria-hidden="true"></span> Test Execution
 							</label> 
 						</div><!-- end btn group-->
@@ -158,13 +260,12 @@
 				{% for tab in tab_list %} 
 					<li><a href="#{{ tab.domain }}-tab" data-toggle="tab">{{ tab.domain }}</a></li>
 				{% endfor %}
-				<li><a href="#xtest-tab" data-toggle="tab">xtest</a></li>
+				<!--<li><a href="#xtest-tab" data-toggle="tab">xtest</a></li>-->
 			</ul>
 			<div id="my-tab-content" class="tab-content">
 				<div class="tab-pane active" id="summary-tab">
 						<h1>Summary</h1>
 						<p>Please select SW Package to compare</p>
-						<p>{{tab_list}}</p>
 				</div>
 				{% for tab in tab_list %} 
 					<div style="width:100%; margin-top:20px;" class="tab-pane" id="{{ tab.domain }}-tab">
@@ -173,48 +274,33 @@
 							<thead>
 								
 								
-								<tr>
-									<th></th>
-									<th colspan="7" style="border-left:2px solid #DDD;"><h4><span class="label label-default">{{val_pack1}}</span></h4></th>
-									<th colspan="7" style="border-left:2px solid #DDD;"><h4><span class="label label-default">{{val_pack2}}</span></h4></th>
-									<th colspan="7" style="border-left:2px solid #DDD;"><h4><span class="label label-default">{{val_pack3}}</span></h4></th>
+								<tr class="info">
+									<th style="text-align:center"><h4><span class="label label-primary" id="{{ tab.domain }}-view"></span></h4></th>
+									<th colspan="5" style="border-left:2px solid #DDD; text-align:center;"><h5>{{val_pack1}}</h5></th>
+									<th colspan="5" style="border-left:2px solid #DDD; text-align:center;"><h5>{{val_pack2}}</h5></th>
+									<th colspan="5" style="border-left:2px solid #DDD; text-align:center;"><h5>{{val_pack3}}</h5></th>
 								</tr>
 								<tr>
 									<th><span class="label label-default">Domain</span></th>
-									<th id="percQuality1"><span class="label label-info">%Q1</span></th>
-									<th id="OKQuality1"><span class="label label-success">OKQ1</span></th>
-									<th id="KOQuality1"><span class="label label-danger">KOQ1</span></th>
-									<th id="percExe1"><span class="label label-info">%E1</span></th>
-									<th id="OKExe1"><span class="label label-success">OKE1</span></th>
-									<th id="KOExe1"><span class="label label-danger">KOE1</span></th>
 									
-									<th id="TRG1"><span class="label label-primary">TRG1</th>
+									<th id="percQuality1"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+									<th id="percExe1"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+									<th id="OK1"><span class="label label-success">OK</span></th>
+									<th id="KO1"><span class="label label-danger">KO</span></th>
+									<th id="TRG1"><span class="label label-primary">TRG</th>
+									
+									<th id="percQuality2"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+									<th id="percExe2"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+									<th id="OK2"><span class="label label-success">OK</span></th>
+									<th id="KO2"><span class="label label-danger">KO</span></th>
+									<th id="TRG2"><span class="label label-primary">TRG</th>
+									
+									<th id="percQuality3"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+									<th id="percExe3"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+									<th id="OK3"><span class="label label-success">OK</span></th>
+									<th id="KO3"><span class="label label-danger">KO</span></th>
+									<th id="TRG3"><span class="label label-primary">TRG</th>
 								
-									
-					
-									<th id="percQuality2"><span class="label label-info">%Q2</span></th>
-									<th id="OKQuality2"><span class="label label-success">OKQ2</span></th>
-									<th id="KOQuality2"><span class="label label-danger">KOQ2</span></th>
-									<th id="percExe2"><span class="label label-info">%E2</span></th>
-									<th id="OKExe2"><span class="label label-success">OKE2</span></th>
-									<th id="KOExe2"><span class="label label-danger">KOE2</span></th>
-									
-									<th id="TRG2"><span class="label label-primary">TRG2</th>
-								
-									
-									
-									<th id="percQuality3"><span class="label label-info">%Q3</span></th>
-									<th id="OKQuality3"><span class="label label-success">OKQ3</span></th>
-									<th id="KOQuality3"><span class="label label-danger">KOQ3</span></th>
-									<th id="percExe3"><span class="label label-info">%E3</span></th>
-									<th id="OKExe3"><span class="label label-success">OKE3</span></th>
-									<th id="KOExe3"><span class="label label-danger">KOE3</span></th>
-									
-									<th id="TRG3"><span class="label label-primary">TRG3</th>
-								
-									
-
-									
 								</tr>
 							
 							</thead>
@@ -223,48 +309,51 @@
 								{% for vals in tab.values %} 
 								<tr>
 									<td>{{ vals.area_name }}</td>
-									<td>1</td>
-									<td>2</td>
-									<td>3</td>
 									
-									<td>11</td>
-									<td>12</td>
-									<td>13</td>
+									<td style="border-left:2px solid #DDD;">{{vals.OK1|divide:vals.TOT1}}%</td>
+									<td style="border-left:2px solid #DDD;">{{vals.TOT1|divide:vals.numTPS1}}%</td>
+									<td>{{vals.OK1}}</td>
+									<td>{{vals.KO1}}</td>
+									<td>{{vals.numTPS1}}</td>
 									
-									<td>T1</td>
+									<td style="border-left:2px solid #DDD;">{{vals.OK2|divide:vals.TOT2}}%</td>
+									<td style="border-left:2px solid #DDD;">{{vals.TOT2|divide:vals.numTPS2}}%</td>
+									<td>{{vals.OK2}}</td>
+									<td>{{vals.KO2}}</td>
+									<td>{{vals.numTPS2}}</td>
 									
-									
-
-									<td>4</td>
-									<td>5</td>
-									<td>6</td>
-									
-									<td>44</td>
-									<td>55</td>
-									<td>66</td>
-									
-									
-									<td>T2</td>
-									
-									
-									<td>7</td>
-									<td>8</td>
-									<td>9</td>
-									
-									<td>77</td>
-									<td>88</td>
-									<td>99</td>
-									
-									<td>T3</td>
-									
-									
-	
-
-									
+									<td style="border-left:2px solid #DDD;">{{vals.OK3|divide:vals.TOT3}}%</td>
+									<td style="border-left:2px solid #DDD;">{{vals.TOT3|divide:vals.numTPS3}}%</td>
+									<td>{{vals.OK3}}</td>
+									<td>{{vals.KO3}}</td>
+									<td>{{vals.numTPS3}}</td>
 								</tr>
 								
 								{% endfor %}
 							</tbody>
+					
+							<tfoot>
+								<th>TOTALS</th>
+								
+								<th id="{{ tab.domain }}-tfoot_perc_Qual1" style="border-left:2px solid #DDD;"></th>
+								<th id="{{ tab.domain }}-tfoot_perc_Exe1" style="border-left:2px solid #DDD;"></th>
+								<th id="{{ tab.domain }}-tfoot_OK1"></th>
+								<th id="{{ tab.domain }}-tfoot_KO1"></th>
+								<th id="{{ tab.domain }}-tfoot_TRG1"></th>
+								
+								<th id="{{ tab.domain }}-tfoot_perc_Qual2" style="border-left:2px solid #DDD;"></th>
+								<th id="{{ tab.domain }}-tfoot_perc_Exe2" style="border-left:2px solid #DDD;"></th>
+								<th id="{{ tab.domain }}-tfoot_OK2"></th>
+								<th id="{{ tab.domain }}-tfoot_KO2"></th>
+								<th id="{{ tab.domain }}-tfoot_TRG2"></th>
+								
+								<th id="{{ tab.domain }}-tfoot_perc_Qual3" style="border-left:2px solid #DDD;"></th>
+								<th id="{{ tab.domain }}-tfoot_perc_Exe3" style="border-left:2px solid #DDD;"></th>
+								<th id="{{ tab.domain }}-tfoot_OK3"></th>
+								<th id="{{ tab.domain }}-tfoot_KO3"></th>
+								<th id="{{ tab.domain }}-tfoot_TRG3"></th>
+								
+							</tfoot>
 						</table>
 			
 					
@@ -272,14 +361,14 @@
 					</div>
 					
 				{% endfor %}
-				<div class="tab-pane" id="xtest-tab">
+				<!--<div class="tab-pane" id="xtest-tab">
 						{% for tab in tab_list %}
 						{% for vals in tab.values %} 
 						<p>{{vals}}</p>
 						{% endfor %}
 						{% endfor %}
 						
-				</div>
+				</div>-->
 				
 				
 				
@@ -289,201 +378,3 @@
 </div>
 
 {% endblock %}
-
-
-<!--############################################################################
-									OLD CODE
-#################################################################################-->
-<!--<form name="filtro" method="post" action="statistics_sw_executed.asp">
-	<input type="hidden" name="swpid1" value="<%=pack1%>" />
-	<input type="hidden" name="swpid2" value="<%=pack2%>" />
-	<input type="hidden" name="swpid3" value="<%=pack3%>" />
-	<input type="hidden" name="area" value="" />
-
-	<table width="100%">
-	<tr>
-		<td align="left">
-			<table width="100%" cellspacing="0" cellpadding="0">
-				<tr style="height:20px; postion:left;" bgcolor="gray">
-					<td valign="middle" align="center">
-						<table>
-							<tr>
-								<td style="padding-left:10px;padding-right:5px;"><a href="#"><img src="images/xls.png" border="0" onclick="Export();"><a></td>
-								<td style="padding-left:5px;padding-right:10px;"><a href="#"><img src="images/print.png" border="0" onclick="window.print()"></a></td>
-								<td style="padding-left:5px;padding-right:10px;"></td>
-							</tr>
-						</table>
-					</td>
-					<td valign="bottom" align="center">
-						<table width="100%">
-							<tr>
-								<td align="left" style="padding-left:10px;"></td>
-							</tr>
-						</table>
-					</td>
-					<td valign="bottom" align="left">
-						<table>
-							<tr>
-								<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>SWP QUALITY</center></b></td>
-								<td><input type="radio" value="quality" name="tipo" onclick="View();" /></td>
-								<td width="50px;">&nbsp;</td>
-								<td style="padding-left:10px; padding-right:10px;color:#fff;"><b><center>TEST EXECUTION</center></b></td>
-								<td><input type="radio" value="execution" name="tipo" onclick="View();" /></td>
-							</tr>
-						</table>
-					</td>
-					<td align="left" colspan="4">
-						<table>
-							<tr>
-								<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
-									<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
-								</td>
-								<td align="center" width="100%">
-									<font color="white"><b><span id='label1' align="center"></span>&nbsp;</b></font>
-								</td>
-							</tr>
-							<tr>
-								<td align="left">
-									<input type="text" name="select1" id="select1" value=""/>
-									<ul id="select1menu" class="mcdropdown_menu"></ul>
-								</td>
-							</tr>
-						</table>
-					</td>
-					<td align="left" colspan="4">
-						<table>
-							<tr>
-								<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
-									<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
-								</td>
-								<td align="center" width="100%">
-									<font color="white"><b><span id='label2' align="center"></span>&nbsp;</b></font>
-								</td>
-							</tr>
-							<tr>
-								<td align="left">
-									<input type="text" name="select2" id="select2" value=""/>
-									<ul id="select2menu" class="mcdropdown_menu"></ul>
-								</td>
-							</tr>
-						</table>
-					</td>
-					<td align="left" colspan="4">
-						<table>
-							<tr>
-								<td align="center" style="padding-left:5px;padding-right:5px" rowspan=2>
-									<a href="#"><img src="images/rip.gif" style="width:25px;height:25px;" onclick="document.filtro.target='_self';document.filtro.action='morgue.asp';document.filtro.submit();" border="0"></a>
-								</td>
-								<td align="center" width="100%">
-									<font color="white"><b><span id='label3' align="center"></span>&nbsp;</b></font>
-								</td>
-							</tr>
-							<tr>
-								<td align="left">
-									<input type="text" name="select3" id="select3" value=""/>
-									<ul id="select3menu" class="mcdropdown_menu"></ul>
-								</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-				<tr>
-					<td width="100px" align="center" style="padding-left:10px;color:#fff;height:20px;" bgcolor=<%=viola%>><strong>AREA</strong></td>
-					<td align="left" colspan="2" style="padding-left:10px;color:#fff;" bgcolor=<%=viola%>><strong>AREA NAME</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>OK</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>KO</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>TRG</strong></td>
-					<td width="50px" align="center" style="color:#fff;" ><strong>%</strong></td>
-					<td width="50px" align="center" style="color:#fff;" bgcolor=<%=verde%>><strong>OK</strong></td>
-					<td width="50px" align="center" style="color:#fff;" bgcolor=<%=rosso%>><strong>KO</strong></td>
-					<td width="50px" align="center" style="color:#fff;" bgcolor=<%=nero%>><strong>TRG</strong></td>
-				</tr>
-				<tr align="center">
-					<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
-					<td></td>			
-					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-					<td style="font-size:11px;"><strong></strong></td>
-				</tr>
-				<tr>
-					<td bgcolor="#ffffff" colspan="15">&nbsp;</td>
-				</tr>
-				<tr>
-					<td color="#000000" align="center"><font style="font-size:12px;"><strong></strong></font></td>
-					<td color="#000000" colspan="14">&nbsp;</td>
-				</tr>
-				<tr>
-					<td valign="middle" style="border-right:#999999 solid 1px; border-left:#999999 solid 1px;" align="center"></td>
-					<td valign="middle" colspan="2" align="left" style="padding-left:10px;"></td>
-					<td valign="middle" align="center" style="border-left: 1px solid #999999;"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center" style="border-left: 1px solid #999999;"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center" style="border-left: 1px solid #999999;"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center"></td>
-					<td valign="middle" align="center" style="border-right: 1px solid #999999;"></td>
-				</tr>
-				<tr align="center">
-					<td align="left"  colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL </strong></font></td>
-					<td ></td>
-					<td c style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:12px;"><strong></strong></td>
-				</tr>
-				<tr>
-					<td colspan="15"  height='5px'></td>
-				</tr>
-				<tr align="center">
-					<td align="left" colspan="2"><font style="font-size:12px; padding-left:10px;"><strong>TOTAL OVERALL</strong></font></td>
-					<td ></td>
-					<td style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td id="OK1"  style="font-size:12px;"><strong></strong></td>
-					<td id="KO1"  style="font-size:12px;"><strong></strong></td>
-					<td id="TG1"  style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td id="OK2" style="font-size:12px;"><strong></strong></td>
-					<td id="KO2"  style="font-size:12px;"><strong></strong></td>
-					<td id="TG2" style="font-size:12px;"><strong></strong></td>
-					<td  style="font-size:11px;border-left:#999999 1px solid;"><strong></strong></td>
-					<td id="OK3"  style="font-size:12px;"><strong></strong></td>
-					<td id="KO3" style="font-size:12px;"><strong></strong></td>
-					<td id="TG3"  style="font-size:12px;"><strong></strong></td>
-				</tr>
-				<tr>
-					<td colspan="15" height='5px'></td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-</table>
-</form>
-
-

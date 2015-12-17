@@ -6,7 +6,8 @@
 	<meta name="description" content="Test Automation Environment">
 	<meta name="robots" content="all">
 	<meta name="copyright" content="SM-Optics">
-	<title>K@TE Test Autmation Environment</title>
+	<title>K@TE Test Automation Environment</title>
+	<link href="{% static "images/favicon.ico" %}" rel="icon" type="image/x-icon" />
 	<!--<link href="{% static "css/common.css" %}" type=text/css rel=styleSheet>-->
 	<link rel="stylesheet" type="text/css" href="{% static "css/ddsmoothmenu.css" %}" />
 	<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}" />
