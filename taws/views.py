@@ -1540,7 +1540,8 @@ def viewTestCase(request):
 	import mysql.connector
 	from git import Repo
 
-	idTestRev=request.GET.get('idTestRev')
+	idTestRev=request.POST.get('idTestRev')
+	action=request.GET.get('action','')
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
@@ -1548,20 +1549,32 @@ def viewTestCase(request):
 		context_dict={'fromPage':fromPage}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-	myRecordSet = dbConnection.cursor(dictionary=True)
+	if idTestRev.isdigit():
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet = dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("select revision,test_name,test_id from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where id_TestRev="+idTestRev)
-	myTest=myRecordSet.fetchone()
+		myRecordSet.execute("select revision,test_name,test_id from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where id_TestRev="+idTestRev)
+		myTest=myRecordSet.fetchone()
 
-	myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
-	git=myRepo.git
-	myFile=git.show(myTest['revision']+':'+myTest['test_name'])
+		myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
+		git=myRepo.git
+		myFile=git.show(myTest['revision']+':'+myTest['test_name'])
 
-	myRecordSet.execute("select revision,id_TestRev from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where test_id="+str(myTest['test_id']))
-	revList=[{'rev':row["revision"],'revId':row["id_TestRev"]} for row in myRecordSet]
+		myRecordSet.execute("select revision,id_TestRev from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where test_id="+str(myTest['test_id']))
+		revList=[{'rev':row["revision"],'revId':row["id_TestRev"]} for row in myRecordSet]
 
-	context_dict={'login':request.session['login'],'myFile':myFile,'testName':myTest['test_name'],'revision':myTest['revision'],'revList':revList}
+		context_dict={'login':request.session['login'],'myFile':myFile,'testName':myTest['test_name'],'revision':myTest['revision'],'revList':revList}
+	else:
+		if action == 'update':
+			tempMyFile = open(idTestRev,"w")
+			tempMyFile.write(request.POST.get('testBody'))
+			tempMyFile.close()
+
+		tempMyFile = open(idTestRev,"r")
+		myFile=tempMyFile.read()
+		tempMyFile.close()
+
+		context_dict={'login':request.session['login'],'myFile':myFile,'testName':idTestRev,'revision':"NA",'revList':"NA"}
 
 	return render(request,'taws/viewTestCase.html',context_dict)
 
@@ -1966,7 +1979,7 @@ def accesso(request):
 					metaInfo=myFile.split('[LAB]')
 					lab=metaInfo[1]
 					metaInfo=myFile.split('[TPS]')
-					tps=metaInfo[1]
+					tps=metaInfo[1].replace(',','<br>')
 					metaInfo=myFile.split('[RUNSECTIONS]')
 					runsection=metaInfo[1]
 					#if runsection.isdigit()==False:runsection='11111'
@@ -2023,7 +2036,7 @@ def accesso(request):
 						metaInfo=myFile.split('[LAB]')
 						lab=metaInfo[1]
 						metaInfo=myFile.split('[TPS]')
-						tps=metaInfo[1]
+						tps=metaInfo[1].replace(',','<br>')
 						metaInfo=myFile.split('[RUNSECTIONS]')
 						runsection=metaInfo[1]
 						#if runsection.isdigit()==False:runsection='11111'
@@ -2202,7 +2215,27 @@ def accesso(request):
 
 		localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
 		remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
-      
+		if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area):
+			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases'):
+				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases')
+				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases',511)
+			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product):
+				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product)
+				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product,511)
+			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain):
+				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain)
+				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain,511)
+			os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area)
+			os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area,511)
+
+		if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports'):
+			if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace'):
+				os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace')
+				os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace',511)
+			os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports')
+			os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports',511)
+
+     
 		testTemplateFile = open(settings.TEST_TEMPLATE,"r")
 		testTemplate=testTemplateFile.read()
 		testTemplateFile.close()
