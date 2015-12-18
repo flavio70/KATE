@@ -141,9 +141,9 @@ $('[data-toggle="popover"]').popover({'trigger':'hover','placement':'auto','anim
 							<tr>
 								<td >{{ row.tps_reference }}</td>
 								<td >{{ row.test_name }}</td>
-								<td {% if row.result1 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump1 }}"{% endif %} class="{% if row.result1 = 'Failed' %}danger{% endif %}{% if row.result1 = 'Passed' %}info{% endif %}">{{ row.result1 }}</td>
-								<td {% if row.result2 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump2 }}"{% endif %} class="{% if row.result2 = 'Failed' %}danger{% endif %}{% if row.result2 = 'Passed' %}info{% endif %}">{{ row.result2 }}</td>
-								<td {% if row.result3 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump3 }}"{% endif %} class="{% if row.result3 = 'Failed' %}danger{% endif %}{% if row.result3 = 'Passed' %}info{% endif %}">{{ row.result3 }}</td>
+								<td align="center" {% if row.result1 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump1 }}"{% endif %} class="{% if row.result1 = 'Failed' %}danger{% endif %}{% if row.result1 = 'Passed' %}info{% endif %}">{{ row.result1 }}{% if row.author1 != None %} ({{ row.author1 }} {{ row.date1 }}) {% endif %}</td>
+								<td align="center" {% if row.result2 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump2 }}"{% endif %} class="{% if row.result2 = 'Failed' %}danger{% endif %}{% if row.result2 = 'Passed' %}info{% endif %}">{{ row.result2 }}</td>
+								<td align="center" {% if row.result3 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump3 }}"{% endif %} class="{% if row.result3 = 'Failed' %}danger{% endif %}{% if row.result3 = 'Passed' %}info{% endif %}">{{ row.result3 }}</td>
 							</tr>
 						{% endfor %}
 				</tbody> 
