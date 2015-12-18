@@ -103,13 +103,13 @@
 		
 		
 		
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual1').innerHTML=(percq1/count).toFixed();
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual2').innerHTML=(percq2/count).toFixed();
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual3').innerHTML=(percq3/count).toFixed();
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual1').innerHTML=(percq1/count).toFixed()+'%';
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual2').innerHTML=(percq2/count).toFixed()+'%';
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual3').innerHTML=(percq3/count).toFixed()+'%';
 		
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe1').innerHTML=(perce1/count).toFixed();
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe2').innerHTML=(perce2/count).toFixed();
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe3').innerHTML=(perce3/count).toFixed();
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe1').innerHTML=(perce1/count).toFixed()+'%';
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe2').innerHTML=(perce2/count).toFixed()+'%';
+		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe3').innerHTML=(perce3/count).toFixed()+'%';
 		
 		document.getElementById('{{ tab.domain }}-tfoot_OK1').innerHTML=ok1;
 		document.getElementById('{{ tab.domain }}-tfoot_OK2').innerHTML=ok2;
@@ -181,6 +181,7 @@
 		<input type="hidden" name="id_pack1" value="{{id_pack1}}" />
 		<input type="hidden" name="id_pack2" value="{{id_pack2}}" />
 		<input type="hidden" name="id_pack3" value="{{id_pack3}}" />
+		<input type="hidden" name="area" value="" />
 		<input type="hidden" name="id_pack1_val" value="{{val_pack1}}" />
 		<input type="hidden" name="id_pack2_val" value="{{val_pack2}}" />
 		<input type="hidden" name="id_pack3_val" value="{{val_pack3}}" />
@@ -308,7 +309,11 @@
 							<tbody>
 								{% for vals in tab.values %} 
 								<tr>
-									<td>{{ vals.area_name }}</td>
+									<td>
+										<div class="btn-group btn-group-xs" data-toggle="tooltip" title="View Job Id Details" role="group">
+											<button type="button" class="btn btn-default btn-info" onclick="filtro.area.value='{{ tab.domain }}-{{ vals.area_name }}';filtro.action='/taws/statistics_sw_executed_details/';filtro.submit();"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>{{ vals.area_name }}
+										</div>
+									</td>
 									
 									<td style="border-left:2px solid #DDD;">{{vals.OK1|divide:vals.TOT1}}%</td>
 									<td style="border-left:2px solid #DDD;">{{vals.TOT1|divide:vals.numTPS1}}%</td>
