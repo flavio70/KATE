@@ -1511,9 +1511,17 @@ def morgue(request):
 	from django.utils.safestring import SafeText,mark_safe
 
 	id_pack=request.POST.get('id_pack','1')
-
+	action=request.GET.get('action','')
+	
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	if action == 'update':
+		for key in request.POST:
+			if key.rfind('note')>=0:
+				myRecordSet.execute("UPDATE T_REPORT set notes='"+request.POST[key]+"' where id_report="+key.replace('note',''))
+				dbConnection.commit()
+
 
 	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
@@ -1522,7 +1530,8 @@ def morgue(request):
 	morgue_row=[{'id_report':row["id_report"],'tpack':row["tpack"],'description':row["description"],'area_name':row['area_name'],'tps_reference':row['tps_reference'],'info':row['info'],'notes':row['notes']} for row in myRecordSet]
 
 	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack')),
-		'morgue_row':morgue_row}
+		'morgue_row':morgue_row,
+		'id_pack':id_pack}
 
 	return render(request,'taws/morgue.html',context_dict)
 
