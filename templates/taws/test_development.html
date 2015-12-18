@@ -290,6 +290,16 @@ $(document).ready(function() {
 		}
 	    } );
 
+	$('#testTable tbody').on('dblclick', 'tr', function () {
+		var tr = $(this).closest('tr');
+		var row = testTable.row( tr );
+
+		selectTest.action="/taws/viewTestCase/";
+		selectTest.idTestRev.value=row.data().testId;
+		selectTest.target="_blank";
+		selectTest.submit();
+		//newwindow=window.open('/taws/viewTestCase/?idTestRev='+row.data().testId,'viewTestCase','height=600,width=1000,resizable=1,scrollbars=yes'); 
+	    } );
 	    
 	    
 	$('#testTable tbody').on('click','tr',function(e){
@@ -522,6 +532,7 @@ $(document).ready(function() {
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
 	<input type="hidden" value="" name="savingName" id="savingName">
+	<input type="hidden" value="" name="idTestRev" id="{{ testName }}">
 </form>
 
 <div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>

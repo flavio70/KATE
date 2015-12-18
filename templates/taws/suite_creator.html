@@ -351,7 +351,11 @@ $(document).ready(function() {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
 
-		newwindow=window.open('/taws/viewTestCase/?idTestRev='+row.data().testId,'viewTestCase','height=600,width=1000,resizable=1,scrollbars=yes'); 
+		selectTest.action="/taws/viewTestCase/";
+		selectTest.idTestRev.value=row.data().testId;
+		selectTest.target="_blank";
+		selectTest.submit();
+		//newwindow=window.open('/taws/viewTestCase/?idTestRev='+row.data().testId,'viewTestCase','height=600,width=1000,resizable=1,scrollbars=yes'); 
 	    } );
 
 	    
@@ -606,6 +610,7 @@ $(document).ready(function() {
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
 	<input type="hidden" value="" name="savingName" id="savingName">
+	<input type="hidden" value="" name="idTestRev" id="idTestRev">
 </form>
 
 <div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
