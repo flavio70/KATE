@@ -48,6 +48,15 @@ function changePerspective(){
 	//document.getElementById('suiteCommand').style.zIndex=show2;
 	document.getElementById('testContainer').style.zIndex=show1;
 	document.getElementById('testBundleContainer').style.zIndex=show2;
+	
+	
+	 $( '#testContainer' ).toggle();
+	 $('#testTable').dataTable().fnSetColumnVis(0,true);
+	 $( '#testBundleContainer' ).toggle();
+	 $('#testBundleTable').dataTable().fnSetColumnVis(0,true);
+
+	
+	
 	document.getElementById('cartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> '+viewStr;
 }
 
@@ -673,7 +682,7 @@ $(document).ready(function() {
 	</table>
 	
 </div>
-<div id="testBundleContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:5;">
+<div id="testBundleContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:5;display:none;">
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testBundleTable" style="width:100%" >
 		<thead>       
 				<tr>     
