@@ -77,22 +77,20 @@
 			}
 		});//end DataTable	
 
-	$("div.areaSelection").html('\
-		<div class="btn-group btn-group-sm" role="group">\
-			<button type="button" class="btn btn-default navbar-btn" disabled>TESTING AREA</button>\
-			<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="areaDrop" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
-				{{ area }}<span class="caret"></span>\
-			</button>\
-			<ul class="dropdown-menu" id="userPresetDropdown">'+areaList+'</ul>\
-		</div>\
-	');
+		$("div.areaSelection").html('\
+			<div class="btn-group btn-group-sm" role="group">\
+				<button type="button" class="btn btn-default navbar-btn" disabled>TESTING AREA</button>\
+				<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="areaDrop" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
+					{{ area }}<span class="caret"></span>\
+				</button>\
+				<ul class="dropdown-menu" id="userPresetDropdown">'+areaList+'</ul>\
+			</div>\
+		');
 
-$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'auto','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+		$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'auto','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 
 	});// end ready function
 
-
- 
 
 </script>
 

@@ -30,3 +30,9 @@ def divide(value, arg):
 @register.filter
 def sub(value, arg): 
 	return round(float(value) - float(arg))
+
+@register.filter
+def evaluate_color(value): 
+	if float(value) > 98: return "success"
+	if float(value) > 95: return "warning"
+	return "danger"
