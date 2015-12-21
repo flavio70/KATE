@@ -3,21 +3,72 @@
 {% load static %}
 {% load kate_extra %}
 
+<style>
+
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu>.dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu:hover>.dropdown-menu {
+    display: block;
+}
+
+.dropdown-submenu>a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+    margin-right: -10px;
+}
+
+.dropdown-submenu:hover>a:after {
+    border-left-color: #fff;
+}
+
+.dropdown-submenu.pull-left {
+    float: none;
+}
+
+.dropdown-submenu.pull-left>.dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+}
+</style>
 
 <!--<script type="text/javascript" src="{% static "js/colorjizz.js" %}"></script>-->
 <script>
 
-
+var domainTable;
+var currentView = 'QLT';
 
 	$(function () {
 		// changes the table cell background colour depending from threshold
 		//var colors = new Hex(0xFF0000).range(new Hex(0x00FF00), 100, true);
 		var thr = [95,98];
-		var tdId = [2,3,7,8,12,13];
-		{% for tab in tab_list %}
+		var tdId = [3,4,11,12,19,20];
+		if(currentView!='COV'){
 			tdId.forEach(function(entry) {
-				$('#{{ tab.domain }}Table tr td:nth-child('+ entry +')').each(function() {
-					
+				$('#domainTable tr td:nth-child('+ entry +')').each(function() {
+				
 					switch (true) {
 						case ( parseInt($(this).text()) > thr[1]):
 							$(this).addClass('success');
@@ -29,8 +80,8 @@
 							$(this).addClass('danger');
 					}
 				});
-				$('#{{ tab.domain }}Table tfoot th:nth-child('+ entry +')').each(function() {
-					
+				$('#domainTable tfoot th:nth-child('+ entry +')').each(function() {
+				
 					switch (true) {
 						case ( parseInt($(this).text()) > thr[1]):
 							$(this).addClass('success');
@@ -43,96 +94,175 @@
 					}
 				});
 			});
-		{% endfor %}
+		}
 	});
 
 
 	function View(show1){
+		if (show1 != "ALL"){currentView=show1;}
 		// changes visualization for each tab
-		if (show1 == "QLT") { v1 = true; v2 = false; v3= "SWP Quality";};
-		if (show1 == "EXE") { v1 = false; v2 = true; v3= "Test execution";};
+		if (show1 == "QLT") { v1 = true; v2 = false; v3= false;};
+		if (show1 == "EXE") { v1 = false; v2 = true; v3= false;};
+		if (show1 == "COV") { v1 = false; v2 = false; v3= true;};
+		if (show1 != "COV") { v4 = false; v5 = true;}else{ v4 = true; v5 = false};
+		if (show1 == "ALL") { v1 = true; v2 = true; v3= true; v4=true;};
 		
-		{% for tab in tab_list %} 
-			document.getElementById('{{ tab.domain }}-view').innerHTML=v3;
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(1,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(6,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(11,v1);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(2,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(7,v2);
-			$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(12,v2);
-		{% endfor %}
+		//document.getElementById('{{ tab.domain }}-view').innerHTML=v3;
+		$('#domainTable').dataTable().fnSetColumnVis(2,v1);
+		$('#domainTable').dataTable().fnSetColumnVis(10,v1);
+		$('#domainTable').dataTable().fnSetColumnVis(18,v1);
+
+		$('#domainTable').dataTable().fnSetColumnVis(3,v2);
+		$('#domainTable').dataTable().fnSetColumnVis(11,v2);
+		$('#domainTable').dataTable().fnSetColumnVis(19,v2);
+		
+		$('#domainTable').dataTable().fnSetColumnVis(4,v3);
+		$('#domainTable').dataTable().fnSetColumnVis(12,v3);
+		$('#domainTable').dataTable().fnSetColumnVis(20,v3);
+
+		$('#domainTable').dataTable().fnSetColumnVis(6,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(7,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(8,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(14,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(15,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(16,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(22,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(23,v5);
+		$('#domainTable').dataTable().fnSetColumnVis(24,v5);
+
+		$('#domainTable').dataTable().fnSetColumnVis(5,v4);
+		$('#domainTable').dataTable().fnSetColumnVis(9,v4);
+		$('#domainTable').dataTable().fnSetColumnVis(13,v4);
+		$('#domainTable').dataTable().fnSetColumnVis(17,v4);
+		$('#domainTable').dataTable().fnSetColumnVis(21,v4);
+		$('#domainTable').dataTable().fnSetColumnVis(25,v4);
+		//UpdateTfoots();
 		
 	}
 
+
+	function viewDomain(myDomain){
+		$('#domainTable').dataTable().fnFilter( myDomain,0 );
+		View('ALL');
+		UpdateTfoots();
+		View(currentView);
+	}
 	
 	function UpdateTfoots(){
 	
-	{% for tab in tab_list %} 
+		tempDiv='<div class="progress">\
+				 <div class="progress-bar-[colorbar]" role="progressbar" aria-valuenow="[valuebar]" aria-valuemin="0" aria-valuemax="100" style="width: [valuebar];">\
+					[valuebar]%\
+				  </div>\
+				</div>';
+
+
 		percq1=0;percq2=0;percq3=0;
 		perce1=0;perce2=0;perce3=0;
+		percc1=0;percc2=0;percc3=0;
 		ok1=0;ok2=0;ok3=0;
 		ko1=0;ko2=0;ko3=0;
 		trg1=0;trg2=0;trg3=0;
-		count=0;
-	
-		{% for vals in tab.values %}
-		
-			count += 1;
-		
-			percq1 += {{vals.OK1|divide:vals.TOT1}}
-			percq2 += {{vals.OK2|divide:vals.TOT2}}
-			percq3 += {{vals.OK3|divide:vals.TOT3}}
-			perce1 += {{vals.TOT1|divide:vals.numTPS1}}
-			perce2 += {{vals.TOT2|divide:vals.numTPS2}}
-			perce3 += {{vals.TOT3|divide:vals.numTPS3}}
-			
-			ok1 += {{vals.OK1}}
-			ok2 += {{vals.OK2}}
-			ok3 += {{vals.OK3}}
-			
-			ko1 += {{vals.KO1}}
-			ko2 += {{vals.KO2}}
-			ko3 += {{vals.KO3}}
-			
-			trg1 += {{vals.numTPS1}}
-			trg2 += {{vals.numTPS2}}
-			trg3 += {{vals.numTPS3}}
+		totDev1=0;totDev2=0;totDev3=0;
+		plan1=0;plan2=0;plan3=0;
+		myTable=domainTable.$('tr', {"filter":"applied"});
+		rowNum=myTable.length;
+		for(i=0;i<rowNum;i++){
+			percq1+=parseInt(domainTable.rows(myTable[i]).data()[0].percQuality1.replace('%',''));
+			percq2+=parseInt(domainTable.rows(myTable[i]).data()[0].percQuality2.replace('%',''));
+			percq3+=parseInt(domainTable.rows(myTable[i]).data()[0].percQuality3.replace('%',''));
+			perce1+=parseInt(domainTable.rows(myTable[i]).data()[0].percExec1.replace('%',''));
+			perce2+=parseInt(domainTable.rows(myTable[i]).data()[0].percExec2.replace('%',''));
+			perce3+=parseInt(domainTable.rows(myTable[i]).data()[0].percExec3.replace('%',''));
+			//percc1+=parseInt(domainTable.rows(myTable[i]).data()[0].percCov1.replace('%',''));
+			//percc2+=parseInt(domainTable.rows(myTable[i]).data()[0].percCov2.replace('%',''));
+			//percc3+=parseInt(domainTable.rows(myTable[i]).data()[0].percCov3.replace('%',''));
+			totDev1+=parseInt(domainTable.rows(myTable[i]).data()[0].dev1);
+			totDev2+=parseInt(domainTable.rows(myTable[i]).data()[0].dev2);
+			totDev3+=parseInt(domainTable.rows(myTable[i]).data()[0].dev3);
+			ok1+=parseInt(domainTable.rows(myTable[i]).data()[0].OK1);
+			ok2+=parseInt(domainTable.rows(myTable[i]).data()[0].OK2);
+			ok3+=parseInt(domainTable.rows(myTable[i]).data()[0].OK3);
+			ko1+=parseInt(domainTable.rows(myTable[i]).data()[0].KO1);
+			ko2+=parseInt(domainTable.rows(myTable[i]).data()[0].KO2);
+			ko3+=parseInt(domainTable.rows(myTable[i]).data()[0].KO3);
+			trg1+=parseInt(domainTable.rows(myTable[i]).data()[0].TRG1);
+			trg2+=parseInt(domainTable.rows(myTable[i]).data()[0].TRG2);
+			trg3+=parseInt(domainTable.rows(myTable[i]).data()[0].TRG3);
+			plan1+=parseInt(domainTable.rows(myTable[i]).data()[0].plan1);
+			plan2+=parseInt(domainTable.rows(myTable[i]).data()[0].plan2);
+			plan3+=parseInt(domainTable.rows(myTable[i]).data()[0].plan3);
+		}
 
-		{% endfor %}
-		
-		
-		
-		
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual1').innerHTML=(percq1/count).toFixed()+'%';
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual2').innerHTML=(percq2/count).toFixed()+'%';
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Qual3').innerHTML=(percq3/count).toFixed()+'%';
-		
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe1').innerHTML=(perce1/count).toFixed()+'%';
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe2').innerHTML=(perce2/count).toFixed()+'%';
-		document.getElementById('{{ tab.domain }}-tfoot_perc_Exe3').innerHTML=(perce3/count).toFixed()+'%';
-		
-		document.getElementById('{{ tab.domain }}-tfoot_OK1').innerHTML=ok1;
-		document.getElementById('{{ tab.domain }}-tfoot_OK2').innerHTML=ok2;
-		document.getElementById('{{ tab.domain }}-tfoot_OK3').innerHTML=ok3;
-		
-		
-		document.getElementById('{{ tab.domain }}-tfoot_KO1').innerHTML=ko1;
-		document.getElementById('{{ tab.domain }}-tfoot_KO2').innerHTML=ko2;
-		document.getElementById('{{ tab.domain }}-tfoot_KO3').innerHTML=ko3;
-		
-		document.getElementById('{{ tab.domain }}-tfoot_TRG1').innerHTML=trg1;
-		document.getElementById('{{ tab.domain }}-tfoot_TRG2').innerHTML=trg2;
-		document.getElementById('{{ tab.domain }}-tfoot_TRG3').innerHTML=trg3;
+		/*percq1=percq1/rowNum;
+		percq2=percq2/rowNum;
+		percq3=percq3/rowNum;
+		perce1=perce1/rowNum;
+		perce2=perce2/rowNum;
+		perce3=perce3/rowNum;
+		ok1=ok1/rowNum;
+		ok2=ok2/rowNum;
+		ok3=ok3/rowNum;
+		ko1=ko1/rowNum;
+		ko2=ko2/rowNum;
+		ko3=ko3/rowNum;
+		trg1=trg1/rowNum;
+		trg2=trg2/rowNum;
+		trg3=trg3/rowNum;*/
 
+
+		document.getElementById('tfoot_perc_Qual1').innerHTML=(percq1/rowNum).toFixed()+'%';
+		document.getElementById('tfoot_perc_Qual2').innerHTML=(percq2/rowNum).toFixed()+'%';
+		document.getElementById('tfoot_perc_Qual3').innerHTML=(percq3/rowNum).toFixed()+'%';
+		
+		document.getElementById('tfoot_perc_Exe1').innerHTML=(perce1/rowNum).toFixed()+'%';
+		document.getElementById('tfoot_perc_Exe2').innerHTML=(perce2/rowNum).toFixed()+'%';
+		document.getElementById('tfoot_perc_Exe3').innerHTML=(perce3/rowNum).toFixed()+'%';
 	
+		percc1=((totDev1/plan1)*100).toFixed()+'%';
+		percc2=((totDev2/plan2)*100).toFixed()+'%';
+		percc3=((totDev3/plan3)*100).toFixed()+'%';
+
+		if(isNaN(percc1)){percc1=0;}
+		if(isNaN(percc2)){percc2=0;}
+		if(isNaN(percc3)){percc3=0;}
+		
+		color1='danger';
+		color2='danger';
+		color3='danger';
+
+		if(percc1>=98){color1='success'}
+		if(percc2>=98){color2='success'}
+		if(percc3>=98){color3='success'}
+
+		if(percc1>=95&&perc1<98){color1='warning'}
+		if(percc2>=95&&perc2<98){color2='warning'}
+		if(percc3>=95&&perc3<98){color3='warning'}
+
+		document.getElementById('tfoot_perc_Cov1').innerHTML=tempDiv.replace('[colorbar]',color1).split('[valuebar]').join(percc1);
+		document.getElementById('tfoot_perc_Cov2').innerHTML=tempDiv.replace('[colorbar]',color2).split('[valuebar]').join(percc2);
+		document.getElementById('tfoot_perc_Cov3').innerHTML=tempDiv.replace('[colorbar]',color3).split('[valuebar]').join(percc3);
 	
-	
-	
-	{% endfor %}
-	
-	
-	
-	
+		document.getElementById('tfoot_dev1').innerHTML=totDev1;
+		document.getElementById('tfoot_dev2').innerHTML=totDev2;
+		document.getElementById('tfoot_dev3').innerHTML=totDev3;
+		
+		document.getElementById('tfoot_OK1').innerHTML=ok1;
+		document.getElementById('tfoot_OK2').innerHTML=ok2;
+		document.getElementById('tfoot_OK3').innerHTML=ok3;
+		
+		document.getElementById('tfoot_KO1').innerHTML=ko1;
+		document.getElementById('tfoot_KO2').innerHTML=ko2;
+		document.getElementById('tfoot_KO3').innerHTML=ko3;
+		
+		document.getElementById('tfoot_TRG1').innerHTML=trg1;
+		document.getElementById('tfoot_TRG2').innerHTML=trg2;
+		document.getElementById('tfoot_TRG3').innerHTML=trg3;
+
+		document.getElementById('tfoot_plan1').innerHTML=plan1;
+		document.getElementById('tfoot_plan2').innerHTML=plan2;
+		document.getElementById('tfoot_plan3').innerHTML=plan3;
+
 	}
 	
 	
@@ -142,37 +272,167 @@
 
 	$(document).ready(function() {
 		document.getElementById('mainTitle').innerHTML='SW Statistics';
-		{% for tab in tab_list %}
-			//datatable initialiaztion for each tab
-			{{ tab.domain }}Table = $('#{{ tab.domain }}Table').DataTable({
-				dom:'<"row"<"col-sm-2"l><"col-sm-7"><"col-sm-3"f>>\
-						<"row"<"col-sm-12"tr>>\
-						<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
-						<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
-				buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
-				{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
-				{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
-				{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
-				{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
-				"columnDefs":[{"width": "20%", "targets":[0]}],
-				"fnInitComplete": function() {
-					this.fnAdjustColumnSizing(true);
+		domainTable = $('#domainTable').DataTable({
+			dom:'<"row"<"col-sm-9"<"buttonGroup1">><"col-sm-3"B>>\
+					<"row"<"col-sm-12"tr>>',
+			buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+			{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+			{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+			{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+			{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+			"bSort" : false,
+			"bPaginate": false,
+			"fnInitComplete": function() {
+				this.fnAdjustColumnSizing(true);
+			},
+			"columns": [
+				{
+					"data":           "domain",
+					"visible": false
+				},
+				{
+					"data":           "area",
+					"className": "dt-center" 
+				},
+				{
+					"data": "percQuality1", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "percExec1", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "dev1", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "plan1", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "OK1", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "KO1", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "TRG1", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "percCov1", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "percQuality2", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "percExec2", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "dev2", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "plan2", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "OK2", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "KO2", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "TRG2", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "percCov2", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "percQuality3", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "percExec3", 
+					"className": "dt-center",
+					"visible": true
+				},
+				{
+					"data": "dev3", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "plan3", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "OK3", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "KO3", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "TRG3", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "percCov3", 
+					"className": "dt-center",
+					"visible": true
 				}
-			});//end DataTable	
-		{% endfor %}
+			]
+		});//end DataTable	
 		
-		//event raised when tab is activated
-		$('.nav-tabs a').on('shown.bs.tab', function(event){
-			// used to solve a bug displaying bad table header size
-			{% for tab in tab_list %}
-				$('#{{ tab.domain }}Table').dataTable().fnSetColumnVis(0,true);
-			{% endfor %}
-		});
-		UpdateTfoots();
+		viewDomain('{{ tab_list.0.domain }}');
+		//UpdateTfoots();
 		// initialize all tables with default view 
-		View('QLT');
+		//View('QLT');
+
+
+		$("div.buttonGroup1").html('\
+				<div class="btn-group" data-toggle="buttons">\
+				<label class="btn btn-primary navbar-btn active" onclick="View(\'QLT\');">\
+					<input type="radio" id="q156" name="tipo" checked="checked" value="quality"  />\
+					<span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> SWP Quality\
+				</label>\
+				<label class="btn btn-primary navbar-btn" onclick="View(\'EXE\');">\
+					<input type="radio" id="q157" name="tipo" value="execution" />\
+					<span class="glyphicon glyphicon-tasks" aria-hidden="true"></span> Test Execution\
+				</label> \
+				<label class="btn btn-primary navbar-btn" onclick="View(\'COV\');">\
+					<input type="radio" id="q157" name="tipo" value="execution" />\
+					<span class="glyphicon glyphicon-tasks" aria-hidden="true"></span> TPS Coverage\
+				</label> \
+			</div>\
+			');
+
+
+
+
+
 	});// end ready function
  
+
+
 </script>
 
 <div style="width:94%;position:fixed;left:3%;z-index:9;height:550px;margin-top:30px">
@@ -187,185 +447,189 @@
 		<input type="hidden" name="id_pack3_val" value="{{val_pack3}}" />
 		
 
-		<nav class="navbar navbar-default">
-			<div class="container-fluid">
-				<!-- Brand and toggle get grouped for better mobile display -->
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-						<span class="sr-only">Toggle navigation</span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="#"></a>
-				</div>
-				<!-- Collect the nav links, forms, and other content for toggling -->
-				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-					<ul class="nav navbar-nav navbar-left">
-						<div class="btn-group" data-toggle="buttons">
-							<label class="btn btn-primary navbar-btn active" onclick="View('QLT');">
-								<input type="radio" id="q156" name="tipo" checked="checked" value="quality"  />
-								<span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> SWP Quality
-							</label> 
-							<label class="btn btn-primary navbar-btn" onclick="View('EXE');">
-								<input type="radio" id="q157" name="tipo" value="execution" />
-								<span class="glyphicon glyphicon-tasks" aria-hidden="true"></span> Test Execution
-							</label> 
-						</div><!-- end btn group-->
-					</ul><!-- end navbar ul-->
-					<ul class="nav navbar-nav navbar-right">
-						<li>
-							<div class="btn-group btn-group-xs navbar-btn" data-toggle="tooltip" title="..." role="group">
-									<button type="button" id='{{ build.testName }}' onclick="morgue" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
-							</div>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">SW Package 3 <span class="caret"></span></a>
-							<ul class="dropdown-menu" id="select3menu" >
-								{{ swp_dropdown3 }}
-							</ul>
-						</li>
-					</ul><!-- end navbar ul-->
-					<ul class="nav navbar-nav navbar-right">
-						<li>
-							<div class="btn-group btn-group-xs navbar-btn" data-toggle="tooltip" title="..." role="group">
-									<button type="button" id='{{ build.testName }}' onclick="morgue" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
-							</div>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">SW Package 2 <span class="caret"></span></a>
-							<ul class="dropdown-menu" id="select2menu" >
-								{{ swp_dropdown2 }}
-							</ul>
-						</li>
-					</ul><!-- end navbar ul-->
-					<ul class="nav navbar-nav navbar-right">
-						<li>
-							<div class="btn-group btn-group-xs navbar-btn" data-toggle="tooltip" title="..." role="group">
-									<button type="button" id='{{ build.testName }}' onclick="morgue" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
-							</div>
-						</li>
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">SW Package 1 <span class="caret"></span></a>
-							<ul class="dropdown-menu" id="select1menu" >
-								{{ swp_dropdown1 }}
-							</ul>
-						</li>
-					</ul><!-- end navbar ul-->
-				</div><!-- end collapse navbar-->
-			</div><!-- end container -->
-		</nav>
+
 		<div class="row">
-			<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
-				<li class="active"><a href="#summary-tab" data-toggle="tab">Summary</a></li>
-				{% for tab in tab_list %} 
-					<li><a href="#{{ tab.domain }}-tab" data-toggle="tab">{{ tab.domain }}</a></li>
-				{% endfor %}
-				<!--<li><a href="#xtest-tab" data-toggle="tab">xtest</a></li>-->
-			</ul>
-			<div id="my-tab-content" class="tab-content">
-				<div class="tab-pane active" id="summary-tab">
-						<h1>Summary</h1>
-						<p>Please select SW Package to compare</p>
-				</div>
-				{% for tab in tab_list %} 
-					<div style="width:100%; margin-top:20px;" class="tab-pane" id="{{ tab.domain }}-tab">
+			<div style="width:100%; margin-top:20px;" class="tab-pane" id="{{ tab.domain }}-tab">
+				
+				<table class="table display table-striped table-hover table-condensed" cellspacing="0" id="domainTable" style="width:100%">
+					<thead>
+						<tr>
+							<th rowspan="2"></th>
+							<th>
+								<div class="dropdown">
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{{ tab_list.0.domain }} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+									{% for tab in tab_list %}
+										<li><a onclick="$('#dLabel').html('{{ tab.domain }} <span class=\'caret\'></span>');viewDomain( '{{ tab.domain }}');">{{ tab.domain }}</a></li>
+									{% endfor %}
+									</ul>
+								</div>
+							</th>
+							<th colspan="8" style="border-left:2px solid #DDD;">
+								<div class="dropdown">
+									<button type="button" onclick="{%if details_row.0.tpack1 != None %}window.location='/taws/morgue/?id_pack={{ details_row.0.tpack1 }}';{% endif %}" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{% if tab_list.0.name1 = None %}Select SWP{% else %}{{ tab_list.0.name1 }}{% endif %} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">{{ swp_dropdown1 }}</ul>
+								</div>
+							</th>
+							<th colspan="8" style="border-left:2px solid #DDD;">
+								<div class="dropdown">
+									<button type="button" onclick="{%if details_row.0.tpack1 != None %}window.location='/taws/morgue/?id_pack={{ details_row.0.tpack1 }}';{% endif %}" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{% if tab_list.0.name2 = None %}Select SWP{% else %}{{ tab_list.0.name2 }}{% endif %} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">{{ swp_dropdown2 }}</ul>
+								</div>
+							</th>
+							<th colspan="8" style="border-left:2px solid #DDD;">
+								<div class="dropdown">
+									<button type="button" onclick="{%if details_row.0.tpack1 != None %}window.location='/taws/morgue/?id_pack={{ details_row.0.tpack1 }}';{% endif %}" class="btn btn-default navbar-btn"><i class="fa fa-ambulance"></i></button>
+									<a id="dLabel" role="button" data-toggle="dropdown" class="btn btn-primary" data-target="#" href="/page.html">
+									{% if tab_list.0.name3 = None %}Select SWP{% else %}{{ tab_list.0.name3 }}{% endif %} <span class="caret"></span>
+								</a>
+									<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">{{ swp_dropdown3 }}</ul>
+								</div>
+							</th>
+						</tr>
+						<tr>
+							<th><span class="label label-default">Feature</span></th>
+							<th style="border-left:2px solid #DDD;" id="percQuality1"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+							<th style="border-left:2px solid #DDD;" id="percExe1"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+							<th style="border-left:2px solid #DDD;" id="dev1"><span class="label label-info" style="border-left:2px solid #DDD;">Dev</span></th>
+							<th id="plan1"><span class="label label-info" style="border-left:2px solid #DDD;">Plan</span></th>
+							<th id="OK1"><span class="label label-success">OK</span></th>
+							<th id="KO1"><span class="label label-danger">KO</span></th>
+							<th id="TRG1"><span class="label label-primary">TRG</th>
+							<th id="percCov1"><span class="label label-primary">%</th>
+							
+							<th style="border-left:2px solid #DDD;" id="percQuality2"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+							<th style="border-left:2px solid #DDD;" id="percExe2"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+							<th style="border-left:2px solid #DDD;" id="dev2"><span class="label label-info" style="border-left:2px solid #DDD;">Dev</span></th>
+							<th id="plan2"><span class="label label-info" style="border-left:2px solid #DDD;">Plan</span></th>
+							<th id="OK2"><span class="label label-success">OK</span></th>
+							<th id="KO2"><span class="label label-danger">KO</span></th>
+							<th id="TRG2"><span class="label label-primary">TRG</th>
+							<th id="percCov2"><span class="label label-primary">%</th>
+							
+							<th style="border-left:2px solid #DDD;" id="percQuality3"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+							<th style="border-left:2px solid #DDD;" id="percExe3"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
+							<th style="border-left:2px solid #DDD;" id="dev3"><span class="label label-info" style="border-left:2px solid #DDD;">Dev</span></th>
+							<th id="plan3"><span class="label label-info" style="border-left:2px solid #DDD;">Plan</span></th>
+							<th id="OK3"><span class="label label-success">OK</span></th>
+							<th id="KO3"><span class="label label-danger">KO</span></th>
+							<th id="TRG3"><span class="label label-primary">TRG</th>
+							<th id="percCov3"><span class="label label-primary">%</th>
 						
-						<table class="table display table-striped table-hover table-condensed" cellspacing="0" id="{{ tab.domain }}Table" style="width:100%">
-							<thead>
-								
-								
-								<tr class="info">
-									<th style="text-align:center"><h4><span class="label label-primary" id="{{ tab.domain }}-view"></span></h4></th>
-									<th colspan="5" style="border-left:2px solid #DDD; text-align:center;"><h5>{{val_pack1}}</h5></th>
-									<th colspan="5" style="border-left:2px solid #DDD; text-align:center;"><h5>{{val_pack2}}</h5></th>
-									<th colspan="5" style="border-left:2px solid #DDD; text-align:center;"><h5>{{val_pack3}}</h5></th>
-								</tr>
-								<tr>
-									<th><span class="label label-default">Domain</span></th>
-									
-									<th id="percQuality1"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
-									<th id="percExe1"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
-									<th id="OK1"><span class="label label-success">OK</span></th>
-									<th id="KO1"><span class="label label-danger">KO</span></th>
-									<th id="TRG1"><span class="label label-primary">TRG</th>
-									
-									<th id="percQuality2"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
-									<th id="percExe2"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
-									<th id="OK2"><span class="label label-success">OK</span></th>
-									<th id="KO2"><span class="label label-danger">KO</span></th>
-									<th id="TRG2"><span class="label label-primary">TRG</th>
-									
-									<th id="percQuality3"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
-									<th id="percExe3"><span class="label label-info" style="border-left:2px solid #DDD;">%</span></th>
-									<th id="OK3"><span class="label label-success">OK</span></th>
-									<th id="KO3"><span class="label label-danger">KO</span></th>
-									<th id="TRG3"><span class="label label-primary">TRG</th>
-								
-								</tr>
-							
-							</thead>
-							
-							<tbody>
-								{% for vals in tab.values %} 
-								<tr>
-									<td>
-										<div class="btn-group btn-group-xs" data-toggle="tooltip" title="View Job Id Details" role="group">
-											<button type="button" class="btn btn-default btn-info" onclick="filtro.area.value='{{ tab.domain }}-{{ vals.area_name }}';filtro.action='/taws/statistics_sw_executed_details/';filtro.submit();"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>{{ vals.area_name }}
-										</div>
-									</td>
-									
-									<td style="border-left:2px solid #DDD;">{{vals.OK1|divide:vals.TOT1}}%</td>
-									<td style="border-left:2px solid #DDD;">{{vals.TOT1|divide:vals.numTPS1}}%</td>
-									<td>{{vals.OK1}}</td>
-									<td>{{vals.KO1}}</td>
-									<td>{{vals.numTPS1}}</td>
-									
-									<td style="border-left:2px solid #DDD;">{{vals.OK2|divide:vals.TOT2}}%</td>
-									<td style="border-left:2px solid #DDD;">{{vals.TOT2|divide:vals.numTPS2}}%</td>
-									<td>{{vals.OK2}}</td>
-									<td>{{vals.KO2}}</td>
-									<td>{{vals.numTPS2}}</td>
-									
-									<td style="border-left:2px solid #DDD;">{{vals.OK3|divide:vals.TOT3}}%</td>
-									<td style="border-left:2px solid #DDD;">{{vals.TOT3|divide:vals.numTPS3}}%</td>
-									<td>{{vals.OK3}}</td>
-									<td>{{vals.KO3}}</td>
-									<td>{{vals.numTPS3}}</td>
-								</tr>
-								
-								{% endfor %}
-							</tbody>
+						</tr>
 					
-							<tfoot>
-								<th>TOTALS</th>
-								
-								<th id="{{ tab.domain }}-tfoot_perc_Qual1" style="border-left:2px solid #DDD;"></th>
-								<th id="{{ tab.domain }}-tfoot_perc_Exe1" style="border-left:2px solid #DDD;"></th>
-								<th id="{{ tab.domain }}-tfoot_OK1"></th>
-								<th id="{{ tab.domain }}-tfoot_KO1"></th>
-								<th id="{{ tab.domain }}-tfoot_TRG1"></th>
-								
-								<th id="{{ tab.domain }}-tfoot_perc_Qual2" style="border-left:2px solid #DDD;"></th>
-								<th id="{{ tab.domain }}-tfoot_perc_Exe2" style="border-left:2px solid #DDD;"></th>
-								<th id="{{ tab.domain }}-tfoot_OK2"></th>
-								<th id="{{ tab.domain }}-tfoot_KO2"></th>
-								<th id="{{ tab.domain }}-tfoot_TRG2"></th>
-								
-								<th id="{{ tab.domain }}-tfoot_perc_Qual3" style="border-left:2px solid #DDD;"></th>
-								<th id="{{ tab.domain }}-tfoot_perc_Exe3" style="border-left:2px solid #DDD;"></th>
-								<th id="{{ tab.domain }}-tfoot_OK3"></th>
-								<th id="{{ tab.domain }}-tfoot_KO3"></th>
-								<th id="{{ tab.domain }}-tfoot_TRG3"></th>
-								
-							</tfoot>
-						</table>
+					</thead>
+					<tbody>
+						{% for tab in tab_list %} 
+							{% for vals in tab.values %} 
+							<tr>
+								<td>{{tab.domain}}</td>
+								<td>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="View Job Id Details" role="group">
+										<button type="button" class="btn btn-default btn-info" onclick="filtro.area.value='{{ tab.domain }}-{{ vals.area_name }}';filtro.action='/taws/statistics_sw_executed_details/';filtro.submit();"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>{{ vals.area_name }}
+									</div>
+								</td>
+							
+								<td style="border-left:2px solid #DDD;">{{ vals.OK1|divide:vals.TOT1 }}%</td>
+								<td style="border-left:2px solid #DDD;">{{ vals.TOT1|divide:vals.numTPS1 }}%</td>
+								<td style="border-left:2px solid #DDD;" class="pippo">{{ vals.numTPS1 }}</td>
+								<td class="pippo">{{ vals.numTest1 }}</td>
+								<td class="pippo">{{ vals.OK1 }}</td>
+								<td class="pippo">{{ vals.KO1 }}</td>
+								<td>{{ vals.numTPS1 }}</td>
+								<td>
+									<div class="progress">
+									  <div class="progress-bar-{{ vals.numTPS1|divide:vals.numTest1|evaluate_color }}" role="progressbar" aria-valuenow="{{vals.numTPS1|divide:vals.numTest1}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vals.numTPS1|divide:vals.numTest1}}%;">
+										{{ vals.numTPS1|divide:vals.numTest1 }}% 
+									  </div>
+									</div>
+								</td>
+							
+								<td style="border-left:2px solid #DDD;">{{ vals.OK2|divide:vals.TOT2 }}%</td>
+								<td style="border-left:2px solid #DDD;">{{ vals.TOT2|divide:vals.numTPS2 }}%</td>
+								<td style="border-left:2px solid #DDD;" class="pippo">{{ vals.numTPS2 }}</td>
+								<td class="pippo">{{ vals.numTest2 }}</td>
+								<td>{{ vals.OK2 }}</td>
+								<td>{{ vals.KO2 }}</td>
+								<td>{{ vals.numTPS2 }}</td>
+								<td>
+									<div class="progress">
+									  <div class="progress-bar-{{ vals.numTPS1|divide:vals.numTest1|evaluate_color }}" role="progressbar" aria-valuenow="{{vals.numTPS1|divide:vals.numTest1}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vals.numTPS1|divide:vals.numTest1}}%;">
+										{{vals.numTPS2|divide:vals.numTest2}}% 
+									  </div>
+									</div>
+								</td>
+
+							
+								<td style="border-left:2px solid #DDD;">{{ vals.OK3|divide:vals.TOT3 }}%</td>
+								<td style="border-left:2px solid #DDD;">{{ vals.TOT3|divide:vals.numTPS3 }}%</td>
+								<td style="border-left:2px solid #DDD;" class="pippo">{{ vals.numTPS3 }}</td>
+								<td class="pippo">{{ vals.numTest3 }}</td>
+								<td>{{ vals.OK3 }}</td>
+								<td>{{ vals.KO3 }}</td>
+								<td>{{ vals.numTPS3 }}</td>
+								<td>
+									<div class="progress">
+									  <div class="progress-bar-{{ vals.numTPS1|divide:vals.numTest1|evaluate_color }}" role="progressbar" aria-valuenow="{{vals.numTPS1|divide:vals.numTest1}}" aria-valuemin="0" aria-valuemax="100" style="width: {{vals.numTPS1|divide:vals.numTest1}}%;">
+										{{vals.numTPS3|divide:vals.numTest3}}% 
+									  </div>
+									</div>
+								</td>
+
+							</tr>
+						
+							{% endfor %}
+						{% endfor %}
+					</tbody>
 			
-					
-					
-					</div>
-					
-				{% endfor %}
+					<tfoot>
+						<th></th>
+						<th>TOTALS</th>
+						
+						<th id="tfoot_perc_Qual1" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_perc_Exe1" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_dev1" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_plan1"></th>
+						<th id="tfoot_OK1"></th>
+						<th id="tfoot_KO1"></th>
+						<th id="tfoot_TRG1"></th>
+						<th id="tfoot_perc_Cov1"></th>
+						
+						<th id="tfoot_perc_Qual2" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_perc_Exe2" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_dev2" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_plan2"></th>
+						<th id="tfoot_OK2"></th>
+						<th id="tfoot_KO2"></th>
+						<th id="tfoot_TRG2"></th>
+						<th id="tfoot_perc_Cov2"></th>
+
+						
+						<th id="tfoot_perc_Qual3" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_perc_Exe3" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_dev3" style="border-left:2px solid #DDD;"></th>
+						<th id="tfoot_plan3"></th>
+						<th id="tfoot_OK3"></th>
+						<th id="tfoot_KO3"></th>
+						<th id="tfoot_TRG3"></th>
+						<th id="tfoot_perc_Cov3"></th>
+
+						
+					</tfoot>
+				</table>
+	
+			
+			
+			</div>
+			
 				<!--<div class="tab-pane" id="xtest-tab">
 						{% for tab in tab_list %}
 						{% for vals in tab.values %} 
