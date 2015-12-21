@@ -95,50 +95,6 @@ $(document).ready(function() {
 	});
 	 
 	
-	new $.fn.dataTable.Buttons( benchTable, {'buttons': [
-							{text:'Views:'},
-							{
-								text:'<i class="fa fa-archive fa-lg"></i>',
-								titleAttr: 'Show Bench Jenkins Jobs',
-								action:function(){show('suite');}
-							},
-							{
-								text:'<i class="fa fa-info fa-lg"></i>',
-								titleAttr: 'Show Bench Details',
-								action:function(){show('details');}
-							},
-							{
-								text:'<i class="fa fa-random fa-lg"></i>',
-								titleAttr: 'Show Connections info',
-								action:function(){show('connection');}
-							},
-
-						]} );
-						
-	new $.fn.dataTable.Buttons( benchTable, {'buttons': [
-							{text:'Actions:'},
-							{
-								text:'<i class="fa fa-file-o fa-lg"></i>',
-								titleAttr: 'Create New bench',
-								action:function(){createBench();}
-							},
-							{
-								text:'<i class="fa fa-pencil-square-o fa-lg"></i>',
-								titleAttr: 'Edit Selected Bench info',
-								action:function(){editBench();}
-							},
-							{	
-								text:'<i class="fa fa-eraser fa-lg"></i>',
-								titleAttr: 'Delete Selected Bench',
-								action:function(){deleteBench();}
-							},
-						]} );					
-						
-	benchTable.buttons(1,null).container().appendTo($('.col-sm-3:eq(1)',benchTable.table().container() ));
-	benchTable.buttons(2,null).container().appendTo($('.col-sm-3:eq(2)',benchTable.table().container() ));
-	//benchTable.buttons().container().appendTo($('.col-sm-5:eq(0)',benchTable.table().container() ));
-	benchTable.buttons(1,0).disable()
-	benchTable.buttons(2,0).disable()
 
 
 	
