@@ -75,6 +75,34 @@ function checkFields(){
   }  
   
 
+  
+function fillSelectTestCreator(valueStr,myselect,target,parent){
+  if(valueStr!=''){myselect.disabled=false;}
+    else{myselect.disabled=true;}
+  myselect.length=1;
+  tempAry1=valueStr.split('@');
+  for(i=0;i<tempAry1.length;i++){
+    tempAry2=tempAry1[i].split('?');
+    
+    
+    var li = document.createElement("li");
+    var link = document.createElement("a");             
+    var text = document.createTextNode(tempAry2[0]);
+    
+    link.appendChild(text);
+    link.href = "#";
+    if(tempAry2.length>1){link.id = tempAry2[1].replace(/#/g,'?').replace(/%/g,'@').replace(/\|/g,'%');}
+    link.onclick = function() { fillSelectTestCreator(link.id,target,parent,''); checkFields(); document.getElementById(parent).innerHTML= this.text};
+    li.appendChild(link);
+    document.getElementById(myselect).appendChild(li);   
+    
+    
+  }
+}
+
+
+
+
 
 
 function newTest(){
@@ -110,16 +138,30 @@ function newTest(){
 
 function refreshTestModalBody() {
 	//reset all modal options
-	document.getElementById('product').length = 1;
-	document.getElementById('selectTopo').length = 0;
+	while(document.getElementById('product').hasChildNodes()){
+		document.getElementById('product').removeChild(document.getElementById('product').lastChild);
+	}
+
+	while(document.getElementById('selectTopo').hasChildNodes()){
+		document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
+	}
+	
+	
 	presetName = [];
 	presetID = [];
 	//fill option for product
 	for (myItem in jsonProductAry) { 
-		var addItem = document.createElement('option');
-    addItem.text = jsonProductAry[myItem].product;
-    addItem.value = jsonProductAry[myItem].productConcat;
-    document.getElementById('product').add(addItem);
+	
+    var li = document.createElement("li");
+    var link = document.createElement("a");             
+    var text = document.createTextNode(jsonProductAry[myItem].product);
+    
+    link.appendChild(text);
+    link.href = "#";
+    link.id = jsonProductAry[myItem].productConcat;
+    link.onclick = function() { fillSelectTestCreator(link.id,'domain','area',''); checkFields(); document.getElementById('buttonProduct').innerHTML= this.text};
+    li.appendChild(link);
+    document.getElementById('product').appendChild(li);    
      
 	}
 	//fill option for topology
@@ -778,15 +820,6 @@ $(document).ready(function() {
 				</tr>     
 		</tfoot>
 	</table>
-	<!--<table>
-		<tr>
-			<td bgcolor="#D6E0F4" style="font-size : 8pt;" align="center" colspan="3">
-				<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" />
-				<input type="button" class="stylishButton" style="width:30px" value="<<" title="REMOVE ALL TCs FROM SUITE" onclick="removeAllBundleList();" />
-				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
-			</td>
-		</tr>
-	</table>-->
 </div>
 
 
@@ -794,7 +827,7 @@ $(document).ready(function() {
 <div id="newTestModal" class="modal fade" role="dialog">
 	<form name="createTest" action="" method="post" target="_self">{% csrf_token %}
 		<input type="hidden" value="" name="azione">
-		<div class="modal-dialog">
+		<div class="modal-dialog" style="width:75%">
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -808,45 +841,62 @@ $(document).ready(function() {
 						</div>
 						<div class="panel-body" id="newTestModalBody">
 							<input type="hidden" value="" name="azione">
-							<div class="form-group">
+							<div class="form-group col-md-12">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Test Name</span>
 									<input type="text" class="form-control" placeholder="testName" aria-describedby="basic-addon1" id="testName" onchange="checkFields();">
 								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group col-md-12">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Test Location</span>
-									<select class="form-control" id="product" style="width:34%" onchange="fillSelectCreator(this.value,domain,''); checkFields();"><option>Product</option></select>
-									<select class="form-control" id="domain" style="width:33%" disabled onchange="fillSelectCreator(this.value,area,''); checkFields();"><option>Domain</option></select>
-									<select class="form-control" id="area" style="width:33%" disabled onchange="checkFields();"><option>Area</option></select>
+									<!--<select class="form-control" id="product" style="width:34%" onchange="fillSelectCreator(this.value,domain,''); checkFields();"><option>Product</option></select>-->
+									
+									<div class="btn-group">
+										<button id = "buttonProduct" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Product <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" id="product"></ul>
+									</div>
+									
+									<div class="btn-group">
+										<button id = "buttonDomain" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Domain <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" id="domain"></ul>
+									</div>
+									
+									<div class="btn-group">
+										<button id = "buttonArea" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Area <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" id="area"></ul>
+									</div>
+									
+									<!--<select class="form-control" id="domain" style="width:33%" disabled onchange="fillSelectCreator(this.value,area,''); checkFields();"><option>Domain</option></select>
+									<select class="form-control" id="area" style="width:33%" disabled onchange="checkFields();"><option>Area</option></select>-->
 								</div>
 							</div>
 							<div class="form-group col-md-6">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Select Topology</span>
-									<select  class="form-control" size="8" id="selectTopo" onchange="fillPreset();"></select>
+									<select  class="form-control" id="selectTopo" onchange="fillPreset();"></select>
 								</div>
 							</div>
 							<div class="form-group col-md-6">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Select Preset</span>
-									<select  class="form-control" size="8" id="selectPreset" onchange="doAccess('getPresetTemplate');"></select>
+									<select  class="form-control" id="selectPreset" onchange="doAccess('getPresetTemplate');"></select>
 										<option value="">&nbsp;</option>
 								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group col-md-12">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Test Name</span>
 									<textarea value="" style="font-size : 8pt;width:100%;height:100%;" id="preview"></textarea>															
 								</div>
 							</div>
-							
-							
-							
-							
-							
-							
+
 						</div><!-- end panel-body -->
 					</div><!-- end panel -->
 				</div><!-- end modal-body-->
