@@ -436,12 +436,12 @@ $(document).ready(function() {
 	$('#testTable tbody').on('dblclick', 'tr', function () {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
-
-		selectTest.action="/taws/viewTestCase/";
+		$('#viewTestModal').modal('toggle');
 		selectTest.idTestRev.value=row.data().testId;
-		selectTest.target="_blank";
-		selectTest.submit();
-		//newwindow=window.open('/taws/viewTestCase/?idTestRev='+row.data().testId,'viewTestCase','height=600,width=1000,resizable=1,scrollbars=yes'); 
+		doAccess('viewTestCase');
+		//selectTest.action="/taws/viewTestCase/";
+		//selectTest.target="_blank";
+		//selectTest.submit();
 	    } );
 	    
 	    
@@ -909,7 +909,44 @@ $(document).ready(function() {
 	</form>
 </div><!-- end modal -->
 
-
+<!-- Modal for New test Creation -->
+<div id="viewTestModal" class="modal fade" role="dialog">
+	<!--<form name="selectTest" action="/taws/viewTestCase/?action=update" method="post" >{% csrf_token %}
+	<input type="hidden" id="modalInput" name="idTestRev">-->
+	<div class="modal-dialog" style="width:830px;height:680px;">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-body">
+				<nav class="navbar navbar-default">
+					<div class="container-fluid">
+						<!-- Brand and toggle get grouped for better mobile display -->
+						<div class="navbar-header">
+							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+							<a class="navbar-brand" id="modalTitle"></a>
+						</div><!-- end navbar-header -->
+						<!-- Collect the nav links, forms, and other content for toggling -->
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-btn navbar-right">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+							</ul>
+							<ul class="nav navbar-btn navbar-right">
+								<div class="btn-group btn-group-sm" role="group" id="modalButton">
+								</div><!-- end btn_group-->
+								<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+							</ul>
+						</div><!-- end navbar-collapse -->
+					</div><!-- end container-fluid -->
+				</nav><!-- end navbar -->
+				<textarea class="form-control" name="testBody" style="width:800px;height:600px;" id="comment"></textarea>
+			</div>
+		</div>
+	<!--</form>-->
+</div><!-- end modal -->
 
 {% endblock %}
 
