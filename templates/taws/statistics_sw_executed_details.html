@@ -139,9 +139,9 @@
 							<tr>
 								<td >{{ row.tps_reference }}</td>
 								<td >{{ row.test_name }}</td>
-								<td align="center" {% if row.result1 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump1 }}"{% endif %} class="{% if row.result1 = 'Failed' %}danger{% endif %}{% if row.result1 = 'Passed' %}info{% endif %}">{{ row.result1 }}{% if row.author1 != None %} ({{ row.author1 }} {{ row.date1 }}) {% endif %}</td>
-								<td align="center" {% if row.result2 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump2 }}"{% endif %} class="{% if row.result2 = 'Failed' %}danger{% endif %}{% if row.result2 = 'Passed' %}info{% endif %}">{{ row.result2 }}</td>
-								<td align="center" {% if row.result3 = 'Failed' %} data-toggle="popover" title="ERROR REPORT" data-content="{{ dump3 }}"{% endif %} class="{% if row.result3 = 'Failed' %}danger{% endif %}{% if row.result3 = 'Passed' %}info{% endif %}">{{ row.result3 }}</td>
+								<td align="center" {% if row.result1 = 'Failed' %} data-toggle="modal" title="View Error Output" data-target="#newTestModal" onclick="document.getElementById('preview').value='{{ dump1 }}';document.getElementById('modalTitle').innerHTML='Error Report for {{ row.test_name }} TPS {{ row.tps_reference }} - {{ details_row.0.tpack1 }}';"{% endif %} class="{% if row.result1 = 'Failed' %}danger{% endif %}{% if row.result1 = 'Passed' %}info{% endif %}">{{ row.result1 }}{% if row.author1 != None %} ({{ row.author1 }} {{ row.date1 }}) {% endif %}</td>
+								<td align="center" {% if row.result2 = 'Failed' %} data-toggle="modal" title="View Error Output" data-target="#newTestModal" onclick="document.getElementById('preview').value='{{ dump2 }}';document.getElementById('modalTitle').innerHTML='Error Report for {{ row.test_name }} TPS {{ row.tps_reference }} - {{ details_row.0.tpack2 }}';"{% endif %} class="{% if row.result2 = 'Failed' %}danger{% endif %}{% if row.result2 = 'Passed' %}info{% endif %}">{{ row.result2 }}</td>
+								<td align="center" {% if row.result3 = 'Failed' %} data-toggle="modal" title="View Error Output" data-target="#newTestModal" onclick="document.getElementById('preview').value='{{ dump3 }}';document.getElementById('modalTitle').innerHTML='Error Report for {{ row.test_name }} TPS {{ row.tps_reference }} - {{ details_row.0.tpack3 }}';"{% endif %} class="{% if row.result3 = 'Failed' %}danger{% endif %}{% if row.result3 = 'Passed' %}info{% endif %}">{{ row.result3 }}</td>
 							</tr>
 						{% endfor %}
 				</tbody> 
@@ -149,6 +149,30 @@
 		</div>
 	</form>
 </div>
+
+<!-- Modal for New test Creation -->
+<div id="newTestModal" class="modal fade" role="dialog">
+	<form name="createTest" action="" method="post" target="_self">{% csrf_token %}
+		<input type="hidden" value="" name="azione">
+		<div class="modal-dialog" style="font-size : 8pt;width:730px;height:580px;">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title" id="modalTitle">Error Report</h4>
+				</div>
+				<div class="modal-body">
+					<div class="input-group">
+						<textarea value="" style="font-size : 8pt;width:700px;height:500px;" id="preview"></textarea>															
+					</div>
+				</div><!-- end modal-body-->
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-primary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div><!-- end modal -->
 
 {% endblock %}
 
