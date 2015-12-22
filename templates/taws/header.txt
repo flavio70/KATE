@@ -71,6 +71,7 @@
 	<script type="text/javascript" src="{% static "js/jquery.smartmenu.js" %}"></script>
 	<script type="text/javascript" src="{% static "js/jquery.smartmenus.bootstrap.min.js" %}"></script>
 	<script type="text/javascript" src="{% static "js/dataTables.select.min.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/bootbox.min.js" %}"></script>
 
 	<script type="text/javascript">
 

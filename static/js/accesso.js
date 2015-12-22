@@ -126,7 +126,7 @@ function doAccess(myAction){
 		updateTestTable('testBundleTable',testListString);
 		//alert(sersverResponse_data['testString']);
 		suiteChanged=false;
-		showalert("Suite correctly saved","alert-success")
+		showalert("Suite correctly saved","alert-success");
 	};
 	var deleteSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		userSuiteID='';

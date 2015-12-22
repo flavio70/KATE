@@ -523,7 +523,7 @@ $(document).ready(function() {
 							<ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+myUserSuite+'</ul>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save User Suite" onclick="if(testBundleTable.rows().data().length>0){owner=\'{{ login }}\';jsaveFile(\'userSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete User Suite" onclick="if(suiteID.value!=\'\'&&confirm(\'Are you sure you want to delete \'+document.getElementById(\'userSuites\').innerHTML.replace(\' <span class=\'+String.fromCharCode(34)+\'caret\'+String.fromCharCode(34)+\'></span>\',\'\')+\'?\')){owner=\'{{ login }}\';emptyTable(\'testBundleTable\');doAccess(\'deleteSuite\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete User Suite" onclick="if(suiteID.value!=\'\'){deleteSuite(\'{{ login }}\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
 							<button type="button" class="btn btn-default navbar-btn"data-toggle="tooltip" title="Share selected Suite"><i class="fa fa-share-alt"></i></button>\
 						</div>\
 						&nbsp;&nbsp;&nbsp;\
@@ -532,7 +532,7 @@ $(document).ready(function() {
 							<ul id="serverSharedSuite" class="dropdown-menu dropdown-menu-right">'+mySharedSuite+'</ul>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load Shared Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'SHARED\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save Shared Suite" onclick="if(testBundleTable.rows().data().length>0){owner=\'SHARED\';jsaveFile(\'sharedSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete Shared Suite" onclick="if(suiteID.value!=\'\'&&confirm(\'Are you sure you want to delete \'+document.getElementById(\'sharedSuites\').innerHTML.replace(\' <span class=\'+String.fromCharCode(34)+\'caret\'+String.fromCharCode(34)+\'></span>\',\'\')+\'?\')){owner=\'SHARED\';emptyTable(\'testBundleTable\');doAccess(\'deleteSuite\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete Shared Suite" onclick="if(suiteID.value!=\'\'){deleteSuite(\'SHARED\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
 						</div>\
 						&nbsp;&nbsp;&nbsp;\
 						<div class="btn-group btn-group-sm" role="group">\
