@@ -103,6 +103,92 @@ function jsaveFile(suiteType){
 	foundSuite=false;
 	saveText='';
 	if(suiteName!=''){
+		bootbox.prompt({
+		  title: "Insert Suite Name!",
+		  value: suiteName,
+		  callback: function(result) {
+		    if (result === null) {
+		      showalert("Action Aborted","alert-info")
+		    } else {
+			if(result==suiteName){
+				foundSuite=true;saveID=suiteID;
+			}else{
+				saveID=result;
+			}
+			saveFileBody(result,suiteType);
+		    }
+		  }
+		});
+	}else{
+		bootbox.prompt({
+		  title: "Insert Suite Name!",
+		  value: 'newSuite',
+		  callback: function(result) {
+		    if (result === null) {
+		      showalert("Action Aborted","alert-info")
+		    } else {
+			if(suiteType=='userSuites'){
+				for(j=0;j<serverPersonalSuite.children.length;j++){
+					if(result==serverPersonalSuite.children[j].children[0].name){foundSuite=true;saveID=serverPersonalSuite.children[j].children[0].id;}
+					}
+				}else{
+					for(j=0;j<serverSharedSuite.children.length;j++){
+						if(result==serverSharedSuite.children[j].children[0].name){foundSuite=true;saveID=serverSharedSuite.children[j].children[0].id;}
+					}
+				}
+			if(foundSuite==false){saveID=result;}
+			saveFileBody(result,suiteType);
+		    }
+		  }
+		});
+	}
+
+}
+function saveFileBody(result,suiteType){
+	for(k=0;k<testBundleTable.rows().data().length;k++){
+		savingString+=testBundleTable.row(k).data().testId+'#';
+		sect1=0;
+		sect2=0;
+		sect3=0;
+		sect4=0;
+		sect5=0;
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
+		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
+		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
+		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
+	}
+	bootbox.confirm("Overwrite " + result +"?", function(result) {
+		if((((foundSuite==true&&result==true)||foundSuite==false))&&(saveID!=''&&saveID!='null')&&(savingString!='')&&(result!=null)){
+			document.getElementById(suiteType).innerHTML=suiteName+' <span class="caret"></span>';
+			doAccess('saveSuite');
+			//alert(saveID);
+		}
+	}); 
+
+}
+function deleteSuite(login){
+	bootbox.confirm('Are you sure you want to delete '+document.getElementById('userSuites').innerHTML.replace(' <span class="caret"></span>','')+'?', function(result) {
+		if(result){
+			owner=login;
+			emptyTable('testBundleTable');
+			doAccess('deleteSuite');
+			//alert(saveID);
+		}
+	}); 
+}
+
+function jsaveFile2(suiteType){
+	savingString='';
+	foundSuite=false;
+	saveText='';
+	if(suiteName!=''){
 		newText = prompt('Insert Suite Name!',suiteName);
 		if(newText==suiteName){
 			foundSuite=true;saveID=suiteID;
@@ -149,7 +235,6 @@ function jsaveFile(suiteType){
 	}
 
 }
-
 function saveLocalSuite(){
 	savingString=''
 	for(k=0;k<testBundleTable.rows().data().length;k++){
