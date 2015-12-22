@@ -1269,6 +1269,7 @@ def bench(request):
 def createNewTest(request):
 
   import mysql.connector
+  import json
 
   context = RequestContext(request)
   if 'login' not in request.session:
@@ -1296,7 +1297,11 @@ def createNewTest(request):
     'topoAry':topoAry,
     'productAry':productAry}
 
-  return render(request,'taws/createNewTest.html',context_dict)
+  #return render(request,'taws/createNewTest.html',context_dict)
+  return HttpResponse(json.dumps(context_dict),
+            content_type="application/json"
+        )
+
 
 def viewReport(request):
 
@@ -2280,6 +2285,49 @@ def accesso(request):
 
 		return  JsonResponse({'creationReport':creationReport}, safe=False)
 
+	if myAction=='viewTestCase':
+
+		import mysql.connector
+		from git import Repo
+
+		idTestRev=request.POST.get('idTestRev')
+		action=request.GET.get('action','')
+
+		context = RequestContext(request)
+		if 'login' not in request.session:
+			fromPage = request.META.get('HTTP_REFERER')
+			context_dict={'fromPage':fromPage}
+			return render_to_response('taws/login.html',context_dict,context)
+
+		if idTestRev.isdigit():
+			dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+			myRecordSet = dbConnection.cursor(dictionary=True)
+
+			myRecordSet.execute("select revision,test_name,test_id from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where id_TestRev="+idTestRev)
+			myTest=myRecordSet.fetchone()
+
+			myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
+			git=myRepo.git
+			myFile=git.show(myTest['revision']+':'+myTest['test_name'])
+
+			myRecordSet.execute("select revision,id_TestRev from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where test_id="+str(myTest['test_id']))
+			revList=[{'rev':row["revision"],'revId':row["id_TestRev"]} for row in myRecordSet]
+
+			context_dict={'login':request.session['login'],'myFile':myFile,'testName':myTest['test_name'],'revision':myTest['revision'],'revList':revList}
+		else:
+			if action == 'update':
+				tempMyFile = open(idTestRev,"w")
+				tempMyFile.write(request.POST.get('testBody'))
+				tempMyFile.close()
+
+			tempMyFile = open(idTestRev,"r")
+			myFile=tempMyFile.read()
+			tempMyFile.close()
+
+			context_dict={'login':request.session['login'],'myFile':myFile,'testName':idTestRev,'revision':"NA",'revList':"NA"}
+
+		#return render(request,'taws/viewTestCase.html',context_dict)
+		return  JsonResponse(context_dict, safe=False)
 #	if myAction=='editList':
 #   
 #		import os,ntpath

@@ -194,6 +194,27 @@ function doAccess(myAction){
 		alert(sersverResponse_data['creationReport']);
    		 window.opener.doAccess('localBrowsing');
 	};
+	var viewTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		tempRevision='';
+		document.getElementById('modalTitle').innerHTML=sersverResponse_data['testName'];
+		if(sersverResponse_data['revision']!="NA"){
+			for (myItem in sersverResponse_data['revList']){
+				tempRevision+='<li><a id="'+sersverResponse_data['revList'][myItem].revId+'" onclick="document.getElementById(\'idTestRev\').value=this.id;doAccess(\'viewTestCase\');">'+sersverResponse_data['revList'][myItem].rev+'</a></li>';
+			}
+			tempButton='<button type="button" class="btn btn-default navbar-btn" disabled>Revision</button>\
+				<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="userPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">'+sersverResponse_data['revision']+'\
+				<span class="caret"></span>\
+				</button>\
+					<ul class="dropdown-menu" id="userPresetDropdown">'+tempRevision+'</ul>';
+		}else{
+			tempButton='<button type="button" class="btn btn-default navbar-btn">Save File</button>';
+		}
+		document.getElementById('modalButton').innerHTML=tempButton;
+		//document.getElementById('modalInput').value=sersverResponse_data['testName'];
+		document.getElementById('comment').innerHTML=sersverResponse_data['myFile'];
+		//alert(sersverResponse_data);
+   		 //window.opener.doAccess('localBrowsing');
+	};
 
 //------------------------POST VALUES-----------------------------------------------------------------------------------
 	var csrftoken = getCookie('csrftoken');
@@ -431,6 +452,21 @@ function doAccess(myAction){
         			deleteList:deleteList
 				},
 			success: createTest,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+	if(myAction=='viewTestCase'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				idTestRev:selectTest.idTestRev.value
+				},
+			success: viewTest,
 			error: function(xhr, textStatus, errorThrown) {
 					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
 				}
