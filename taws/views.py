@@ -1269,6 +1269,7 @@ def bench(request):
 def createNewTest(request):
 
   import mysql.connector
+  import json
 
   context = RequestContext(request)
   if 'login' not in request.session:
@@ -1296,7 +1297,11 @@ def createNewTest(request):
     'topoAry':topoAry,
     'productAry':productAry}
 
-  return render(request,'taws/createNewTest.html',context_dict)
+  #return render(request,'taws/createNewTest.html',context_dict)
+  return HttpResponse(json.dumps(context_dict),
+            content_type="application/json"
+        )
+
 
 def viewReport(request):
 
