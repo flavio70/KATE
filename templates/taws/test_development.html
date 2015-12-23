@@ -3,6 +3,7 @@
 {% load static %}
 
 <link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
 <script>
 	//addLoadEvent(function() {placeIt();});
 	owner='{{ login }}';
@@ -54,19 +55,39 @@ function checkFields(){
 
   
 
-	function fillPreset(){
-    document.getElementById('selectPreset').disabled=false;
-    document.getElementById('selectPreset').options.length=0;
+	function fillPreset(myId){
+    document.getElementById('selectPresetbutton').disabled=false;
+    document.getElementById('selectPresetbutton').innerHTML= 'Select Preset <span class="caret"></span>';
+    document.getElementById('formtopologyID').value=myId;
+    while(document.getElementById('selectPreset').hasChildNodes()){
+			document.getElementById('selectPreset').removeChild(document.getElementById('selectPreset').lastChild);
+		}
     for(i=0;i<presetName.length;i++){
       tempPreset=presetName[i].split('[');
       tempPreset=tempPreset[1].split(']');
       tempPreset=tempPreset[0].split(',');
       for(k=0;k<tempPreset.length;k++){
-        if(document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value==tempPreset[k]){
-          		var addArea = document.createElement('option');
-          		addArea.text = presetName[i];
-          		addArea.value = presetID[i];
-          		document.getElementById('selectPreset').add(addArea);
+  
+				
+        if(myId==tempPreset[k]){
+          		//var addArea = document.createElement('option');
+          		//addArea.text = presetName[i];
+          		//addArea.value = presetID[i];
+          		//document.getElementById('selectPreset').add(addArea);
+          		
+          		var li = document.createElement("li");
+							var link = document.createElement("a");             
+							var text = document.createTextNode(presetName[i]);
+		
+							link.appendChild(text);
+							link.href = "#";
+							link.id =presetID[i];
+							link.onclick = function() {document.getElementById('selectPresetbutton').innerHTML= this.text + ' <span class="caret"></span>';
+								document.getElementById('formpresetID').value=this.id;
+								doAccess('getPresetTemplate');};
+
+							li.appendChild(link);
+							document.getElementById('selectPreset').appendChild(li);  
 
         }
       }
@@ -74,6 +95,41 @@ function checkFields(){
  
   }  
   
+
+  
+function fillSelectTestCreator(valueStr,myselect,target,parent){
+	if(valueStr!=''){document.getElementById(myselect+'button').disabled=false;}
+		else{document.getElementById(myselect+'button').disabled=true;}
+	document.getElementById(myselect+'button').innerHTML= myselect + ' <span class="caret"></span>';
+	//clear myselect content
+ 	while(document.getElementById(myselect).hasChildNodes()){
+		document.getElementById(myselect).removeChild(document.getElementById(myselect).lastChild);
+	}
+	
+	tempAry1=valueStr.split('@');
+	for(i=0;i<tempAry1.length;i++){
+		tempAry2=tempAry1[i].split('?');
+		
+		
+		var li = document.createElement("li");
+		var link = document.createElement("a");             
+		var text = document.createTextNode(tempAry2[0]);
+		
+		link.appendChild(text);
+		link.href = "#";
+		if(tempAry2.length>1){link.id = tempAry2[1].replace(/#/g,'?').replace(/%/g,'@').replace(/\|/g,'%');}
+		
+		if(target != '') {
+			link.onclick = function() { fillSelectTestCreator(this.id,target,parent,''); checkFields(); document.getElementById(myselect+'button').innerHTML= this.text + ' <span class="caret"></span>'};
+		}else{
+			link.onclick = function() {checkFields(); document.getElementById(myselect+'button').innerHTML= this.text + ' <span class="caret"></span>'};
+		}
+		
+		li.appendChild(link);
+		document.getElementById(myselect).appendChild(li);   
+		
+	}
+}
 
 
 
@@ -110,24 +166,56 @@ function newTest(){
 
 function refreshTestModalBody() {
 	//reset all modal options
-	document.getElementById('product').length = 1;
-	document.getElementById('selectTopo').length = 0;
+	while(document.getElementById('product').hasChildNodes()){
+		document.getElementById('product').removeChild(document.getElementById('product').lastChild);
+	}
+
+	while(document.getElementById('selectTopo').hasChildNodes()){
+		document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
+	}
+	
+	
 	presetName = [];
 	presetID = [];
 	//fill option for product
 	for (myItem in jsonProductAry) { 
-		var addItem = document.createElement('option');
-    addItem.text = jsonProductAry[myItem].product;
-    addItem.value = jsonProductAry[myItem].productConcat;
-    document.getElementById('product').add(addItem);
+	
+    var li = document.createElement("li");
+    var link = document.createElement("a");             
+    var text = document.createTextNode(jsonProductAry[myItem].product);
+    
+    link.appendChild(text);
+    link.href = "#";
+    link.id = jsonProductAry[myItem].productConcat;
+    link.onclick = function() { fillSelectTestCreator(link.id,'Domain','Area',''); checkFields(); document.getElementById('productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
+    li.appendChild(link);
+    document.getElementById('product').appendChild(li);    
      
 	}
+	
+	document.getElementById('Domainbutton').disabled=true;
+	document.getElementById('Areabutton').disabled=true;
 	//fill option for topology
 	for (myItem in jsonTopoAry) { 
-		var addItem = document.createElement('option');
-    addItem.text = jsonTopoAry[myItem].topoName;
-    addItem.value = jsonTopoAry[myItem].topoID;
-    document.getElementById('selectTopo').add(addItem);
+		//var addItem = document.createElement('option');
+    //addItem.text = jsonTopoAry[myItem].topoName;
+    //addItem.value = jsonTopoAry[myItem].topoID;
+    //document.getElementById('selectTopo').add(addItem);
+    
+    var li2 = document.createElement("li");
+    var link2 = document.createElement("a");             
+    var text2 = document.createTextNode(jsonTopoAry[myItem].topoName);
+    
+    link2.appendChild(text2);
+    link2.href = "#";
+    link2.id = jsonTopoAry[myItem].topoID;
+    link2.onclick = function() { fillPreset(this.id); document.getElementById('selectTopobutton').innerHTML= this.text + ' <span class="caret"></span>'};
+    li2.appendChild(link2);
+    document.getElementById('selectTopo').appendChild(li2);    
+    
+    
+    
+    
      
 	}
 	
@@ -778,15 +866,6 @@ $(document).ready(function() {
 				</tr>     
 		</tfoot>
 	</table>
-	<!--<table>
-		<tr>
-			<td bgcolor="#D6E0F4" style="font-size : 8pt;" align="center" colspan="3">
-				<input type="button" class="stylishButton" style="width:30px" value="<" title="REMOVE SELECTED TCs FROM SUITE" onclick="removeBundleList();" />
-				<input type="button" class="stylishButton" style="width:30px" value="<<" title="REMOVE ALL TCs FROM SUITE" onclick="removeAllBundleList();" />
-				<IMG onclick="newwindow=window.open('helpMe.asp#chapter5','scriptModifier','height=600,width=1000,resizable=1,scrollbars=yes');" style="height:16px;width:16;" STYLE="border: none;" SRC="{% static "images/info.png" %}" ALT="Home">
-			</td>
-		</tr>
-	</table>-->
 </div>
 
 
@@ -794,7 +873,9 @@ $(document).ready(function() {
 <div id="newTestModal" class="modal fade" role="dialog">
 	<form name="createTest" action="" method="post" target="_self">{% csrf_token %}
 		<input type="hidden" value="" name="azione">
-		<div class="modal-dialog">
+		<input type="hidden" value="" id="formpresetID">
+		<input type="hidden" value="" id="formtopologyID">
+		<div class="modal-dialog" style="width:75%">
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -808,45 +889,75 @@ $(document).ready(function() {
 						</div>
 						<div class="panel-body" id="newTestModalBody">
 							<input type="hidden" value="" name="azione">
-							<div class="form-group">
+							<div class="form-group col-md-12">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Test Name</span>
 									<input type="text" class="form-control" placeholder="testName" aria-describedby="basic-addon1" id="testName" onchange="checkFields();">
 								</div>
 							</div>
-							<div class="form-group">
-								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">Test Location</span>
-									<select class="form-control" id="product" style="width:34%" onchange="fillSelectCreator(this.value,domain,''); checkFields();"><option>Product</option></select>
-									<select class="form-control" id="domain" style="width:33%" disabled onchange="fillSelectCreator(this.value,area,''); checkFields();"><option>Domain</option></select>
-									<select class="form-control" id="area" style="width:33%" disabled onchange="checkFields();"><option>Area</option></select>
+							
+							
+							<div class="form-group col-md-4">
+							
+								<div class="panel panel-default">
+								<div class="panel-heading input-group-addon">Test Location</div>
+								<div class="panel-body">
+
+									<div class="btn-group">
+										<button id = "productbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Product <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu col-xs-12" id="product"></ul>
+									</div>
+									
+									<div class="btn-group">
+										<button id = "Domainbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Domain <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu col-xs-12" id="Domain"></ul>
+									</div>
+									
+									<div class="btn-group">
+										<button id = "Areabutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Area <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu col-xs-12" id="Area"></ul>
+									</div>				
+									
+								</div><!--end panel-body-->
+							</div><!--end panel-->
+
+								<div class="panel panel-default">
+								<div class="panel-heading input-group-addon">Topology and Presets</div>
+								<div class="panel-body">
+									<div class="btn-group">
+										<button id = "selectTopobutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Select Topology <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" id="selectTopo"></ul>
+									</div>
+							
+								
+								
+									<div class="btn-group">
+										<button id = "selectPresetbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Select Preset <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" id="selectPreset"></ul>
+									</div>
 								</div>
 							</div>
-							<div class="form-group col-md-6">
-								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">Select Topology</span>
-									<select  class="form-control" size="8" id="selectTopo" onchange="fillPreset();"></select>
-								</div>
+
 							</div>
-							<div class="form-group col-md-6">
+							<div class="form-group col-md-8">
 								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">Select Preset</span>
-									<select  class="form-control" size="8" id="selectPreset" onchange="doAccess('getPresetTemplate');"></select>
-										<option value="">&nbsp;</option>
-								</div>
-							</div>
-							<div class="form-group">
-								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">Test Name</span>
-									<textarea value="" style="font-size : 8pt;width:100%;height:100%;" id="preview"></textarea>															
+									<span class="input-group-addon" id="basic-addon1">Preset View</span>
+									<textarea value="" style="font-size : 8pt;width:100%;height:330px;" id="preview"></textarea>															
 								</div>
 							</div>
 							
 							
-							
-							
-							
-							
+
 						</div><!-- end panel-body -->
 					</div><!-- end panel -->
 				</div><!-- end modal-body-->
