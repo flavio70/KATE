@@ -48,6 +48,7 @@ def check_login(request):
 	context = RequestContext(request)
 	username = request.POST['username']
 	password = request.POST['password']
+	fromPage = request.POST.get('url','')
 
 	user = auth.authenticate(username=username, password=password)
 
@@ -64,9 +65,8 @@ def check_login(request):
 		context_dict={'login':username}
 	else:
 		context_dict={'nothing':'nothing'}
-	if 'fromPage' in request.POST:
-		 url=request.POST['fromPage']
-		#url="taws/index.html"
+	if fromPage != '':
+		url="taws/"+fromPage+'.html'
 	else:
 		url="taws/index.html"
 	context_dict.update({'fromPage':url})
@@ -77,7 +77,7 @@ def development_index(request):
 	context_dict={'nothing':'nothing'}
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'development_index'}
 		return render_to_response('taws/login.html',context_dict,context)
 	else:
 		context_dict={'login':request.session['login']}
@@ -90,7 +90,7 @@ def suite_creator(request):
 
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'suite_creator'}
 		return render_to_response('taws/login.html',context_dict,context)
 	else:
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
@@ -145,7 +145,7 @@ def test_development(request):
 
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'test_development'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
@@ -204,7 +204,7 @@ def tuning(request):
 	context_dict={'nothing':'nothing'}
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'tuning'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	suiteOwner=''
@@ -297,7 +297,7 @@ def selectEqpt(request):
 	context_dict={'nothing':'nothing'}
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'selectEqpt'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	context_dict={'login':request.session['login']}
@@ -347,7 +347,7 @@ def tuningEngine(request):
 
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'tuningEngine'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 
@@ -512,7 +512,7 @@ def runJenkins(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'runJenkins'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
@@ -554,7 +554,7 @@ def viewJobDetails(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'viewJobDetails'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
@@ -644,7 +644,7 @@ def viewBuildDetails(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'viewBuildDetails'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	job_name=request.POST.get('jobName')
@@ -776,7 +776,7 @@ def collectReports(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'collectReports'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	job_name=request.POST.get('jobName')
@@ -900,7 +900,7 @@ def createRunJenkins(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'createRunJenkins'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	job_name=request.GET.get('jobName')
@@ -975,7 +975,7 @@ def add_bench(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'add_bench'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
@@ -1208,7 +1208,7 @@ def bench(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'bench'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
@@ -1275,7 +1275,7 @@ def createNewTest(request):
   context = RequestContext(request)
   if 'login' not in request.session:
     fromPage = request.META.get('HTTP_REFERER')
-    context_dict={'fromPage':fromPage}
+    context_dict={'fromPage':'createNewTest'}
     return render_to_response('taws/login.html',context_dict,context)
 
   test_name=request.GET.get('testName')
@@ -1317,7 +1317,7 @@ def viewReport(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'viewReport'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	job_name=request.POST.get('jobName','')
@@ -1517,6 +1517,12 @@ def morgue(request):
 	import mysql.connector
 	from django.utils.safestring import SafeText,mark_safe
 
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'morgue'}
+		return render_to_response('taws/login.html',context_dict,context)
+
 	id_pack=request.POST.get('id_pack','1')
 	action=request.GET.get('action','')
 	
@@ -1553,7 +1559,7 @@ def viewTestCase(request):
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':fromPage}
+		context_dict={'fromPage':'viewTestCase'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	if idTestRev.isdigit():
