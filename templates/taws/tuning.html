@@ -28,6 +28,15 @@
 	var presetSelection = '';
 	var localTesting = false;
 	
+function deletePreset(){
+	bootbox.confirm('Are you sure you want to delete '+presetName+'?', function(result) {
+	    if (result==false) {
+	      showalert("Action Aborted","alert-info");
+	    } else {
+	      doAccess('deletePreset');
+	    }
+	}); 
+}
 </script> 
 
 
@@ -76,7 +85,7 @@
 							</ul>
 							<button type="button" data-toggle="tooltip" title="Load Shared Preset" onclick="doAccess('loadPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>
 							<button type="button" data-toggle="tooltip" title="Save Shared Preset" onclick="checkSave('sharedPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>
-							<button type="button" data-toggle="tooltip" title="Delete Shared Preset" onclick="if(confirm('Are you sure you want to delete '+presetName+'?')){doAccess('deletePreset');}" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Delete Shared Preset" onclick="deletePreset();" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 						</div><!-- end btn_group-->
 					</ul>
 					<ul class="nav navbar-btn navbar-right">
@@ -91,7 +100,7 @@
 							</ul>
 							<button type="button" data-toggle="tooltip" title="Load User Preset" onclick="doAccess('loadPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>
 							<button type="button" data-toggle="tooltip" title="Save User Preset" onclick="checkSave('userPreset');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>
-							<button type="button" data-toggle="tooltip" title="Delete User Preset" onclick="if(confirm('Are you sure you want to delete '+presetName+'?')){doAccess('deletePreset');}" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+							<button type="button" data-toggle="tooltip" title="Delete User Preset" onclick="deletePreset();" class="btn btn-default btn-danger navbar-btn"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 						</div><!-- end btn_group-->
 						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 					</ul>
@@ -362,6 +371,47 @@ function showalert(message,alerttype) {
 	}
 
 	function checkSave(presetType){
+		myValues=getTuningValues();
+		if(myValues){
+			overWrite=false;
+			saveText='';
+			tempSuite='newPreset';
+			if(presetName!=''){tempPreset=presetName;}
+			bootbox.prompt({
+			  title: "Insert Suite Name!",
+			  value: tempPreset,
+			  callback: function(result) {
+			    if (result === null) {
+			      showalert("Action Aborted","alert-info");
+			    } else {
+			      checkOverWrite(result,presetType);
+			    }
+			  }
+			});
+		}
+	}
+
+	function checkOverWrite(dialogResult,presetType){
+		for(zq_j=0;zq_j<document.getElementById(presetType+'Dropdown').children.length;zq_j++){
+			if(dialogResult==document.getElementById(presetType+'Dropdown').children[zq_j].children[0].name){
+				overWrite=true;
+				presetID=document.getElementById(presetType+'Dropdown').children[zq_j].children[0].id;
+			}
+		}
+		if(overWrite==false){
+			presetID=dialogResult;
+			doAccess('savePreset');
+		}else{
+			bootbox.confirm("Overwrite " + dialogResult +"?", function(result) {
+				if(result==false){checkSave(presetType);}
+					else{doAccess('savePreset');}
+			})
+		}
+	}
+
+
+
+	function checkSave2(presetType){
 		foundSuite=false;
 		//if(presetID!=''){oldPreset=presetName;}
 		//	else{oldPreset='newPreset';}
@@ -396,16 +446,24 @@ function showalert(message,alerttype) {
 	}
 
 	function updatePresetList(preset,target,currentPresetName,currentPresetID,currentPresetTitle){
-		tempPresetVersion = preset.split('?');
-		tempStr='';
-		for(i=0;i<tempPresetVersion.length;i++){
-			tempPreset=tempPresetVersion[i].split('|');
-			tempStr+='<li><a id="'+tempPreset[1]+'" name=\''+tempPreset[2]+'\' onclick="presetID='+tempPreset[1]+';presetName=\''+tempPreset[2]+'\';document.getElementById(\''+target+'\').innerHTML=\''+tempPreset[0]+' <span class=caret></span>\'">'+tempPreset[0]+'</a></li>';
+		currentPresetTitle = currentPresetTitle || "";
+		currentPresetName = currentPresetName || "";
+		if(preset!=''){
+			tempPresetVersion = preset.split('?');
+			tempStr='';
+			for(i=0;i<tempPresetVersion.length;i++){
+				tempPreset=tempPresetVersion[i].split('|');
+				tempStr+='<li><a id="'+tempPreset[1]+'" name=\''+tempPreset[2]+'\' onclick="presetID='+tempPreset[1]+';presetName=\''+tempPreset[2]+'\';document.getElementById(\''+target+'\').innerHTML=\''+tempPreset[0]+' <span class=caret></span>\'">'+tempPreset[0]+'</a></li>';
+			}
+			document.getElementById(target+'Dropdown').innerHTML=tempStr;
 		}
-		document.getElementById('userPresetDropdown').innerHTML=tempStr;
 		presetName=currentPresetName;
 		presetID=currentPresetID;
-		document.getElementById('userPreset').innerHTML=currentPresetTitle+' <span class="caret"></span>';
+		if(currentPresetTitle==''){
+			if(target=='userPreset'){currentPresetTitle='User Presets';}
+				else{currentPresetTitle='Shared Presets';}
+		}
+		document.getElementById(target).innerHTML=currentPresetTitle+' <span class="caret"></span>';
 	}
 
 	function loadPreset(target,preset){
@@ -428,15 +486,6 @@ function showalert(message,alerttype) {
 		show(0);
 		//if(target!='SHARED'){changeScript.sharedPreset.selectedIndex=0;}
 		//	else{changeScript.personalPreset.selectedIndex=0;}
-	}
-
-	function deletePreset(selectObj,preset,ownership){
-		if(presetID!=''){
-			if(confirm('Are you sure you want to delete '+presetName+'?')){
-				window.opener.pivot.action='accesso.asp?azione=deletePreset&presetID='+presetID;
-				window.opener.pivot.submit();
-			}
-		}
 	}
 
 	function sharePreset(selectObj,preset,ownership){

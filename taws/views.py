@@ -1748,7 +1748,7 @@ def accesso(request):
 		sharedSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
 
 		#myRecordSet.execute("select *,T_SUITES_BODY.run_section as section from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
-		myRecordSet.execute("select *,T_SUITES_BODY.run_section as section from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
+		myRecordSet.execute("select *,T_SUITES_BODY.run_section as section,T_SUITES.name as suiteName from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
 		rows=myRecordSet.fetchall()
 
 		testString=''
@@ -1773,9 +1773,10 @@ def accesso(request):
 			row['section']+"#"+\
 			row['revision']+"#"+\
 			row['lab']+"$")
+		suiteName=row['suiteName']
 		dbConnection.close()
 
-		return  JsonResponse({'testString':testString,'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry,'suiteID':suiteID}, safe=False)
+		return  JsonResponse({'testString':testString,'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry,'suiteID':suiteID,'suiteName':suiteName,'owner':owner}, safe=False)
 
 	if myAction=='deleteSuite':
 
@@ -1876,7 +1877,7 @@ def accesso(request):
 
 		fileName = request.POST.get('presetName','')
 		savingString = request.POST.get('presetBody','')
-		presetType = request.POST.get('presetType','')
+		#presetType = request.POST.get('presetType','')
 
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 		myRecordSet=dbConnection.cursor(dictionary=True)
@@ -1915,7 +1916,7 @@ def accesso(request):
 		dbConnection.close()
 		presetAry=""
 
-		return  JsonResponse({'presetAry': row['presetBody'],'userPreset': userPreset[:-1],'sharedPreset': sharedPreset[:-1],'fileName':row['preset_title'],'fileID':row['id_preset'],'fileTitle':row['description'],'presetType':presetType}, safe=False)
+		return  JsonResponse({'presetAry': row['presetBody'],'userPreset': userPreset[:-1],'sharedPreset': sharedPreset[:-1],'fileName':row['preset_title'],'fileID':row['id_preset'],'fileTitle':row['description'],'owner':row['owner']}, safe=False)
 
 	if myAction=='loadPreset':
 
@@ -1952,14 +1953,18 @@ def accesso(request):
 
 		userPreset=''
 		sharedPreset=''
-		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
-		userSuiteAry=[{'presetName':row["description"],'presetID':row["id_preset"]} for row in myRecordSet]
-		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
-		sharedSuiteAry=[{'presetName':row["description"],'presetID':row["id_preset"]} for row in myRecordSet]
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
+		for row in myRecordSet:userPreset+=row["description"]+'|'+str(row["id_preset"])+'|'+str(row["preset_title"])+'?'
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
+		for row in myRecordSet:sharedPreset+=row["description"]+'|'+str(row["id_preset"])+'|'+str(row["preset_title"])+'?' 
+		#myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
+		#userSuiteAry=[{'presetName':row["description"],'presetID':row["id_preset"]} for row in myRecordSet]
+		#myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
+		#sharedSuiteAry=[{'presetName':row["description"],'presetID':row["id_preset"]} for row in myRecordSet]
 
 		dbConnection.close()
 
-		return  JsonResponse({'userSuiteAry': userSuiteAry,'sharedSuiteAry': sharedSuiteAry,'username':row['owner'],'presetName':presetName}, safe=False)
+		return  JsonResponse({'userPreset': userPreset[:-1],'sharedPreset': sharedPreset[:-1],'presetName':presetName}, safe=False)
 
 
 	if myAction=='localBrowsing':

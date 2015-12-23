@@ -107,6 +107,8 @@ function doAccess(myAction){
 	var saveSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		myUserSuite='';
 		mySharedSuite='';
+		suiteID=sersverResponse_data['suiteID'];
+		suiteName=sersverResponse_data['suiteName'];
 		userSuiteAry=sersverResponse_data['userSuiteAry'];
 		for(i=0;i<userSuiteAry.length;i++){
 			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
@@ -117,11 +119,8 @@ function doAccess(myAction){
 			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
 		}
 		document.getElementById('serverSharedSuite').innerHTML=myUserSuite;
-		//for(i=0;sersverResponse_data['sharedSuiteAry'];i++){myUserSuite+='<li><a onclick="suiteID={{ myItem.suiteID }};document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';}
-		//document.getElementById('serverPersonalSuite').innerHTML=myUserSuite;
-		//fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
-		//fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
-		suiteID=sersverResponse_data['suiteID'];
+		if(sersverResponse_data['owner']!='SHARED'){document.getElementById('userSuites').innerHTML=suiteName+' <span class=caret></span>';}
+			else{document.getElementById('sharedSuites').innerHTML=suiteName+' <span class=caret></span>';}
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
 		//alert(sersverResponse_data['testString']);
@@ -129,10 +128,12 @@ function doAccess(myAction){
 		showalert("Suite correctly saved","alert-success");
 	};
 	var deleteSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
-		userSuiteID='';
-		sharedSuiteID='';
+		/*userSuiteID='';
+		sharedSuiteID='';*/
 		myUserSuite='';
 		mySharedSuite='';
+		suiteID='';
+		suiteName='';
 		userSuiteAry=sersverResponse_data['userSuiteAry'];
 		for(i=0;i<userSuiteAry.length;i++){
 			myUserSuite+='<li><a onclick="suiteID='+userSuiteAry[i]['suiteID']+';document.getElementById(\'userSuites\').innerHTML=\''+userSuiteAry[i]['suiteName']+' <span class=caret></span>\' ">'+userSuiteAry[i]['suiteName']+'</a></li>';
@@ -148,7 +149,7 @@ function doAccess(myAction){
 		//fillSelect(sersverResponse_data['userSuiteAry'],document.getElementById('serverPersonalSuite'),'Select Here',sersverResponse_data['suiteID']);
 		//fillSelect(sersverResponse_data['sharedSuiteAry'],document.getElementById('serverSharedSuite'),'Select Here',sersverResponse_data['suiteID']);
 		emptyTable('testBundleTable');
-		showalert("Suite correctly deleted","alert-success")
+		showalert("Suite correctly deleted","alert-success");
 	};
 	var queryIteration = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//updateTableRow(sersverResponse_data['testString'],lineNumber,currentTable);
@@ -157,7 +158,9 @@ function doAccess(myAction){
 	var savePreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//alert('Preset '+sersverResponse_data['username']+' Saved!');
 		//alert(sersverResponse_data['userPreset'],sersverResponse_data['fileName']);
-		updatePresetList(sersverResponse_data['userPreset'],sersverResponse_data['presetType'],sersverResponse_data['fileName'],sersverResponse_data['fileID'],sersverResponse_data['fileTitle'])
+		presetType='sharedPreset';
+		if(sersverResponse_data['owner']!='SHARED'){presetType='userPreset';}
+		updatePresetList(sersverResponse_data['userPreset'],presetType,sersverResponse_data['fileName'],sersverResponse_data['fileID'],sersverResponse_data['fileTitle'])
 		loadPreset(sersverResponse_data['username'],sersverResponse_data['presetAry']);
 		showalert("Preset "+sersverResponse_data['fileName']+" correctly saved","alert-success")
 		//tempPresetAry=sersverResponse_data['presetAry'].split('$');
@@ -170,12 +173,12 @@ function doAccess(myAction){
 	var deletePreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		userSelection='';
 		sharedSelection='';
-		if(sersverResponse_data['userPreset']=='SHARED'){sharedSelection=sersverResponse_data['fileName'];}
-			else{userSelection=sersverResponse_data['fileName'];}
-		updatePresetList(sersverResponse_data['userPreset'],'personalPreset',userSelection);
-		updatePresetList(sersverResponse_data['sharedPreset'],'sharedPreset',sharedSelection);
-		valueTable.clear().draw();
-		showalert("Preset "+sersverResponse_data['fileName']+" correctly deleted","alert-success")
+		//if(sersverResponse_data['userPreset']=='SHARED'){sharedSelection=sersverResponse_data['fileName'];}
+		//	else{userSelection=sersverResponse_data['fileName'];}
+		updatePresetList(sersverResponse_data['userPreset'],'userPreset');
+		updatePresetList(sersverResponse_data['sharedPreset'],'sharedPreset');
+		//valueTable.clear().draw();
+		showalert("Preset "+sersverResponse_data['presetName']+" correctly deleted","alert-success")
 	};
 	var getPreset = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['presetAry']);

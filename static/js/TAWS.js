@@ -100,51 +100,52 @@ function queryDB2(userName){
 
 function jsaveFile(suiteType){
 	savingString='';
-	foundSuite=false;
+	overWrite=false;
 	saveText='';
-	if(suiteName!=''){
-		bootbox.prompt({
-		  title: "Insert Suite Name!",
-		  value: suiteName,
-		  callback: function(result) {
-		    if (result === null) {
-		      showalert("Action Aborted","alert-info")
-		    } else {
-			if(result==suiteName){
-				foundSuite=true;saveID=suiteID;
-			}else{
-				saveID=result;
-			}
-			saveFileBody(result,suiteType);
-		    }
-		  }
-		});
-	}else{
-		bootbox.prompt({
-		  title: "Insert Suite Name!",
-		  value: 'newSuite',
-		  callback: function(result) {
-		    if (result === null) {
-		      showalert("Action Aborted","alert-info")
-		    } else {
-			if(suiteType=='userSuites'){
-				for(j=0;j<serverPersonalSuite.children.length;j++){
-					if(result==serverPersonalSuite.children[j].children[0].name){foundSuite=true;saveID=serverPersonalSuite.children[j].children[0].id;}
-					}
-				}else{
-					for(j=0;j<serverSharedSuite.children.length;j++){
-						if(result==serverSharedSuite.children[j].children[0].name){foundSuite=true;saveID=serverSharedSuite.children[j].children[0].id;}
-					}
-				}
-			if(foundSuite==false){saveID=result;}
-			saveFileBody(result,suiteType);
-		    }
-		  }
-		});
-	}
-
+	tempSuite='newSuite';
+	if(suiteName!=''){tempSuite=suiteName;}
+	saveID=suiteID;
+	bootbox.prompt({
+	  title: "Insert Suite Name!",
+	  value: tempSuite,
+	  callback: function(result) {
+	    if (result === null) {
+	      showalert("Action Aborted","alert-info");
+	    } else {
+	      checkOverWrite(result,suiteType);
+	    }
+	  }
+	});
 }
-function saveFileBody(result,suiteType){
+
+function checkOverWrite(dialogResult,suiteType){
+	if(suiteType=='userSuites'){
+		for(j=0;j<serverPersonalSuite.children.length;j++){
+			if(dialogResult==serverPersonalSuite.children[j].children[0].innerText){
+				overWrite=true;
+				saveID=serverPersonalSuite.children[j].children[0].id;
+			}
+		}
+	}else{
+		for(j=0;j<serverSharedSuite.children.length;j++){
+			if(dialogResult==serverSharedSuite.children[j].children[0].innerText){
+				overWrite=true;
+				saveID=serverSharedSuite.children[j].children[0].id;
+			}
+		}
+	}
+	if(overWrite==false){
+		saveID=dialogResult;
+		saveFileBody(suiteType);
+	}else{
+		bootbox.confirm("Overwrite " + dialogResult +"?", function(result) {
+			if(result==false){jsaveFile(suiteType);}
+				else{saveFileBody(suiteType);}
+		})
+	}
+}
+
+function saveFileBody(suiteType){
 	for(k=0;k<testBundleTable.rows().data().length;k++){
 		savingString+=testBundleTable.row(k).data().testId+'#';
 		sect1=0;
@@ -164,23 +165,28 @@ function saveFileBody(result,suiteType){
 		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
 		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 	}
-	bootbox.confirm("Overwrite " + result +"?", function(result) {
-		if((((foundSuite==true&&result==true)||foundSuite==false))&&(saveID!=''&&saveID!='null')&&(savingString!='')&&(result!=null)){
-			document.getElementById(suiteType).innerHTML=suiteName+' <span class="caret"></span>';
-			doAccess('saveSuite');
-			//alert(saveID);
-		}
-	}); 
-
+	if((saveID!=''&&saveID!='null')&&(savingString!='')){
+		document.getElementById(suiteType).innerHTML=suiteName+' <span class="caret"></span>';
+		doAccess('saveSuite');
+		//alert(saveID);
+	}
 }
+
 function deleteSuite(login){
 	bootbox.confirm('Are you sure you want to delete '+document.getElementById('userSuites').innerHTML.replace(' <span class="caret"></span>','')+'?', function(result) {
-		if(result){
+	    if (result === null) {
+	      showalert("Action Aborted","alert-info");
+	    } else {
+		owner=login;
+		emptyTable('testBundleTable');
+		doAccess('deleteSuite');
+	    }
+		/*if(result){
 			owner=login;
 			emptyTable('testBundleTable');
 			doAccess('deleteSuite');
 			//alert(saveID);
-		}
+		}*/
 	}); 
 }
 
@@ -925,9 +931,11 @@ function addRecordToTable(testString,tableName,lineNumber){
 	 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
 	 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
 		for(j=0;j<tempRev.length;j++){
+			selected='';
 			myRev=tempRev[j].split('|');
-			if(j==0){revision=myRev[1];}
-			revStr+='<option value="'+myRev[1]+'">'+myRev[0]+'</option>';
+			//if(j==0){revision=myRev[1];}
+			if(myRev[0]==tempField[20]){selected='selected';}
+			revStr+='<option value="'+myRev[1]+'" '+selected+'>'+myRev[0]+'</option>';
 		}
 		revStr+='</select>';
 	}else{
