@@ -412,8 +412,10 @@ function doAccess(myAction){
 			url: myURL,
 			data: {
 				action: myAction,
-        topoID: document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value,
-        presetID: document.getElementById('selectPreset').options[document.getElementById('selectPreset').selectedIndex].value
+        presetID: document.getElementById('formpresetID').value,
+				topoID: document.getElementById('formtopologyID').value
+				 //topoID: document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value,
+        //presetID: document.getElementById('selectPreset').options[document.getElementById('selectPreset').selectedIndex].value
 				},
 			success: getPresetTemplate,
 			error: function(xhr, textStatus, errorThrown) {
