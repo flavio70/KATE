@@ -1,8 +1,12 @@
 .dropdown-menu-fixed {
-  min-width:220px;
+  min-width:210px;
 
 }
+unset;
 
-
-
+@media screen and (max-width: 1170px) {
+  .dropdown-menu-fixed {
+    min-width:170px;
+  }
+}
 

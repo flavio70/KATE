@@ -745,15 +745,14 @@ function fillSelect(ary,targetSelect,header,defaultSelection){
 }
 
 function deleteTest(){
-	myTable=document.getElementById('testTable');
+	//myTable=document.getElementById('testTable');
   deleteList=''
-	for(i=1;i<myTable.rows.length;i++){
-		if(myTable.rows[i].style.background.indexOf('red')>=0){
-      tempStr=myTable.rows[i].name.split('#');
-      deleteList+=tempStr[13]+'#';
-			myTable.deleteRow(i);
-			i--
-		}
+	
+	rowNum=testTable.rows('.info').data().length;
+	for(i=0;i<rowNum;i++){
+		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		deleteList+=testCellAry[13]+'#';
+		testTable.rows(i).remove().draw();
 	}
   deleteList=deleteList.slice(0,-1);
   doAccess('deleteTest');

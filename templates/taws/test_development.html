@@ -46,7 +46,7 @@ var presetID = new Array();
 
 
 function checkFields(){
-    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('product').value!='')&&(document.getElementById('domain').value!='')&&(document.getElementById('area').value!='')){
+    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('productbutton').innerHTML.match('Product')==null)&&(document.getElementById('domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('areabutton').innerHTML.match('Area')==null)){
       document.getElementById('createBTN').disabled=false;
     }else{
       document.getElementById('createBTN').disabled=true;
@@ -174,7 +174,7 @@ function refreshTestModalBody() {
 		document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
 	}
 	
-	
+	document.getElementById('createBTN').disabled=true;
 	presetName = [];
 	presetID = [];
 	//fill option for product
@@ -187,14 +187,14 @@ function refreshTestModalBody() {
     link.appendChild(text);
     link.href = "#";
     link.id = jsonProductAry[myItem].productConcat;
-    link.onclick = function() { fillSelectTestCreator(link.id,'Domain','Area',''); checkFields(); document.getElementById('productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
+    link.onclick = function() { fillSelectTestCreator(link.id,'domain','area',''); checkFields(); document.getElementById('productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
     li.appendChild(link);
     document.getElementById('product').appendChild(li);    
      
 	}
 	
-	document.getElementById('Domainbutton').disabled=true;
-	document.getElementById('Areabutton').disabled=true;
+	document.getElementById('domainbutton').disabled=true;
+	document.getElementById('areabutton').disabled=true;
 	//fill option for topology
 	for (myItem in jsonTopoAry) { 
 		//var addItem = document.createElement('option');
@@ -883,7 +883,7 @@ $(document).ready(function() {
 					<h4 class="modal-title">Create New test</h4>
 				</div>
 				<div class="modal-body">
-					<div class="panel panel-default">
+					<div class="panel panel-info">
 						<div class="panel-heading">
 							<h3 class="panel-title">Test Parameters</h3>
 						</div>
@@ -911,17 +911,17 @@ $(document).ready(function() {
 									</div>
 									
 									<div class="btn-group">
-										<button id = "Domainbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<button id = "domainbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											Domain <span class="caret"></span>
 										</button>
-										<ul class="dropdown-menu col-xs-12" id="Domain"></ul>
+										<ul class="dropdown-menu col-xs-12" id="domain"></ul>
 									</div>
 									
 									<div class="btn-group">
-										<button id = "Areabutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<button id = "areabutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											Area <span class="caret"></span>
 										</button>
-										<ul class="dropdown-menu col-xs-12" id="Area"></ul>
+										<ul class="dropdown-menu col-xs-12" id="area"></ul>
 									</div>				
 									
 								</div><!--end panel-body-->
