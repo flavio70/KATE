@@ -1,0 +1,423 @@
+{% extends "taws/report_template.html" %}
+{% block body %}
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
+<script>
+	//addLoadEvent(function() {placeIt();});
+	owner='{{ login }}';
+	var myURL = "{% url 'accesso' %}";
+	var SECT = new Array();
+	SECT[1]="{% static 'images/sect1.gif' %}";
+	SECT[0]="{% static 'images/sect0.gif' %}";
+  job_name='{{ job_name }}';
+  suite_name='';
+  mySuiteAry='';
+</script>
+{% for myItem in suiteAry %}
+    <script>mySuiteAry+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteAbs }}" onclick="suiteAbs={{ myItem.suiteAbs }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
+{% endfor %}
+
+<script>
+
+
+var jsonProductAry, jsonTopoAry, jsonUserPreset;
+var myProduct;
+var presetName = new Array();
+var presetID = new Array();
+
+function format ( myRow ) {
+    return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
+        '<tr>'+
+            '<td>TEST ID:</td>'+
+            '<td>'+myRow.testId+'</td>'+
+            '<td rowspan="6">TOPOLOGY</td>'+
+            '<td rowspan="6"><img width="300px" src="/static/images/'+myRow.topo+'.jpg"</img></td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Dependency:</td>'+
+            '<td>'+myRow.dependency+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Metric:</td>'+
+            '<td>'+myRow.metric+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Author:</td>'+
+            '<td>'+myRow.author+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Description:</td>'+
+            '<td>'+myRow.description+'</td>'+
+        '</tr>'+
+        '<tr>'+
+            '<td>Last Update:</td>'+
+            '<td>'+myRow.lastUpdate+'</td>'+
+        '</tr>'+
+    '</table>';
+}
+
+$(document).ready(function() {
+	//doAccess('job_browsing');
+	//testTable = $('#testTable').DataTable();myOption
+	document.getElementById('mainTitle').innerHTML='Modifying {{ job_name }}';
+	testTable = $('#testTable').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testAction">><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		"orderFixed": [[ 3, "asc" ]],
+    scrollY:'380px',
+		scrollCollapse:true,"columns": [
+		{
+			"data": "num", 
+			"orderable":      false,
+			"className": "dt-center" 
+		},
+		{
+			"className":      'details-control',
+			"orderable":      false,
+			"data":           "control",
+			"defaultContent": 'aaa'
+		},
+		{
+			"data": "tps", 
+		},
+		{ "data": "test" },
+		{
+			"data": "lab", 
+			"className": "dt-center"
+		},
+		{ "data": "rev" },
+		{
+			"data": "time", 
+			"className": "dt-center"
+		},
+		{
+			"data": "topo",
+			 "className": "dt-center"
+		},
+		{
+			"data": "sect1",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect2",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect3",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect4",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect5",
+			"className": "dt-center"
+		 },
+		{ 
+			"data": "testId",
+			"visible": false 
+		},
+		{ 
+			"data": "dependency",
+			"visible": false 
+		},
+		{ 
+			"data": "metric",
+			"visible": false 
+		},
+		{ 
+			"data": "assignment",
+			"visible": false 
+		},
+		{ 
+			"data": "author",
+			"visible": false 
+		},
+		{ 
+			"data": "description",
+			"visible": false 
+		},
+		{ 
+			"data": "relDate",
+			"visible": false 
+		},
+		{ 
+			"data": "lastUpdate",
+			"visible": false 
+		},
+		{ 
+			"data": "testString",
+			"visible": false 
+		}
+]
+	});
+
+	new $.fn.dataTable.Buttons( testTable, {'buttons': [
+							{
+								text:'<i class="fa fa-play fa"></i>',
+								titleAttr: 'ADD SELECTED TCs TO SUITE',
+								action:function(){insertBundleList(1,'');},
+								className:'btn-custom'
+							},
+							{
+								text:'<i class="fa fa-forward fa"></i>',
+								titleAttr: 'ADD ALL TCs TO SUITE',
+								action:function(){insertAllBundleList();},
+								className:'btn-custom'
+							},
+							{
+								text:'<i class="fa fa-step-forward fa"></i>',
+								titleAttr: 'ADD SELECTED TCs AT SUITE POSITION',
+								action:function(){insertBundleList(1,prompt('Insert Position',''));},
+								className:'btn-custom'
+							},
+							{
+								text:'<i class="fa fa-eject fa"></i>',
+								titleAttr: 'PERFORM DELETE REQUEST TO DB MANAGER',
+								action:function(){deleteTest();},
+								className:'btn-custom'
+							},
+
+						]} );
+
+	//testTable.buttons(1,null).container().appendTo($('.col-sm-2:eq(1)',testTable.table().container() ));
+	
+	  
+	$("div.selections").html('<ul class="list-group"><li class="list-group-item">Selection counters</li></ul>');
+	$("div.totTests").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-test" class="badge">0</span>Total tests</li></ul>');
+	$("div.totTPS").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-tps" class="badge">0</span>Total TPS</li></ul>');
+	$("div.totTime").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-time" class="badge">00:00:00</span>Total Time</li></ul>');
+	$("div.totMetric").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-metric" class="badge">0</span>Total Metric</li></ul>');
+
+	$("div.testAction").html('\
+		<nav class="navbar navbar-default">\
+			<div class="container-fluid">\
+				<!-- Brand and toggle get grouped for better mobile display -->\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-suiteaction-navbar-collapse" aria-expanded="false">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a class="navbar-brand">Suites</a>\
+				</div><!-- end navbar-header -->\
+				<!-- Collect the nav links, forms, and other content for toggling -->\
+				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
+					<ul class="nav navbar-nav navbar-center">\
+						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
+							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">{{ suite_name }} <span class="caret"></span></button>\
+							<ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+mySuiteAry+'</ul>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save User Suite" onclick="if(testBundleTable.rows().data().length>0){owner=\'{{ login }}\';jsaveFile(\'userSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete User Suite" onclick="if(suiteID.value!=\'\'){deleteSuite(\'{{ login }}\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+						</div>\
+					</ul>\
+				</div><!-- end navbar-collapse -->\
+			</div><!-- end container-fluid -->\
+		</nav><!-- end navbar -->\
+	');
+
+	
+
+	$('#testTable tbody').on('click', 'td.details-control', function () {
+		var tr = $(this).closest('tr');
+		var row = testTable.row( tr );
+	 
+		if ( row.child.isShown() ) {
+		    // This row is already open - close it
+		    row.child.hide();
+		    tr.removeClass('shown');
+		}
+		else {
+		    // Open this row
+		    row.child( format(row.data()) ).show();
+		    tr.addClass('shown');
+		}
+	    } );
+
+	$('#testTable tbody').on('dblclick', 'tr', function () {
+		var tr = $(this).closest('tr');
+		var row = testTable.row( tr );
+		$('#viewTestModal').modal('toggle');
+		selectTest.idTestRev.value=row.data().testId;
+		doAccess('viewTestCase');
+		//selectTest.action="/taws/viewTestCase/";
+		//selectTest.target="_blank";
+		//selectTest.submit();
+	    } );
+	    
+	    
+	$('#testTable tbody').on('click','tr',function(e){
+		$(this).toggleClass('info');
+		updateStats('selection');
+	})
+
+	/*testTable.on( 'order.dt search.dt', function () {
+		testTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+		    cell.innerHTML = i+1;
+		} );
+	    } ).draw();	*/	 
+	    
+	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'right','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+	$('[data-toggle="popover-left"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+} );
+
+</script>
+
+<form name="selectTest" action="" method="post" >{% csrf_token %}
+	<input type="hidden" value="" name="savingName" id="savingName">
+	<input type="hidden" value="" name="idTestRev" id="{{ testName }}">
+</form>
+
+
+<div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
+
+
+<div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable" style="width:100%">
+		<thead>       
+			<tr>     
+				<th style="width:20px" rowspan="2"></th>        
+				<th style="width:20px" rowspan="2">Pos</th>
+				<th style="width:115px" rowspan="2">TPS</th>
+				<th rowspan="2">Test</th>
+				<th style="width:33px" rowspan="2">Lab</th>
+				<th style="width:50px" rowspan="2">Rev</th>
+				<th style="width:40px" rowspan="2">Time</th>
+				<th style="width:30px" rowspan="2">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+			<tr>     
+				<th style="width:20px">DUT<br>Setup</th>
+				<th style="width:20px">Test<br>Setup</th>
+				<th style="width:20px">Test<br>Body</th>
+				<th style="width:20px">Test<br>CleanUp</th>
+				<th style="width:20px">DUT<br>CleanUp</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+		</thead>     
+		<tfoot>       
+			<tr>
+				<th style="width:20px"></th>         
+				<th style="width:20px" title="Pos">Pos</th>
+				<th style="width:115px" title="TPS">TPS</th>
+				<th title="Test">Test</th>
+				<th style="width:33px" title="Lab">Lab</th>
+				<th style="width:50px" title="Rev">Rev</th>
+				<th style="width:40px" title="Time">Time</th>
+				<th style="width:30px" title="Tpgy">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>
+		</tfoot>
+   <tbody>
+				{% for myTest in test_list %}
+					<tr>  
+						<td><input type="checkbox" {{ myTest.active }}></td>
+						<td></td>
+						<td>{{ myTest.tps }}</td>
+						<td>{{ myTest.test_name }}</td>
+						<td>{{ myTest.lab }}</td>
+						<td>{{ myTest.revision }}</td>
+						<td>{{ myTest.duration }}</td>
+						<td>{{ myTest.topology }}</td>
+    				<td><input type="checkbox" {{ myTest.sect1 }} {{ myTest.sectCheck1 }}/></td>
+    				<td><input type="checkbox" {{ myTest.sect2 }} {{ myTest.sectCheck2 }}/></td>
+    				<td><input type="checkbox" {{ myTest.sect3 }} {{ myTest.sectCheck3 }}/></td>
+    				<td><input type="checkbox" {{ myTest.sect4 }} {{ myTest.sectCheck4 }}/></td>
+    				<td><input type="checkbox" {{ myTest.sect5 }} {{ myTest.sectCheck5 }}/></td>
+    				<td>{{ myTest.idTestRev }}</td>
+    				<td>{{ myTest.dependency }}</td>
+    				<td>{{ myTest.assignment }}</td>
+    				<td>{{ myTest.author }}</td>
+    				<td>{{ myTest.description }}</td>
+    				<td>{{ myTest.relDate }}</td>
+    				<td>{{ myTest.last_update }}</td>
+    				<td></td>
+    				<td></td>
+					</tr>
+				{% endfor %}
+    </tbody>
+	</table>
+	
+</div>
+
+<!-- Modal for New test Creation -->
+<div id="viewTestModal" class="modal fade" role="dialog">
+	<!--<form name="selectTest" action="/taws/viewTestCase/?action=update" method="post" >{% csrf_token %}
+	<input type="hidden" id="modalInput" name="idTestRev">-->
+	<div class="modal-dialog" style="width:830px;height:680px;">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-body">
+				<nav class="navbar navbar-default">
+					<div class="container-fluid">
+						<!-- Brand and toggle get grouped for better mobile display -->
+						<div class="navbar-header">
+							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+							<a class="navbar-brand" id="modalTitle"></a>
+						</div><!-- end navbar-header -->
+						<!-- Collect the nav links, forms, and other content for toggling -->
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-btn navbar-right">
+								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+							</ul>
+							<ul class="nav navbar-btn navbar-right">
+								<div class="btn-group btn-group-sm" role="group" id="modalButton">
+								</div><!-- end btn_group-->
+								<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+							</ul>
+						</div><!-- end navbar-collapse -->
+					</div><!-- end container-fluid -->
+				</nav><!-- end navbar -->
+				<textarea class="form-control" name="testBody" style="width:800px;height:600px;" id="comment"></textarea>
+			</div>
+		</div>
+	<!--</form>-->
+</div><!-- end modal -->
+
+{% endblock %}
+

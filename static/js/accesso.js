@@ -98,7 +98,7 @@ function doAccess(myAction){
 		//updateTestTable('testTable',testListString);
 		updateTestTable('testTable',testListString);
 		//alert(sersverResponse_data['testString']);
-		if(myAction=='localBrowsing'){updateTestTable('testBundleTable',sersverResponse_data['localString'].split('$'));}
+		if(myAction=='localBrowsing'||myAction=='job_browsing'){updateTestTable('testBundleTable',sersverResponse_data['localString'].split('$'));}
 		//      //alert(sersverResponse_data['localString']);
 		//  		testBundleString=String(sersverResponse_data['localString']).split('$');
 		//    		  updateTestTable('testBundleTable',testBundleString);
@@ -393,6 +393,24 @@ function doAccess(myAction){
 				}
 		});
 	}
+
+	if(myAction=='job_browsing'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+        'job_name':job_name,
+        'suite_name':suite_name
+				},
+			success: queryDB,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+
 	if(myAction=='saveLocal'){
 		$.ajax({
 			type: "POST",

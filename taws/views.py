@@ -393,7 +393,7 @@ def tuningEngine(request):
 	#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,run_sectionconcat('{',myTuple,'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
 	#SELECT entityName,if(elemName like '%#%',concat('"TYPE":"',replace(elemName,'#',''),'","ID":"',T_EQUIPMENT_id_equipment,'"'),concat('"',elemName,'":"',pstValue,'"')) from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62
 	#SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,group_concat(if(elemName like '%#%',concat('\'TYPE\':\'',replace(elemName,'#',''),'\',\'ID\':\'',T_EQUIPMENT_id_equipment,'\''),concat('\'',elemName,'\':\'',pstValue,'\'')) order by elemName) as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62 group by entityName
-	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
+	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
 	rows = myRecordSet.fetchall()
 	#tuningPath=TAWS_path+"Test Case ATM\\TUNED\\"+suiteName+"-TUNED-"+tuningName
 
@@ -493,7 +493,7 @@ def tuningEngine(request):
 	tempStr+='\nCreating Node List...'
 	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%'")
 	nodeList=myRecordSet.fetchone()['nodeList']
-	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.txt',"w")
+	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
 	out_file.write(nodeList)
 	out_file.close()
 	tempStr+='DONE!\n'
@@ -911,7 +911,7 @@ def createRunJenkins(request):
 
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
-	in_file = open(suiteFolder+job_name+'/workspace/nodeList.txt',"r")
+	in_file = open(suiteFolder+job_name+'/workspace/nodeList.info',"r")
 	nodeFile=in_file.read()
 	in_file.close()
 
@@ -1605,6 +1605,88 @@ def topology(request):
 
 	return render(request,'taws/topology.html',context_dict)
 
+def modify_job(request):
+	context = RequestContext(request)
+	context_dict={'nothing':'nothing'}
+	import mysql.connector
+	import glob,os,ntpath
+
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'test_development'}
+		return render_to_response('taws/login.html',context_dict,context)
+
+
+	job_name=request.GET.get('jobName','')
+	suite_name=request.GET.get('suite_name','suite')
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet=dbConnection.cursor(dictionary=True)
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
+  
+	username=request.session['login']
+	password=request.session['password']
+
+	testString=[]
+	localString=""
+	#localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
+	localPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']
+	if os.path.isfile(localPath+suite_name+'.txt'):
+		localSuite = open(localPath+suite_name+'.txt',"r")
+		suiteFile=localSuite.read()
+		localSuite.close() 
+
+	suiteAry=[]
+	for f in glob.glob(localPath+'*.txt'):
+		suiteAry.append({'suiteName':ntpath.basename(f),'suiteAbs':f})
+    
+    
+	for f in glob.glob(localPath+'*.py'):
+		if os.path.isfile(f+'.prs'):
+			iteration=ntpath.basename(f).split('_')[1]
+			myRecordSet.execute("select * from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_TestRev="+iteration+" group by id_TestRev")
+			row=myRecordSet.fetchone()
+
+			active=""
+			tempActive=suiteFile.split(f)
+			if len(tempActive)>0:
+				active="checked"
+				tempSect=tempActive[1].split('\n')
+     
+			testString.append({'idTestRev':(str(row['id_TestRev'])),
+				'product':row['product'],
+				'sw_rel_name':row['sw_rel_name'],
+				'area_name':row['area_name'],
+				'tps':row['tps'].replace('!','\r\n'),
+				'test_name':ntpath.basename(f),
+  			'duration':str(row['duration']),
+  			'metric':str(row['metric']),
+  			'topology':row['topology'],
+  			'dependency':row['dependency'],
+  			'author':row['author'],
+  			'description':row['description'],
+  			'last_update':str(row['last_update']),
+  			'sect1':'disabled' if row['run_section'][0]==0 else '',
+  			'sect2':'disabled' if row['run_section'][1]==0 else '',
+  			'sect3':'disabled' if row['run_section'][2]==0 else '',
+  			'sect4':'disabled' if row['run_section'][3]==0 else '',
+  			'sect5':'disabled' if row['run_section'][4]==0 else '',
+   			'sectCheck1':'checked' if tempSect[0].rfind('--DUTSet')>=0 or tempSect[0].rfind(' --')<0 else '',
+  			'sectCheck2':'checked' if tempSect[0].rfind('--testSet')>=0 or tempSect[0].rfind(' --')<0 else '',
+  			'sectCheck3':'checked' if tempSect[0].rfind('--testBody')>=0 or tempSect[0].rfind(' --')<0 else '',
+  			'sectCheck4':'checked' if tempSect[0].rfind('--testClean')>=0 or tempSect[0].rfind(' --')<0 else '',
+  			'sectCheck5':'checked' if tempSect[0].rfind('--DUTClean')>=0 or tempSect[0].rfind(' --')<0 else '',
+ 			  'lab':row['lab'],
+  			'revision':row['revision'],
+        'active':active})
+      
+
+	#return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
+	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':testString,'suite_name':suite_name+'.txt','suiteAry':suiteAry}
+
+	return render_to_response('taws/modify_job.html',context_dict,context)
 
 def accesso(request):
 	from taws.models import TTest,TTestRevs
@@ -2038,6 +2120,140 @@ def accesso(request):
         
 		if os.path.isfile(localPath+'suite.txt'):
 			localSuite = open(localPath+'suite.txt',"r")
+			#localString=localSuite.read()
+			for myLine in localSuite.read().split('\n'):
+				tempLine=myLine.split('.py')
+				if os.path.isfile(tempLine[0]+'.py'):
+					tempTest = open(tempLine[0]+'.py',"r")
+					myFile=tempTest.read()
+					if myFile.rfind('[DESCRIPTION]'):
+						metaInfo=myFile.split('[DESCRIPTION]')
+						description=metaInfo[1]
+						metaInfo=myFile.split('[TOPOLOGY]')
+						topology=metaInfo[1]
+						metaInfo=myFile.split('[DEPENDENCY]')
+						dependency=metaInfo[1]
+						metaInfo=myFile.split('[LAB]')
+						lab=metaInfo[1]
+						metaInfo=myFile.split('[TPS]')
+						tps=metaInfo[1].replace(',','<br>')
+						metaInfo=myFile.split('[RUNSECTIONS]')
+						runsection=metaInfo[1]
+						#if runsection.isdigit()==False:runsection='11111'
+						metaInfo=myFile.split('[AUTHOR]')
+						author=metaInfo[1]
+					else:
+						description="NA"
+						topology="NA"
+						dependency="NA"
+						lab="NA"
+						tps="NA"
+						runsection='00000'
+						author="NA"
+
+					if(runsection.isdigit()==False):runsection='00000'
+
+					tempSection=list(runsection)
+					if myLine.rfind(' --')>=0:
+						if myLine.rfind('--DUTSet')>=0:tempSection[0]='2'
+						if myLine.rfind('--testSet')>=0:tempSection[1]='2'
+						if myLine.rfind('--testBody')>=0:tempSection[2]='2'
+						if myLine.rfind('--testClean')>=0:tempSection[3]='2'
+						if myLine.rfind('--DUTClean')>=0:tempSection[4]='2'
+					tempTest.close()
+					localString+=tempLine[0]+".py#"+\
+					"NA#"+\
+					"NA#"+\
+					"0#"+\
+					"NA#"+\
+					tps+"#"+\
+					ntpath.basename(tempLine[0])+".py#"+\
+					"0#"+\
+					"0#"+\
+					"NA#"+\
+					"NA#"+\
+					"NA#"+\
+					dependency+"#"+\
+					tempLine[0]+".py#"+\
+					author+"#"+\
+					description+"#"+\
+					"NA#"+\
+					''.join(tempSection)+"#"+\
+					"NA#"+\
+					lab+"$"
+			
+					tempTest.close()
+		    
+			localSuite.close()
+		
+   
+		return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
+
+	if myAction=='job_browsing':
+
+		import glob,os,ntpath
+   
+		job_name = request.POST.get('job_name','')
+		suite_name = request.POST.get('suite_name','suite')
+
+		testString=""
+		localString=""
+		localPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']
+		for f in glob.glob(localPath+'*.py'):
+			if os.path.isfile(f+'.prs'):
+				tempTest = open(f,"r")
+				myFile=tempTest.read()
+				if myFile.rfind('[DESCRIPTION]'):
+					metaInfo=myFile.split('[DESCRIPTION]')
+					description=metaInfo[1]
+					metaInfo=myFile.split('[TOPOLOGY]')
+					topology=metaInfo[1]
+					metaInfo=myFile.split('[DEPENDENCY]')
+					dependency=metaInfo[1]
+					metaInfo=myFile.split('[LAB]')
+					lab=metaInfo[1]
+					metaInfo=myFile.split('[TPS]')
+					tps=metaInfo[1].replace(',','<br>')
+					metaInfo=myFile.split('[RUNSECTIONS]')
+					runsection=metaInfo[1]
+					#if runsection.isdigit()==False:runsection='11111'
+					metaInfo=myFile.split('[AUTHOR]')
+					author=metaInfo[1]
+				else:
+					description="NA"
+					topology="NA"
+					dependency="NA"
+					lab="NA"
+					tps="NA"
+					runsection='00000'
+					author="NA"
+
+				if(runsection.isdigit()==False):runsection='00000'
+
+				tempTest.close()
+				testString+=f+"#"+\
+				"NA#"+\
+				"NA#"+\
+				"0#"+\
+				"NA#"+\
+				tps+"#"+\
+				ntpath.basename(f)+"#"+\
+				"0#"+\
+				"0#"+\
+				topology+"#"+\
+				"NA#"+\
+				"NA#"+\
+				dependency+"#"+\
+				f+"#"+\
+				author+"#"+\
+				description+"#"+\
+				"NA#"+\
+				runsection+"#"+\
+				"NA#"+\
+				lab+"$"
+        
+		if os.path.isfile(localPath+suite_name+'.txt'):
+			localSuite = open(localPath+suite_name+'.txt',"r")
 			#localString=localSuite.read()
 			for myLine in localSuite.read().split('\n'):
 				tempLine=myLine.split('.py')
