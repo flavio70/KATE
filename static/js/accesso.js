@@ -194,8 +194,9 @@ function doAccess(myAction){
 
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
-		alert(sersverResponse_data['creationReport']);
-   		 window.opener.doAccess('localBrowsing');
+		//alert(sersverResponse_data['creationReport']);
+		showalert(sersverResponse_data['creationReport'],"alert-success");
+   		 doAccess('localBrowsing');
 	};
 	var viewTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		tempRevision='';
@@ -452,11 +453,14 @@ function doAccess(myAction){
 			url: myURL,
 			data: {
 				action: myAction,
-        			testName:document.getElementById('testName').value,
-        			presetBody:document.getElementById('preview').value,
-				product:document.getElementById('product').options[document.getElementById('product').selectedIndex].text,
-				domain:document.getElementById('domain').options[document.getElementById('domain').selectedIndex].text,
-				area:document.getElementById('area').options[document.getElementById('area').selectedIndex].text
+        testName:document.getElementById('testName').value,
+        presetBody:document.getElementById('preview').value,
+				//product:document.getElementById('product').options[document.getElementById('product').selectedIndex].text,
+				//domain:document.getElementById('domain').options[document.getElementById('domain').selectedIndex].text,
+				//area:document.getElementById('area').options[document.getElementById('area').selectedIndex].text
+				product:$('#product li a').text(),
+				domain:$('#domain li a').text(),
+				area:$('#area li a').text()
 				},
 			success: createTest,
 			error: function(xhr, textStatus, errorThrown) {
@@ -477,6 +481,7 @@ function doAccess(myAction){
 			success: createTest,
 			error: function(xhr, textStatus, errorThrown) {
 					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+					
 				}
 		});
 	}
