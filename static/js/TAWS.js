@@ -574,7 +574,7 @@ function updateStatsOldGen(totalTable){
 function insertBundleList(numAdd,position){
 	rowNum=testTable.rows('.info').data().length;
 	for(i=0;i<rowNum;i++){
-		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		testCellAry=testTable.rows(testTable.rows('.info')[0][i]).data()[0].testString.split('#');
 		testCellAry[17]=testCellAry[17].replace(/1/g,'2');
 		testString=testCellAry.join('#');
 		addRecordToTable(testString,'testBundleTable','');
@@ -611,8 +611,11 @@ function insertAllBundleList(){
 function removeBundleList(){
 	rowNum=testBundleTable.rows('.info').data().length;
 	for(i=0;i<rowNum;i++){
-		testBundleTable.rows(i).remove().draw();
+		testBundleTable.rows(testBundleTable.rows('.info')[0][i]).remove().draw();
 	}
+	testBundleTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+			    cell.innerHTML = i+1;
+			} );
 	updateStats('cart');
 }
 
@@ -746,20 +749,20 @@ function fillSelect(ary,targetSelect,header,defaultSelection){
 
 function deleteTest(){
 	//myTable=document.getElementById('testTable');
-  deleteList=''
-	
+	deleteList=''
 	rowNum=testTable.rows('.info').data().length;
 	for(i=0;i<rowNum;i++){
-		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		testCellAry=testTable.rows(testTable.rows('.info')[0][i]).data()[0].testString.split('#');
 		deleteList+=testCellAry[13]+'#';
-		testTable.rows(i).remove().draw();
+		testTable.rows(testTable.rows('.info')[0][i]).remove().draw();
 	}
-  deleteList=deleteList.slice(0,-1);
-  doAccess('deleteTest');
-	updateStats('testBundleTable')
-	colorTable('testBundleTable');
-	//document.getElementById('tuneBtn').disabled=true;
-	//top.principale.document.getElementById('execBtn').disabled=true;
+	testBundleTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+			    cell.innerHTML = i+1;
+			} );
+	
+	deleteList=deleteList.slice(0,-1);
+	doAccess('deleteTest');
+	updateStats('testTable')
 }
 
 function updateTableRow(testString,lineNumber,myTable){
