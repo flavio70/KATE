@@ -393,7 +393,7 @@ def tuningEngine(request):
 	#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,run_sectionconcat('{',myTuple,'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
 	#SELECT entityName,if(elemName like '%#%',concat('"TYPE":"',replace(elemName,'#',''),'","ID":"',T_EQUIPMENT_id_equipment,'"'),concat('"',elemName,'":"',pstValue,'"')) from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62
 	#SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,group_concat(if(elemName like '%#%',concat('\'TYPE\':\'',replace(elemName,'#',''),'\',\'ID\':\'',T_EQUIPMENT_id_equipment,'\''),concat('\'',elemName,'\':\'',pstValue,'\'')) order by elemName) as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62 group by entityName
-	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
+	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
 	rows = myRecordSet.fetchall()
 	#tuningPath=TAWS_path+"Test Case ATM\\TUNED\\"+suiteName+"-TUNED-"+tuningName
 
@@ -1636,8 +1636,13 @@ def modify_job(request):
 	if os.path.isfile(localPath+suite_name+'.txt'):
 		localSuite = open(localPath+suite_name+'.txt',"r")
 		suiteFile=localSuite.read()
-		localSuite.close()
-   
+		localSuite.close() 
+
+	suiteAry=[]
+	for f in glob.glob(localPath+'*.txt'):
+		suiteAry.append({'suiteName':ntpath.basename(f),'suiteAbs':f})
+    
+    
 	for f in glob.glob(localPath+'*.py'):
 		if os.path.isfile(f+'.prs'):
 			iteration=ntpath.basename(f).split('_')[1]
@@ -1679,7 +1684,7 @@ def modify_job(request):
       
 
 	#return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
-	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':testString,'debug':iteration}
+	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':testString,'suite_name':suite_name+'.txt','suiteAry':suiteAry}
 
 	return render_to_response('taws/modify_job.html',context_dict,context)
 

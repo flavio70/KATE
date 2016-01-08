@@ -1,4 +1,4 @@
-{% extends "taws/jenkins_template.html" %}
+{% extends "taws/report_template.html" %}
 {% block body %}
 {% load static %}
 
@@ -13,7 +13,11 @@
 	SECT[0]="{% static 'images/sect0.gif' %}";
   job_name='{{ job_name }}';
   suite_name='';
+  mySuiteAry='';
 </script>
+{% for myItem in suiteAry %}
+    <script>mySuiteAry+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteAbs }}" onclick="suiteAbs={{ myItem.suiteAbs }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
+{% endfor %}
 
 <script>
 
@@ -22,212 +26,6 @@ var jsonProductAry, jsonTopoAry, jsonUserPreset;
 var myProduct;
 var presetName = new Array();
 var presetID = new Array();
-
-
-function checkFields(){
-    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('product').value!='')&&(document.getElementById('domain').value!='')&&(document.getElementById('area').value!='')){
-      document.getElementById('createBTN').disabled=false;
-    }else{
-      document.getElementById('createBTN').disabled=true;
-    }
-  }
-
-  
-
-	function fillPreset(myId){
-    document.getElementById('selectPresetbutton').disabled=false;
-    document.getElementById('selectPresetbutton').innerHTML= 'Select Preset <span class="caret"></span>';
-    document.getElementById('formtopologyID').value=myId;
-    while(document.getElementById('selectPreset').hasChildNodes()){
-			document.getElementById('selectPreset').removeChild(document.getElementById('selectPreset').lastChild);
-		}
-    for(i=0;i<presetName.length;i++){
-      tempPreset=presetName[i].split('[');
-      tempPreset=tempPreset[1].split(']');
-      tempPreset=tempPreset[0].split(',');
-      for(k=0;k<tempPreset.length;k++){
-  
-				
-        if(myId==tempPreset[k]){
-          		//var addArea = document.createElement('option');
-          		//addArea.text = presetName[i];
-          		//addArea.value = presetID[i];
-          		//document.getElementById('selectPreset').add(addArea);
-          		
-          		var li = document.createElement("li");
-							var link = document.createElement("a");             
-							var text = document.createTextNode(presetName[i]);
-		
-							link.appendChild(text);
-							link.href = "#";
-							link.id =presetID[i];
-							link.onclick = function() {document.getElementById('selectPresetbutton').innerHTML= this.text + ' <span class="caret"></span>';
-								document.getElementById('formpresetID').value=this.id;
-								doAccess('getPresetTemplate');};
-
-							li.appendChild(link);
-							document.getElementById('selectPreset').appendChild(li);  
-
-        }
-      }
-    }
- 
-  }  
-  
-
-  
-function fillSelectTestCreator(valueStr,myselect,target,parent){
-	if(valueStr!=''){document.getElementById(myselect+'button').disabled=false;}
-		else{document.getElementById(myselect+'button').disabled=true;}
-	document.getElementById(myselect+'button').innerHTML= myselect + ' <span class="caret"></span>';
-	//clear myselect content
- 	while(document.getElementById(myselect).hasChildNodes()){
-		document.getElementById(myselect).removeChild(document.getElementById(myselect).lastChild);
-	}
-	
-	tempAry1=valueStr.split('@');
-	for(i=0;i<tempAry1.length;i++){
-		tempAry2=tempAry1[i].split('?');
-		
-		
-		var li = document.createElement("li");
-		var link = document.createElement("a");             
-		var text = document.createTextNode(tempAry2[0]);
-		
-		link.appendChild(text);
-		link.href = "#";
-		if(tempAry2.length>1){link.id = tempAry2[1].replace(/#/g,'?').replace(/%/g,'@').replace(/\|/g,'%');}
-		
-		if(target != '') {
-			link.onclick = function() { fillSelectTestCreator(this.id,target,parent,''); checkFields(); document.getElementById(myselect+'button').innerHTML= this.text + ' <span class="caret"></span>'};
-		}else{
-			link.onclick = function() {checkFields(); document.getElementById(myselect+'button').innerHTML= this.text + ' <span class="caret"></span>'};
-		}
-		
-		li.appendChild(link);
-		document.getElementById(myselect).appendChild(li);   
-		
-	}
-}
-
-
-
-function newTest(){
-		//alert('test');
-		//newTestform.action='/taws/createNewTest/';
-		//newTestform.submit();
-		console.log("newTest function invocation") // sanity check
-		$.ajax({
-			url : "/taws/createNewTest/", // the endpoint
-			type : "POST", // http method
-			//data : { the_post : $('#post-text').val() }, // data sent with the post request
-			// handle a successful response
-			success : function(json) {
-				//document.getElementById('newTestModalBody').innerHTML=json;
-					//$('#post-text').val(''); // remove the value from the input
-					console.log(json.topoAry); // log the returned json to the console
-					jsonProductAry = json.productAry;
-					jsonTopoAry = json.topoAry;
-					jsonUserPreset = json.userPreset;
-					refreshTestModalBody();
-					console.log("success"); // another sanity check
-			},
-			// handle a non-successful response
-			error : function(xhr,errmsg,err) {
-				$('#newTestModalBody').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-						" <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-				console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-			}
-	});
-}
-
-
-
-function refreshTestModalBody() {
-	//reset all modal options
-	while(document.getElementById('product').hasChildNodes()){
-		document.getElementById('product').removeChild(document.getElementById('product').lastChild);
-	}
-
-	while(document.getElementById('selectTopo').hasChildNodes()){
-		document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
-	}
-	
-	
-	presetName = [];
-	presetID = [];
-	//fill option for product
-	for (myItem in jsonProductAry) { 
-	
-    var li = document.createElement("li");
-    var link = document.createElement("a");             
-    var text = document.createTextNode(jsonProductAry[myItem].product);
-    
-    link.appendChild(text);
-    link.href = "#";
-    link.id = jsonProductAry[myItem].productConcat;
-    link.onclick = function() { fillSelectTestCreator(link.id,'Domain','Area',''); checkFields(); document.getElementById('productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
-    li.appendChild(link);
-    document.getElementById('product').appendChild(li);    
-     
-	}
-	
-	document.getElementById('Domainbutton').disabled=true;
-	document.getElementById('Areabutton').disabled=true;
-	//fill option for topology
-	for (myItem in jsonTopoAry) { 
-		//var addItem = document.createElement('option');
-    //addItem.text = jsonTopoAry[myItem].topoName;
-    //addItem.value = jsonTopoAry[myItem].topoID;
-    //document.getElementById('selectTopo').add(addItem);
-    
-    var li2 = document.createElement("li");
-    var link2 = document.createElement("a");             
-    var text2 = document.createTextNode(jsonTopoAry[myItem].topoName);
-    
-    link2.appendChild(text2);
-    link2.href = "#";
-    link2.id = jsonTopoAry[myItem].topoID;
-    link2.onclick = function() { fillPreset(this.id); document.getElementById('selectTopobutton').innerHTML= this.text + ' <span class="caret"></span>'};
-    li2.appendChild(link2);
-    document.getElementById('selectTopo').appendChild(li2);    
-    
-    
-    
-    
-     
-	}
-	
-	for (myItem in jsonUserPreset) {
-		presetName.push(jsonUserPreset[myItem].userPresetName);
-		presetID.push(jsonUserPreset[myItem].userPresetID);
-	}
-	
-	
-
-}
-
-
-function changePerspective(){
-	if(document.getElementById('cartTitle').innerHTML.match('Suite')){show1=5;show2=10;viewStr='View Test Builder <span class="caret"></span>';} else{show1=10;show2=5;viewStr='View Suite Builder <span class="caret"></span>';}
-	//document.getElementById('composerTitle').style.zIndex=show1;
-	//document.getElementById('chartTitle').style.zIndex=show2;
-	//document.getElementById('queries').style.zIndex=show1;
-	//document.getElementById('suiteCommand').style.zIndex=show2;
-	document.getElementById('testContainer').style.zIndex=show1;
-	document.getElementById('testBundleContainer').style.zIndex=show2;
-	
-	
-	
-	 $( '#testContainer' ).toggle();
-	 $('#testTable').dataTable().fnSetColumnVis(0,true);
-	 $( '#testBundleContainer' ).toggle();
-	 $('#testBundleTable').dataTable().fnSetColumnVis(0,true);
-	
-	
-	
-	document.getElementById('cartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> '+viewStr;
-}
 
 function format ( myRow ) {
     return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
@@ -263,8 +61,7 @@ function format ( myRow ) {
 $(document).ready(function() {
 	//doAccess('job_browsing');
 	//testTable = $('#testTable').DataTable();myOption
-	document.getElementById('mainTitle').innerHTML='Test Development';
-	document.getElementById('cartTitle').innerHTML='<span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>View Suite Builder <span class="caret"></span>';
+	document.getElementById('mainTitle').innerHTML='Modifying {{ job_name }}';
 	testTable = $('#testTable').DataTable({
 		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testAction">><"col-sm-3"f>>\
 				<"row"<"col-sm-12"tr>>\
@@ -404,42 +201,34 @@ $(document).ready(function() {
 	$("div.totMetric").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-metric" class="badge">0</span>Total Metric</li></ul>');
 
 	$("div.testAction").html('\
-		<nav class="navbar navbar-xs navbar-default">\
+		<nav class="navbar navbar-default">\
 			<div class="container-fluid">\
 				<!-- Brand and toggle get grouped for better mobile display -->\
 				<div class="navbar-header">\
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">\
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-suiteaction-navbar-collapse" aria-expanded="false">\
 						<span class="sr-only">Toggle navigation</span>\
 						<span class="icon-bar"></span>\
 						<span class="icon-bar"></span>\
 						<span class="icon-bar"></span>\
 					</button>\
-					<a class="navbar-brand">Test Actions</a>\
+					<a class="navbar-brand">Suites</a>\
 				</div><!-- end navbar-header -->\
 				<!-- Collect the nav links, forms, and other content for toggling -->\
-				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">\
-					<ul class="nav navbar-nav navbar-left">\
-						<div class="btn-group btn-group-xs" data-toggle="tooltip" title="create New Test" role="group">\
-							<button type="button" data-toggle="modal" title="Create New Test" data-target="#newTestModal" onClick="newTest();" class="btn btn-info navbar-btn-xs"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span>New </button>\
-						</div><!-- end btn_group-->\
-						<div class="btn-group btn-group-xs" data-toggle="tooltip" title="remove Selected test from DB" role="group">\
-							<button type="button" data-toggle="popover" title="Delete Test" data-content="Delete selected tests from your Development Environment" onclick="deleteTest();" class="btn btn-default navbar-btn-xs btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Del</button>\
-						</div><!-- end btn_group-->\
-					</ul>\
-					<ul class="nav navbar-nav navbar-right">\
-					<a class="navbar-brand">Job Builder</a>\
-						<div class="btn-group btn-group-xs" role="group">\
-							<button type="button" data-toggle="popover-left" title="Add test" data-content="add selected Test to your Development Suite" onclick="insertBundleList(1,\'\');" class="btn btn-default navbar-btn-xs btn-info"><span class="glyphicon glyphicon-play" aria-hidden="true"></span> Add</button>\
-						</div><!-- end btn_group-->\
-						<div class="btn-group btn-group-xs" role="group">\
-							<button type="button" data-toggle="popover-left" title="Add all tests" data-content="add ALL the Tests browsed to your Development Suite" onclick="insertAllBundleList(1,\'\');" class="btn btn-default navbar-btn-xs btn-info"><span class="glyphicon glyphicon-forward" aria-hidden="true"></span> Add All</button>\
-						</div><!-- end btn_group-->\
+				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
+					<ul class="nav navbar-nav navbar-center">\
+						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
+							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">{{ suite_name }} <span class="caret"></span></button>\
+							<ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+mySuiteAry+'</ul>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save User Suite" onclick="if(testBundleTable.rows().data().length>0){owner=\'{{ login }}\';jsaveFile(\'userSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete User Suite" onclick="if(suiteID.value!=\'\'){deleteSuite(\'{{ login }}\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+						</div>\
 					</ul>\
 				</div><!-- end navbar-collapse -->\
 			</div><!-- end container-fluid -->\
 		</nav><!-- end navbar -->\
 	');
-	
+
 	
 
 	$('#testTable tbody').on('click', 'td.details-control', function () {
@@ -481,216 +270,6 @@ $(document).ready(function() {
 		} );
 	    } ).draw();	*/	 
 	    
-	testBundleTable = $('#testBundleTable').DataTable({
-		dom:'<"row"<"col-sm-12"<"suiteAction">>>\
-			<"row"<"col-sm-3"l><"col-sm-3"<"suiteNavigation">><"col-sm-3"<"suiteNavigation2">><"col-sm-3"f>>\
-			<"row"<"col-sm-12"tr>>\
-			<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
-			<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
-		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
-		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
-		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
-		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
-		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
-		"order": [[ 1, "asc" ]],
-		"bSort" : false,
-		scrollY:'380px',
-		scrollCollapse:true,"columns": [
-            {
-                "className":      'details-control',
-                "orderable":      false,
-                "data":           "control",
-                "defaultContent": ''
-            },
-						{
-							"data": "num", 
-							"className": "dt-center" 
-						},
-						{
-							"data": "tps", 
-							"className": "dt-center" 
-						},
-						{ "data": "test" },
-						{
-							"data": "lab", 
-							"className": "dt-center"
-						},
-						{ "data": "rev" },
-						{
-							"data": "time", 
-							"className": "dt-center"
-						},
-						{
-							"data": "topo",
-							"className": "dt-center"
-						},
-						{
-							"data": "sect1",
-							"className": "dt-center"
-						},
-						{
-							"data": "sect2",
-							"className": "dt-center"
-						},
-						{
-							"data": "sect3",
-							"className": "dt-center"
-						},
-						{
-							"data": "sect4",
-							"className": "dt-center"
-						},
-						{
-							"data": "sect5",
-							"className": "dt-center"
-						},
-						{ 
-							"data": "testId",
-							"visible": false 
-						},
-						{ 
-							"data": "dependency",
-							"visible": false 
-						},
-						{ 
-							"data": "metric",
-							"visible": false 
-						},
-						{ 
-							"data": "assignment",
-							"visible": false 
-						},
-						{ 
-							"data": "author",
-							"visible": false 
-						},
-						{ 
-							"data": "description",
-							"visible": false 
-						},
-						{ 
-							"data": "relDate",
-							"visible": false 
-						},
-						{ 
-							"data": "lastUpdate",
-							"visible": false 
-						},
-						{ 
-							"data": "testString",
-							"visible": false 
-						}
-				]
-	});
-	
-	
-	$("div.suiteAction").html('\
-		<nav class="navbar navbar-default">\
-			<div class="container-fluid">\
-				<!-- Brand and toggle get grouped for better mobile display -->\
-				<div class="navbar-header">\
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-suiteaction-navbar-collapse" aria-expanded="false">\
-						<span class="sr-only">Toggle navigation</span>\
-						<span class="icon-bar"></span>\
-						<span class="icon-bar"></span>\
-						<span class="icon-bar"></span>\
-					</button>\
-					<a class="navbar-brand">Suites</a>\
-				</div><!-- end navbar-header -->\
-				<!-- Collect the nav links, forms, and other content for toggling -->\
-				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
-					<ul class="nav navbar-nav navbar-center">\
-						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Create New Test" onclick="newwindow=window.open(\'/taws/createNewTest/\',\'createTest\',\'height=600,width=800,resizable=no\');"><span class="glyphicon glyphicon-gift" aria-hidden="true"></span></button>\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save Development Suite" onclick="saveLocalSuite();"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save Development Suite" onclick="doAccess(\'localBrowsing\');"><span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></button>\
-						</div>\
-					</ul>\
-				</div><!-- end navbar-collapse -->\
-			</div><!-- end container-fluid -->\
-		</nav><!-- end navbar -->\
-	');
-	  
-   
-    $("div.suiteNavigation").html('\
-    <nav class ="navbar navbar-xs navbar-default navbar-colored">\
-			<div class="container-fluid">\
-				<!-- Brand and toggle get grouped for better mobile display -->\
-				<div class="navbar-header">\
-					<button type="button" class="navbar-toggle navbar-toggle-xs collapsed" data-toggle="collapse" data-target="#LC-navbar-collapse" aria-expanded="false">\
-						<span class="sr-only">Toggle navigation</span>\
-						<span class="icon-bar"></span>\
-						<span class="icon-bar"></span>\
-						<span class="icon-bar"></span>\
-					</button>\
-					<a  class="navbar-brand">Move</a>\
-				</div><!-- end navbar-header -->\
-				<!-- Collect the nav links, forms, and other content for toggling -->\
-				<div class="collapse navbar-collapse" id="LC-navbar-collapse">\
-					<ul class="nav navbar-nav navbar-left">\
-								<div class="btn-group btn-group-xs" role="group" aria-label="..." data-toggle="popover" title="MOVE TEST CASES" data-content="MOVE UP adn DOWN,to TOP or to BOTTOM selected Test Cases">\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test to Top" onclick="moveSelectedEdge(\'up\')"><i class="fa fa-forward fa-rotate-270"></i></button>\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test Up" onclick="moveSelected(\'up\')"><i class="fa fa-play fa-rotate-270"></i></button>\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test Down" onclick="moveSelected(\'down\')"><i class="fa fa-play fa-rotate-90"></i></button>\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="tooltip" title="Move selected test to Bottom" onclick="moveSelectedEdge(\'down\')"><i class="fa fa-forward fa-rotate-90"></i></button>\
-								</div>\
-						</ul>\
-				</div><!-- end navbar-collapse -->\
-			</div><!-- end container-fluid -->\
-		</nav><!-- end navbar -->\
-	');
-   
-   
-   
-   $("div.suiteNavigation2").html('\
-    <nav class ="navbar navbar-xs navbar-default navbar-colored">\
-			<div class="container-fluid">\
-				<!-- Brand and toggle get grouped for better mobile display -->\
-				<div class="navbar-header">\
-					<button type="button" class="navbar-toggle navbar-toggle-xs collapsed" data-toggle="collapse" data-target="#LC-navbar-collapse1" aria-expanded="false">\
-						<span class="sr-only">Toggle navigation</span>\
-						<span class="icon-bar"></span>\
-						<span class="icon-bar"></span>\
-						<span class="icon-bar"></span>\
-					</button>\
-					<a  class="navbar-brand">Remove</a>\
-				</div><!-- end navbar-header -->\
-				<!-- Collect the nav links, forms, and other content for toggling -->\
-				<div class="collapse navbar-collapse" id="LC-navbar-collapse1">\
-						<ul class="nav navbar-nav navbar-center">\
-						<div class="btn-group btn-group-xs" role="group" aria-label="...">\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="popover" title="REMOVE BUTTON" data-content="Remove selected Test Cases from yout Suite" onclick="removeBundleList()"><span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Selected</button>\
-									<button type="button" class="btn btn-default navbar-btn-xs" data-toggle="popover" title="REMOVE ALL BUTTON" data-content="Remove ALL Test Cases from yout Suite" onclick="removeAllBundleList()"><span class="glyphicon glyphicon-backward" aria-hidden="true"></span> All</button>\
-								</div>\
-						</ul>\
-				</div><!-- end navbar-collapse -->\
-			</div><!-- end container-fluid -->\
-		</nav><!-- end navbar -->\
-	');
-     
-   
-   
-  	$('#testBundleTable tbody').on('click','tr',function(e){
-		$(this).toggleClass('info');
-	})
-   
-   
-
-	$('#testBundleTable tbody').on('click', 'td.details-control', function () {
-		var tr = $(this).closest('tr');
-		var row = testBundleTable.row( tr );
-	 
-		if ( row.child.isShown() ) {
-		    // This row is already open - close it
-		    row.child.hide();
-		    tr.removeClass('shown');
-		}
-		else {
-		    // Open this row
-		    row.child( format(row.data()) ).show();
-		    tr.addClass('shown');
-		}
-	    } );
 	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'right','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 	$('[data-toggle="popover-left"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
@@ -704,10 +283,6 @@ $(document).ready(function() {
 </form>
 
 
-<form name="newTestform" action="" method="post" >{% csrf_token %}
-	<input type="hidden" value="" name="savingName" id="savingName">
-	<input type="hidden" value="" name="idTestRev" id="{{ testName }}">
-</form>
 <div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
 
 
@@ -804,172 +379,6 @@ $(document).ready(function() {
 	</table>
 	
 </div>
-<div id="testBundleContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:5;display:none;">
-	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testBundleTable" style="width:100%" >
-		<thead>       
-				<tr>     
-					<th style="width:20px" rowspan="2"></th>        
-					<th style="width:20px" rowspan="2">Pos</th>
-					<th style="width:115px" rowspan="2">TPS</th>
-					<th rowspan="2">Test</th>
-					<th style="width:33px" rowspan="2">Lab</th>
-					<th style="width:50px" rowspan="2">Rev</th>
-					<th style="width:40px" rowspan="2">Time</th>
-					<th style="width:30px" rowspan="2">Tpgy</th>
-					<th colspan="5">Sect</th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-				</tr>     
-				<tr>     
-					<th style="width:20px">DUT<br>Setup</th>
-					<th style="width:20px">Test<br>Setup</th>
-					<th style="width:20px">Test<br>Body</th>
-					<th style="width:20px">Test<br>CleanUp</th>
-					<th style="width:20px">DUT<br>CleanUp</th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-				</tr>     
-		</thead>     
-		<tfoot>       
-				<tr>
-					<th style="width:20px"></th>         
-					<th style="width:20px">Pos</th>
-					<th style="width:115px">TPS</th>
-					<th>Test</th>
-					<th style="width:33px">Lab</th>
-					<th style="width:50px">Rev</th>
-					<th style="width:40px">Time</th>
-					<th style="width:30px">Tpgy</th>
-					<th colspan="5">Sect</th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-				</tr>     
-		</tfoot>
-	</table>
-</div>
-
-
-<!-- Modal for New test Creation -->
-<div id="newTestModal" class="modal fade" role="dialog">
-	<form name="createTest" action="" method="post" target="_self">{% csrf_token %}
-		<input type="hidden" value="" name="azione">
-		<input type="hidden" value="" id="formpresetID">
-		<input type="hidden" value="" id="formtopologyID">
-		<div class="modal-dialog" style="width:75%">
-			<!-- Modal content-->
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Create New test</h4>
-				</div>
-				<div class="modal-body">
-					<div class="panel panel-default">
-						<div class="panel-heading">
-							<h3 class="panel-title">Test Parameters</h3>
-						</div>
-						<div class="panel-body" id="newTestModalBody">
-							<input type="hidden" value="" name="azione">
-							<div class="form-group col-md-12">
-								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">Test Name</span>
-									<input type="text" class="form-control" placeholder="testName" aria-describedby="basic-addon1" id="testName" onchange="checkFields();">
-								</div>
-							</div>
-							
-							
-							<div class="form-group col-md-4">
-							
-								<div class="panel panel-default">
-								<div class="panel-heading input-group-addon">Test Location</div>
-								<div class="panel-body">
-
-									<div class="btn-group">
-										<button id = "productbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											Product <span class="caret"></span>
-										</button>
-										<ul class="dropdown-menu col-xs-12" id="product"></ul>
-									</div>
-									
-									<div class="btn-group">
-										<button id = "Domainbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											Domain <span class="caret"></span>
-										</button>
-										<ul class="dropdown-menu col-xs-12" id="Domain"></ul>
-									</div>
-									
-									<div class="btn-group">
-										<button id = "Areabutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											Area <span class="caret"></span>
-										</button>
-										<ul class="dropdown-menu col-xs-12" id="Area"></ul>
-									</div>				
-									
-								</div><!--end panel-body-->
-							</div><!--end panel-->
-
-								<div class="panel panel-default">
-								<div class="panel-heading input-group-addon">Topology and Presets</div>
-								<div class="panel-body">
-									<div class="btn-group">
-										<button id = "selectTopobutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											Select Topology <span class="caret"></span>
-										</button>
-										<ul class="dropdown-menu" id="selectTopo"></ul>
-									</div>
-							
-								
-								
-									<div class="btn-group">
-										<button id = "selectPresetbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-											Select Preset <span class="caret"></span>
-										</button>
-										<ul class="dropdown-menu" id="selectPreset"></ul>
-									</div>
-								</div>
-							</div>
-
-							</div>
-							<div class="form-group col-md-8">
-								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">Preset View</span>
-									<textarea value="" style="font-size : 8pt;width:100%;height:330px;" id="preview"></textarea>															
-								</div>
-							</div>
-							
-							
-
-						</div><!-- end panel-body -->
-					</div><!-- end panel -->
-				</div><!-- end modal-body-->
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default btn-primary" data-dismiss="modal" id="createBTN" onclick="doAccess('createTest');">Create</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				</div>
-			</div>
-		</div>
-	</form>
-</div><!-- end modal -->
 
 <!-- Modal for New test Creation -->
 <div id="viewTestModal" class="modal fade" role="dialog">
