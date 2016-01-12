@@ -15,9 +15,6 @@
   suite_name='';
   mySuiteAry='';
 </script>
-{% for myItem in suiteAry %}
-    <script>mySuiteAry+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteAbs }}" onclick="suiteAbs={{ myItem.suiteAbs }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
-{% endfor %}
 
 <script>
 
@@ -62,7 +59,7 @@ $(document).ready(function() {
 	//doAccess('job_browsing');
 	//testTable = $('#testTable').DataTable();myOption
 	document.getElementById('mainTitle').innerHTML='Modifying {{ job_name }}';
-	testTable = $('#testTable').DataTable({
+	testBundleTable = $('#testTable').DataTable({
 		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testAction">><"col-sm-3"f>>\
 				<"row"<"col-sm-12"tr>>\
 				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
@@ -73,8 +70,8 @@ $(document).ready(function() {
 		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
 		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
 		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
-		"orderFixed": [[ 3, "asc" ]],
-    scrollY:'380px',
+		"bSort" : false,
+		scrollY:'380px',
 		scrollCollapse:true,"columns": [
 		{
 			"data": "num", 
@@ -163,36 +160,6 @@ $(document).ready(function() {
 ]
 	});
 
-	new $.fn.dataTable.Buttons( testTable, {'buttons': [
-							{
-								text:'<i class="fa fa-play fa"></i>',
-								titleAttr: 'ADD SELECTED TCs TO SUITE',
-								action:function(){insertBundleList(1,'');},
-								className:'btn-custom'
-							},
-							{
-								text:'<i class="fa fa-forward fa"></i>',
-								titleAttr: 'ADD ALL TCs TO SUITE',
-								action:function(){insertAllBundleList();},
-								className:'btn-custom'
-							},
-							{
-								text:'<i class="fa fa-step-forward fa"></i>',
-								titleAttr: 'ADD SELECTED TCs AT SUITE POSITION',
-								action:function(){insertBundleList(1,prompt('Insert Position',''));},
-								className:'btn-custom'
-							},
-							{
-								text:'<i class="fa fa-eject fa"></i>',
-								titleAttr: 'PERFORM DELETE REQUEST TO DB MANAGER',
-								action:function(){deleteTest();},
-								className:'btn-custom'
-							},
-
-						]} );
-
-	//testTable.buttons(1,null).container().appendTo($('.col-sm-2:eq(1)',testTable.table().container() ));
-	
 	  
 	$("div.selections").html('<ul class="list-group"><li class="list-group-item">Selection counters</li></ul>');
 	$("div.totTests").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-test" class="badge">0</span>Total tests</li></ul>');
@@ -217,11 +184,8 @@ $(document).ready(function() {
 				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
 					<ul class="nav navbar-nav navbar-center">\
 						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
-							<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="userSuites">{{ suite_name }} <span class="caret"></span></button>\
-							<ul id="serverPersonalSuite" class="dropdown-menu dropdown-menu-right">'+mySuiteAry+'</ul>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save User Suite" onclick="if(testBundleTable.rows().data().length>0){owner=\'{{ login }}\';jsaveFile(\'userSuites\');}"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Delete User Suite" onclick="if(suiteID.value!=\'\'){deleteSuite(\'{{ login }}\');};"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save User Suite" onclick="saveTunedSuite();"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
 						</div>\
 					</ul>\
 				</div><!-- end navbar-collapse -->\
@@ -231,7 +195,7 @@ $(document).ready(function() {
 
 	
 
-	$('#testTable tbody').on('click', 'td.details-control', function () {
+	$('#testBundleTable tbody').on('click', 'td.details-control', function () {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
 	 
@@ -247,7 +211,7 @@ $(document).ready(function() {
 		}
 	    } );
 
-	$('#testTable tbody').on('dblclick', 'tr', function () {
+	$('#testBundleTable tbody').on('dblclick', 'tr', function () {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
 		$('#viewTestModal').modal('toggle');
@@ -259,10 +223,10 @@ $(document).ready(function() {
 	    } );
 	    
 	    
-	$('#testTable tbody').on('click','tr',function(e){
+	/*$('#testTable tbody').on('click','tr',function(e){
 		$(this).toggleClass('info');
 		updateStats('selection');
-	})
+	})*/
 
 	/*testTable.on( 'order.dt search.dt', function () {
 		testTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
@@ -277,14 +241,13 @@ $(document).ready(function() {
 
 </script>
 
-<form name="selectTest" action="" method="post" >{% csrf_token %}
-	<input type="hidden" value="" name="savingName" id="savingName">
-	<input type="hidden" value="" name="idTestRev" id="{{ testName }}">
+<form name="selectTest" action="/taws/modify_job/?jobName={{ job_name }}" method="post" >{% csrf_token %}
+	<input type="hidden" value="" name="savingStr" id="savingStr">
 </form>
 
 
 <div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
-
+{{ debug }}
 
 <div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable" style="width:100%">
@@ -348,9 +311,9 @@ $(document).ready(function() {
 				<th></th>
 			</tr>
 		</tfoot>
-   <tbody>
+   <tbody id="testTableBody">
 				{% for myTest in test_list %}
-					<tr>  
+					<tr id="{{ myTest.idTestRev }}">  
 						<td><input type="checkbox" {{ myTest.active }}></td>
 						<td></td>
 						<td>{{ myTest.tps }}</td>
@@ -359,20 +322,20 @@ $(document).ready(function() {
 						<td>{{ myTest.revision }}</td>
 						<td>{{ myTest.duration }}</td>
 						<td>{{ myTest.topology }}</td>
-    				<td><input type="checkbox" {{ myTest.sect1 }} {{ myTest.sectCheck1 }}/></td>
-    				<td><input type="checkbox" {{ myTest.sect2 }} {{ myTest.sectCheck2 }}/></td>
-    				<td><input type="checkbox" {{ myTest.sect3 }} {{ myTest.sectCheck3 }}/></td>
-    				<td><input type="checkbox" {{ myTest.sect4 }} {{ myTest.sectCheck4 }}/></td>
-    				<td><input type="checkbox" {{ myTest.sect5 }} {{ myTest.sectCheck5 }}/></td>
-    				<td>{{ myTest.idTestRev }}</td>
-    				<td>{{ myTest.dependency }}</td>
-    				<td>{{ myTest.assignment }}</td>
-    				<td>{{ myTest.author }}</td>
-    				<td>{{ myTest.description }}</td>
-    				<td>{{ myTest.relDate }}</td>
-    				<td>{{ myTest.last_update }}</td>
-    				<td></td>
-    				<td></td>
+		    				<td><input type="checkbox" {{ myTest.sect1 }} {{ myTest.sectCheck1 }}/></td>
+		    				<td><input type="checkbox" {{ myTest.sect2 }} {{ myTest.sectCheck2 }}/></td>
+		    				<td><input type="checkbox" {{ myTest.sect3 }} {{ myTest.sectCheck3 }}/></td>
+		    				<td><input type="checkbox" {{ myTest.sect4 }} {{ myTest.sectCheck4 }}/></td>
+		    				<td><input type="checkbox" {{ myTest.sect5 }} {{ myTest.sectCheck5 }}/></td>
+		    				<td>{{ myTest.idTestRev }}</td>
+		    				<td>{{ myTest.dependency }}</td>
+		    				<td>{{ myTest.assignment }}</td>
+		    				<td>{{ myTest.author }}</td>
+		    				<td>{{ myTest.description }}</td>
+		    				<td>{{ myTest.relDate }}</td>
+		    				<td>{{ myTest.last_update }}</td>
+		    				<td></td>
+		    				<td></td>
 					</tr>
 				{% endfor %}
     </tbody>

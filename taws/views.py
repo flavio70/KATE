@@ -17,11 +17,7 @@ def thread_jenkins():
 	request.session['thread_jenkins']='OK'
 
 def index(request):
-	#request.session['thread_jenkins']='KO'
-	#from thread import thread
-	#thread.start_new_thread ( thread_jenkins())
 	context = RequestContext(request)
-	#context_dict = {'nothing':'nothing','thread_jenkins':request.session['thread_jenkins']}
 	context_dict = {'nothing':'nothing'}
 	if 'login' in request.session:
 		login=request.session['login']
@@ -32,7 +28,7 @@ def index(request):
 def login(request):
 	context = RequestContext(request)
 	fromPage = request.META.get('HTTP_REFERER')
-	context_dict={'fromPage':fromPage}
+	context_dict={'fromPage':'index'}
 	return render_to_response('taws/login.html',context_dict,context)
 	#render_template_block(get_template("taws/template_menu.html"),'body',context)
 
@@ -1618,8 +1614,8 @@ def modify_job(request):
 
 
 	job_name=request.GET.get('jobName','')
-	suite_name=request.GET.get('suite_name','suite')
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
+	savingStr=request.POST.get('savingStr','')
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
@@ -1633,58 +1629,74 @@ def modify_job(request):
 	localString=""
 	#localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
 	localPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']
-	if os.path.isfile(localPath+suite_name+'.txt'):
-		localSuite = open(localPath+suite_name+'.txt',"r")
+
+	if savingStr != '':
+		localSuite = open(localPath+'suite.txt',"w")
+		savingStringBody=''
+		for myString in savingStr.split('$'):
+			tempStr=myString.split('#')
+			savingStringBody+=tempStr[0]
+			if tempStr[1][0]=='2':savingStringBody+=' --DUTSet'
+			if tempStr[1][1]=='2':savingStringBody+=' --testSet'
+			if tempStr[1][2]=='2':savingStringBody+=' --testBody'
+			if tempStr[1][3]=='2':savingStringBody+=' --testClean'
+			if tempStr[1][4]=='2':savingStringBody+=' --DUTClean'
+			savingStringBody+='\n'
+		localSuite.write(savingStringBody[0:-1])
+		localSuite.close()
+
+
+	if os.path.isfile(localPath+'suite.txt'):
+		localSuite = open(localPath+'suite.txt',"r")
 		suiteFile=localSuite.read()
 		localSuite.close() 
 
-	suiteAry=[]
-	for f in glob.glob(localPath+'*.txt'):
-		suiteAry.append({'suiteName':ntpath.basename(f),'suiteAbs':f})
-    
-    
-	for f in glob.glob(localPath+'*.py'):
+  
+	for f in sorted(glob.glob(localPath+'*.py')):
 		if os.path.isfile(f+'.prs'):
 			iteration=ntpath.basename(f).split('_')[1]
 			myRecordSet.execute("select * from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_TestRev="+iteration+" group by id_TestRev")
 			row=myRecordSet.fetchone()
 
-			active=""
-			tempActive=suiteFile.split(f)
-			if len(tempActive)>0:
-				active="checked"
-				tempSect=tempActive[1].split('\n')
-     
-			testString.append({'idTestRev':(str(row['id_TestRev'])),
+			myDict={'idTestRev':f,
 				'product':row['product'],
 				'sw_rel_name':row['sw_rel_name'],
 				'area_name':row['area_name'],
 				'tps':row['tps'].replace('!','\r\n'),
 				'test_name':ntpath.basename(f),
-  			'duration':str(row['duration']),
-  			'metric':str(row['metric']),
-  			'topology':row['topology'],
-  			'dependency':row['dependency'],
-  			'author':row['author'],
-  			'description':row['description'],
-  			'last_update':str(row['last_update']),
-  			'sect1':'disabled' if row['run_section'][0]==0 else '',
-  			'sect2':'disabled' if row['run_section'][1]==0 else '',
-  			'sect3':'disabled' if row['run_section'][2]==0 else '',
-  			'sect4':'disabled' if row['run_section'][3]==0 else '',
-  			'sect5':'disabled' if row['run_section'][4]==0 else '',
-   			'sectCheck1':'checked' if tempSect[0].rfind('--DUTSet')>=0 or tempSect[0].rfind(' --')<0 else '',
-  			'sectCheck2':'checked' if tempSect[0].rfind('--testSet')>=0 or tempSect[0].rfind(' --')<0 else '',
-  			'sectCheck3':'checked' if tempSect[0].rfind('--testBody')>=0 or tempSect[0].rfind(' --')<0 else '',
-  			'sectCheck4':'checked' if tempSect[0].rfind('--testClean')>=0 or tempSect[0].rfind(' --')<0 else '',
-  			'sectCheck5':'checked' if tempSect[0].rfind('--DUTClean')>=0 or tempSect[0].rfind(' --')<0 else '',
- 			  'lab':row['lab'],
-  			'revision':row['revision'],
-        'active':active})
+	  			'duration':str(row['duration']),
+	  			'metric':str(row['metric']),
+	  			'topology':row['topology'],
+	  			'dependency':row['dependency'],
+	  			'author':row['author'],
+	  			'description':row['description'],
+	  			'last_update':str(row['last_update']),
+	  			'sect1':'disabled' if row['run_section'][0]==0 else '',
+	  			'sect2':'disabled' if row['run_section'][1]==0 else '',
+	  			'sect3':'disabled' if row['run_section'][2]==0 else '',
+	  			'sect4':'disabled' if row['run_section'][3]==0 else '',
+	  			'sect5':'disabled' if row['run_section'][4]==0 else '',
+	 			'lab':row['lab'],
+	  			'revision':row['revision']}
+
+			active=""
+			tempActive=suiteFile.split(f)
+			if len(tempActive)>1:
+				active="checked"
+				tempSect=tempActive[1].split('\n')
+				myDict.update({'sectCheck1':'checked' if tempSect[0].rfind('--DUTSet')>=0 or tempSect[0].rfind(' --')<0 else '',
+		  			'sectCheck2':'checked' if tempSect[0].rfind('--testSet')>=0 or tempSect[0].rfind(' --')<0 else '',
+		  			'sectCheck3':'checked' if tempSect[0].rfind('--testBody')>=0 or tempSect[0].rfind(' --')<0 else '',
+		  			'sectCheck4':'checked' if tempSect[0].rfind('--testClean')>=0 or tempSect[0].rfind(' --')<0 else '',
+		  			'sectCheck5':'checked' if tempSect[0].rfind('--DUTClean')>=0 or tempSect[0].rfind(' --')<0 else '',
+					'active':active})
+
+     
+			testString.append(myDict)
       
 
 	#return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
-	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':testString,'suite_name':suite_name+'.txt','suiteAry':suiteAry}
+	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':testString,'debug':''}
 
 	return render_to_response('taws/modify_job.html',context_dict,context)
 
