@@ -241,30 +241,63 @@ function jsaveFile2(suiteType){
 	}
 
 }
-function saveLocalSuite(){
-	savingString=''
+function saveLocalSuite(develop){
+	develop = develop || '';
+	savingString='';
 	for(k=0;k<testBundleTable.rows().data().length;k++){
-		savingString+=testBundleTable.row(k).data().testId+'#';
-		sect1=0;
-		sect2=0;
-		sect3=0;
-		sect4=0;
-		sect5=0;
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
-		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
+		if(develop==''||document.getElementById('testTable').rows[k+2].cells[0].firstChild.checked){
+			savingString+=testBundleTable.row(k).data().testId+'#';
+			sect1=0;
+			sect2=0;
+			sect3=0;
+			sect4=0;
+			sect5=0;
+			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
+			savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
+		}
 	}
 	savingString=savingString.slice(0,-1)
 	//alert('SAVE'+savingString);
-	doAccess('saveLocal');
+	if(develop==''){doAccess('saveLocal');}
+		else{selectTest.savingStr.value=savingString;selectTest.submit();}
+}
+
+function saveTunedSuite(){
+	savingString='';
+	for(k=0;k<document.getElementById('testTableBody').rows.length;k++){
+		if(document.getElementById('testTableBody').rows[k].cells[0].firstChild.checked){
+			savingString+=document.getElementById('testTableBody').rows[k].id+'#';
+			sect1=0;
+			sect2=0;
+			sect3=0;
+			sect4=0;
+			sect5=0;
+			if(!(document.getElementById('testTableBody').rows[k].cells[8].firstChild.disabled)){sect1+=1;}
+			if(!(document.getElementById('testTableBody').rows[k].cells[9].firstChild.disabled)){sect2+=1;}
+			if(!(document.getElementById('testTableBody').rows[k].cells[10].firstChild.disabled)){sect3+=1;}
+			if(!(document.getElementById('testTableBody').rows[k].cells[11].firstChild.disabled)){sect4+=1;}
+			if(!(document.getElementById('testTableBody').rows[k].cells[12].firstChild.disabled)){sect5+=1;}
+			if(document.getElementById('testTableBody').rows[k].cells[8].firstChild.checked){sect1+=1;}
+			if(document.getElementById('testTableBody').rows[k].cells[9].firstChild.checked){sect2+=1;}
+			if(document.getElementById('testTableBody').rows[k].cells[10].firstChild.checked){sect3+=1;}
+			if(document.getElementById('testTableBody').rows[k].cells[11].firstChild.checked){sect4+=1;}
+			if(document.getElementById('testTableBody').rows[k].cells[12].firstChild.checked){sect5+=1;}
+			savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
+		}
+	}
+	savingString=savingString.slice(0,-1)
+	//alert('SAVE'+savingString);
+	selectTest.savingStr.value=savingString;
+	selectTest.submit();
 }
 
 function updateTestTableOldGen(tableName,testAry){
@@ -574,7 +607,7 @@ function updateStatsOldGen(totalTable){
 function insertBundleList(numAdd,position){
 	rowNum=testTable.rows('.info').data().length;
 	for(i=0;i<rowNum;i++){
-		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		testCellAry=testTable.rows(testTable.rows('.info')[0][i]).data()[0].testString.split('#');
 		testCellAry[17]=testCellAry[17].replace(/1/g,'2');
 		testString=testCellAry.join('#');
 		addRecordToTable(testString,'testBundleTable','');
@@ -611,8 +644,11 @@ function insertAllBundleList(){
 function removeBundleList(){
 	rowNum=testBundleTable.rows('.info').data().length;
 	for(i=0;i<rowNum;i++){
-		testBundleTable.rows(i).remove().draw();
+		testBundleTable.rows(testBundleTable.rows('.info')[0][i]).remove().draw();
 	}
+	testBundleTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+			    cell.innerHTML = i+1;
+			} );
 	updateStats('cart');
 }
 
@@ -746,20 +782,20 @@ function fillSelect(ary,targetSelect,header,defaultSelection){
 
 function deleteTest(){
 	//myTable=document.getElementById('testTable');
-  deleteList=''
-	
+	deleteList=''
 	rowNum=testTable.rows('.info').data().length;
 	for(i=0;i<rowNum;i++){
-		testCellAry=testTable.rows(i).data()[0].testString.split('#');
+		testCellAry=testTable.rows(testTable.rows('.info')[0][i]).data()[0].testString.split('#');
 		deleteList+=testCellAry[13]+'#';
-		testTable.rows(i).remove().draw();
+		testTable.rows(testTable.rows('.info')[0][i]).remove().draw();
 	}
-  deleteList=deleteList.slice(0,-1);
-  doAccess('deleteTest');
-	updateStats('testBundleTable')
-	colorTable('testBundleTable');
-	//document.getElementById('tuneBtn').disabled=true;
-	//top.principale.document.getElementById('execBtn').disabled=true;
+	testBundleTable.column(1, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+			    cell.innerHTML = i+1;
+			} );
+	
+	deleteList=deleteList.slice(0,-1);
+	doAccess('deleteTest');
+	updateStats('testTable')
 }
 
 function updateTableRow(testString,lineNumber,myTable){
