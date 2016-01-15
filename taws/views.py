@@ -892,6 +892,8 @@ def createRunJenkins(request):
 	import datetime
 	from jenkinsapi.jenkins import Jenkins
 	import mysql.connector
+	import json
+	from django.http import HttpResponseRedirect
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
@@ -899,12 +901,13 @@ def createRunJenkins(request):
 		context_dict={'fromPage':'createRunJenkins'}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	job_name=request.GET.get('jobName')
-	action=request.GET.get('azione')
+	job_name=request.POST.get('jobName')
+	action=request.POST.get('azione')
 	target=request.POST.get('target','')
 	swRelMatrix=[]
 	runID=''
-
+	
+	
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
 	in_file = open(suiteFolder+job_name+'/workspace/nodeList.info',"r")
@@ -937,7 +940,7 @@ def createRunJenkins(request):
 			'packageList':packageList,
 			'eqptName':row['eqptName'],
 			'owner':row['owner'],
-			'id_equipmet':row['id_equipment']})
+			'id_equipment':row['id_equipment']})
 
 	if action == 'runTest':
 		tempTarget=target.split('$')
@@ -954,15 +957,21 @@ def createRunJenkins(request):
 		if (server.has_job(job_name)):
 			job_instance = server.get_job(job_name)
 			job_instance.invoke(securitytoken='tl-token',build_params={'KateRunId':runID})
+		
+		return HttpResponseRedirect('/taws/runJenkins/')
+	else:
+		context_dict={'login':request.session['login'],
+			'job_name':job_name,
+			'action': action,
+			'swRelMatrix':swRelMatrix,
+			'target':target,
+			'runID':runID}
 
-	context_dict={'login':request.session['login'],
-		'job_name':job_name,
-		'action': action,
-		'swRelMatrix':swRelMatrix,
-		'target':target,
-		'runID':runID}
+		#return render(request,'taws/createRunJenkins.html',context_dict)
 
-	return render(request,'taws/createRunJenkins.html',context_dict)
+		return HttpResponse(json.dumps(context_dict),
+							content_type="application/json"
+					)
 
 def add_bench(request):
 
