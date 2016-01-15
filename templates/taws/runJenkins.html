@@ -3,6 +3,9 @@
 {% load static %}
 
 <script>
+
+var benchTable;
+var currJobName;
 $(document).ready(function() { 
 	$('[data-toggle="popover"]').popover(); 
 	document.getElementById('mainTitle').innerHTML='Job Management';
@@ -34,10 +37,189 @@ $(document).ready(function() {
 			}
 			]
 	});//end DataTable
-
+	
+	benchTable = $('#benchTable').DataTable({
+		sScrollY:'380px',
+		sScrollCollapse:true,
+		"columns": [
+				{
+					"data": "type", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "name",
+					"className": "dt-center" 
+				},
+				{
+					"data": "owner", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "swrel", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "SWPSelect", 
+					"className": "dt-center"
+				},
+				{
+					"data": "SWP", 
+					"className": "dt-center",
+					"visible" : false
+				},
+				{
+					"data": "forceLoadCheckbox", 
+					"className": "dt-center"
+				},
+				{
+					"data": "forceLoad", 
+					"className": "dt-center",
+					"visible" : false
+				}]
+	});// end benchTable
+	
 	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 
+	
+	
+	
+	//check if modal is shown and adjust the table column size
+	//workaround for issue found in datatable
+	$('#createRunJenkinsModal').on('shown.bs.modal', function () {
+		console.log('Modal shown going t update columns width ...');
+		benchTable.columns.adjust();
+		console.log('...done!');
+	});
+	
+	
+	
 });// end ready function
+
+
+
+
+function fillSelectCreator(valueStr,myObj,selection){
+		if(valueStr!=''){document.getElementById('swp_'+myObj).disabled=false;}
+			else{document.getElementById('swp_'+myObj).disabled=true;}
+		tempAry1=valueStr.split('%');
+		selectBody='<option>PKG</option>';
+		for(i=0;i<tempAry1.length;i++){
+			tempAry2=tempAry1[i].split('|');
+			selectBody+='<option value="'+tempAry2[1]+'">'+tempAry2[0]+'</option>';
+		}
+		document.getElementById('swp_'+myObj).innerHTML=selectBody;
+	}
+
+
+function runJenkinsJob(jobname,action="",target=""){
+		console.log("Jenkins Job invocation: " + jobname + " action: " + action + " target: " + target); // sanity check
+		$.ajax({
+			url : "/taws/createRunJenkins/", // the endpoint createRunJenkins
+			type : "POST", // http method
+			data: {
+            jobName: jobname,
+            azione: action,
+            target: target,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+			// handle a successful response
+			success : function(json) {
+				//$('#post-text').val(''); // remove the value from the input
+				console.log("jobname: " + json.job_name); // log the returned json to the console
+				console.log("action: " + json.action); // log the returned json to the console
+				console.log("relMatrix: " + json.swRelMatrix); // log the returned json to the console
+				console.log("target: " + json.target); // log the returned json to the console
+				console.log("runID: " + json.runID); // log the returned json to the console
+
+				console.log("success on ajax runJenkinsJob");
+				refreshRunJenkinsModalBody(json);
+				 // another sanity check
+			},
+			// handle a non-successful response
+			error : function(xhr,errmsg,err) {
+				alert(xhr.status + ": " + xhr.responseText) // add the error to the dom
+				console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+			}
+	});
+}
+
+
+function refreshRunJenkinsModalBody(pars) {
+	currJobName = pars.job_name;
+	//update the modal header
+	document.getElementById('runJobModalHeader').innerHTML = pars.job_name + " Settings";
+	//update the benchtable body content
+	benchTable.clear(); // empty the table content
+	// fill table with json data coming from ajax request
+	for (eqpt in pars.swRelMatrix) { 
+		// froe each eqpt found in job settins add a new row
+		if (pars.swRelMatrix[eqpt].packageList != 'None') {
+			tdSwrel = "<select onchange=\"fillSelectCreator(this.value,$(this).closest('tr')[0].id,'');\"><option value=\"\" >REL</option>";
+			tdSWPsel = "<select disabled id=\"swp_" + pars.swRelMatrix[eqpt].id_equipment + "\"><option value=\"\" >PKG</option>";
+			tdforceLoadCheckbox ="<input  id=\"checkbox_" + pars.swRelMatrix[eqpt].id_equipment +  "\" type=\"checkbox\"/>";
+			
+			for (swrel in pars.swRelMatrix[eqpt].packageList ) {
+				packList = pars.swRelMatrix[eqpt].packageList[swrel].packList;
+				swRelList  = pars.swRelMatrix[eqpt].packageList[swrel].swRelList; 
+				tdSwrel = tdSwrel + "<option value=\"" + packList + "\" >"+ swRelList + "</option>";
+			}
+			tdSwrel = tdSwrel + "</select>";
+		
+		} else {
+			tdSwrel = "N.A.";
+			tdSWPsel = "N.A.";
+			tdforceLoadCheckbox ="<input  id=\"checkbox_" + pars.swRelMatrix[eqpt].id_equipment +  "\" type=\"checkbox\" disabled/>";
+		}
+		
+		
+		benchTable.row.add( {
+					"DT_RowId": pars.swRelMatrix[eqpt].id_equipment,
+					"type" : pars.swRelMatrix[eqpt].prodName,
+					"name" : pars.swRelMatrix[eqpt].eqptName,
+					"owner" : pars.swRelMatrix[eqpt].owner,
+					"swrel" : tdSwrel,
+					"SWPSelect" : tdSWPsel,
+					"SWP": "",
+					"forceLoadCheckbox" : tdforceLoadCheckbox,
+					"forceLoad" : ""
+			} ).draw(false);
+	}
+
+	// show the modal containg the updated table
+	$('#createRunJenkinsModal').modal('show');
+	console.log("success on Modal table update");
+	
+}
+
+
+function runCurrentJob() {
+	$('#createRunJenkinsModal').modal('hide');
+		
+		if (currJobName != "") {
+			mytable=document.getElementById('benchTable');
+			tempStr=''
+			for(i=1;i<=benchTable.rows().data().length;i++){
+				swp=0;
+				forceLoad=0;
+				RowId=mytable.rows[i].id;
+				//alert(mytable.rows[i].cells[4].innerHTML);
+				if(mytable.rows[i].cells[3].innerHTML!='N.A.'){
+					swp=document.getElementById('swp_'+RowId).value;
+				}
+				if(document.getElementById('checkbox_'+RowId).disabled==false&&document.getElementById('checkbox_'+RowId).checked==true){
+					forceLoad=1;
+				}
+				tempStr+=RowId+'#'+swp+'#'+forceLoad+'$';
+			}
+			runJob.target.value=tempStr.slice(0,-1);
+			runJob.jobName.value=currJobName;
+			runJob.submit();
+			showalert(currJobName + " has been sent to Jenkins Engine,  bulding ...", "alert-success");
+		} else {
+			showalert("Warning!!! Job Not selected correctly","alert-warning");
+		}
+	}
+
 </script>
 
 
@@ -69,7 +251,8 @@ $(document).ready(function() {
 						<td align=center>{{ job.enabled }}</td>
 						<td align=center>
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="RUN JOB" data-content="RUN your Job, settings required." role="group">
-								<button type="button" onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+$(this).closest('tr')[0].id,'runCreator','height=470,width=900,resizable=no');" class="btn btn-default-xs btn-success"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
+								<!--<button type="button" onclick="newwindow=window.open('/taws/createRunJenkins/?jobName='+$(this).closest('tr')[0].id,'runCreator','height=470,width=900,resizable=no');" class="btn btn-default-xs btn-success"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>-->
+							<button type="button" data-toggle="modal" onClick="runJenkinsJob($(this).closest('tr')[0].id);" class="btn btn-default-xs btn-success"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
 							</div>
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="STOP JOB" data-content="STOP Job execution immediatly. Take care of misconfigurations." role="group">
 								<button type="button" onclick="jobAction.value='stopJob';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-warning"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
@@ -96,6 +279,66 @@ $(document).ready(function() {
 	</form>
 
 </div>
+
+
+
+
+
+<!-- Modal for Jenkins Run Job -->
+<div id="createRunJenkinsModal" class="modal fade" role="dialog">
+	<form name="runJob" action="/taws/createRunJenkins/" method="post" >{% csrf_token %}
+		<input type="hidden" name="target">
+		<input type="hidden" name="azione" value='runTest'>
+		<input type="hidden" name="gowr" value='CONTINUE'>
+		<input type="hidden" value="{{ job_name }}" name="jobName">
+		<input type="hidden" value="" name="suiteTime">
+		<div class="modal-dialog" style="width:830px;height:680px;">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title" id="runJobModalHeader"></h4>
+				</div>
+				<div class="modal-body">
+					<table class="table table-striped table-hover table-condensed" cellspacing="0" id="benchTable" style="width:798px">
+						<thead>
+							<tr>
+								<th>Type</th>
+								<th>Name</th>
+								<th>Owner</th>
+								<th>SW Release</th>
+								<th>SW Package</th>
+								<th></th>
+								<th>Force Load</th>
+								<th></th>
+							</tr>
+						</thead>
+						<!--<tfoot>
+							<tr>
+								<th>Type</th>
+								<th>Name</th>
+								<th>Owner</th>
+								<th>SW Release</th>
+								<th>SW Package</th>
+								<th></th>
+								<th>Force Load</th>
+								<th></th>
+							</tr>
+						</tfoot>-->
+					</table>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-primary" onclick="runCurrentJob();" data-dismiss="modal">Run</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div><!-- end modal -->
+
+<div id="alert_placeholder" style="position:fixed;bottom:1px;z-index:100;width:100%;left:0px;display:none;"></div>
+
+
 {% endblock %}
 
 
