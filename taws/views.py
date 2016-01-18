@@ -1367,8 +1367,8 @@ def viewReport(request):
 					"href:'#STDOUT',"+\
 					"tags:[],"+\
 					"nodes:[{"+\
-					"text:'"+case.find('stdout').text+"',"+\
-					"href:'#"+case.find('stdout').text+"',"+\
+					"text:'"+case.find('stdout').text.replace("'","\\'")+"',"+\
+					"href:'#"+case.find('stdout').text.replace("'","\\'")+"',"+\
 					"tags:[]}]},"
 				if testStatus.rfind('Failed')>=0:
 					counter2+=1
