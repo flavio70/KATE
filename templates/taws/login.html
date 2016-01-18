@@ -1,27 +1,114 @@
 {% extends "taws/main_template.html" %}
 {% block body %}
-<div style="width:390px; height:380px; position:fixed; left:50%; margin-left:-180px; z-index:3; background:url(/static/images/restricted.jpg);">
+
+<style>
+
+.form-control {
+    height: 52px;
+    font-size: 16px;
+}
+
+
+.form-box {
+	margin-top: 35px;
+}
+
+.form-top {
+	overflow: hidden;
+	background: #E3EDED;
+	-moz-border-radius: 5px 5px 0 0; -webkit-border-radius: 5px 5px 0 0; border-radius: 5px 5px 0 0;
+	text-align: left;
+}
+
+.form-top-left {
+	float: left;
+	width: 75%;
+	padding-top: 25px;
+}
+
+.form-top-left h3 { margin-top: 0; }
+
+.form-top-right {
+	float: left;
+	width: 25%;
+	padding-top: 5px;
+	font-size: 66px;
+	color: #ddd;
+	line-height: 100px;
+	text-align: right;
+}
+
+
+.form-top-center {
+	margin:auto;
+	width: 25%;
+	padding-top: 5px;
+	font-size: 66px;
+	color: #8F3C15;
+	line-height: 100px;
+	text-align: center;
+}
+
+
+
+.form-bottom {
+	padding: 25px 25px 30px 25px;
+	background: #E3EDED;
+	-moz-border-radius: 0 0 5px 5px; -webkit-border-radius: 0 0 5px 5px; border-radius: 0 0 5px 5px;
+	text-align: left;
+}
+
+
+
+</style>
+
+<!--<div style="width:390px; height:380px; position:fixed; left:50%; margin-left:-180px; z-index:3; background:url(/static/images/restricted.jpg);">
 	<form name="login" method="post" action="/taws/check_login/">{% csrf_token %}
 
 		<input type="hidden" id="url" name="url" value="{{ fromPage }}">
 
-		<div style="margin-top:145px; height:15px; margin-left:34px; width:220px;color:#fff; font-size:13px;">
-			<p align="left"><strong>Username</strong></p>
+		<div style="margin-top:160px; height:27px; margin-left:30px; width:335px;color:#fff; font-size:13px;padding:0px;">
+			<label for="inputEmail" class="sr-only">UserName</label>
+			<input type="text" name="username" id="username" class="form-control" placeholder="UserName" required autofocus>
 		</div>
 
-		<div style="margin-top:6px; height:27px; margin-left:36px; width:320px;color:#fff; font-size:13px;padding:0px;">
-			<input type="text" name="username" id="username" style="position:absolute;width:314px;height:23px;background-color:#ffffff;font-size:20px; color:#000;border:0px;">
+		<div style="margin-top:25px; height:27px; margin-left:30px; width:335px;color:#fff; font-size:13px;padding:0px;">
+			<label for="inputPassword" class="sr-only">Password</label>
+			<input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
 		</div>
+		
+		<div style="margin-top:40px; height:27px; margin-left:30px; width:335px;color:#fff; font-size:13px;padding:0px;">
+			<button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+		</div>
+		
+	</form>
+</div>-->
 
-		<div style="margin-top:15px; height:15px; margin-left:34px; width:220px;color:#fff; font-size:13px;">
-			<p align="left"><strong>Password</strong></p>
+<div class="row">
+	<div class="col-sm-4 col-sm-offset-4 form-box">
+		<div class="form-top">
+			<!--<div class="form-top-left">
+				<p>Please enter your username and password to log on:</p>
+			</div>-->
+			<div class="form-top-center">
+				<i class="fa fa-lock"></i>
+			</div>
 		</div>
+		<div class="form-bottom">
+			<form name="login" method="post" action="/taws/check_login/">{% csrf_token %}
+				<input type="hidden" id="url" name="url" value="{{ fromPage }}">
+				<div class="form-group">
+					<label class="sr-only" for="form-username">Username</label>
+					<input type="text" name="username" id="username" placeholder="Username..." class="form-username form-control" required autofocus>
+				</div>
+				<div class="form-group">
+					<label class="sr-only" for="form-password">Password</label>
+					<input type="password" id="password" name="password" placeholder="Password..." class="form-password form-control" required>
+				</div>					
+				<button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+			</form>
+		</div>
+	</div>
+</div>
 
-		<div style="margin-top:8px; height:27px; margin-left:36px; width:320px;color:#fff; font-size:13px;padding:0px;">
-			<input type="password" name="password" id="password" style="position:absolute;width:314px;height:23px;background-color:#ffffff;font-size:20px; color:#000;border:0px;">
-		</div>
-
-		<div style="margin-top:35px; height:34px; margin-left:150px; width:90px;">
-			<input type="submit" value="LOGIN" style="position:absolute;width:90px;height:34px;;font-size:20px; color:#000;">
-		</div>
 {% endblock %}

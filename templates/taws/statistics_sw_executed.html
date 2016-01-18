@@ -54,7 +54,10 @@
 }
 </style>
 
-<!--<script type="text/javascript" src="{% static "js/colorjizz.js" %}"></script>-->
+<!--<script type="text/javascript" src="{% static "js/RGraph/RGraph.common.core.js" %}"></script>
+<script type="text/javascript" src="{% static "js/RGraph/RGraph.rose.js" %}"></script>
+<script type="text/javascript" src="{% static "js/RGraph/RGraph.common.dynamic.js" %}"></script>
+<script type="text/javascript" src="{% static "js/RGraph/RGraph.common.tooltips.js" %}"></script>-->
 <script>
 
 var domainTable;
@@ -429,6 +432,28 @@ var currentView = 'QLT';
 
 
 
+/* var rose = new RGraph.Rose({
+            id: 'cvs',
+            data: [[3,5],[6,7],[3,10]],
+            options: {
+                margin: 5,
+                colors: ['Gradient(#afa:green)','gradient(#faa:red)'],
+                variant: 'stacked',
+                labelsAxes: 'n',
+                labelsBoxed: false,
+                labelsCount:1,
+                backgroundAxes: false,
+                labels: ['Bill','Kevin','Luis'],
+                tooltips:['3','5','6','7','3','10'],
+                textSizeScale: 12
+                
+            }
+        }).draw();
+*/
+
+
+
+
 	});// end ready function
  
 
@@ -445,9 +470,6 @@ var currentView = 'QLT';
 		<input type="hidden" name="id_pack1_val" value="{{val_pack1}}" />
 		<input type="hidden" name="id_pack2_val" value="{{val_pack2}}" />
 		<input type="hidden" name="id_pack3_val" value="{{val_pack3}}" />
-		
-
-
 		<div class="row">
 			<div style="width:100%; margin-top:20px;" class="tab-pane" id="{{ tab.domain }}-tab">
 				
@@ -640,9 +662,18 @@ var currentView = 'QLT';
 				</div>-->
 				
 				
-				
+			<!-- div for rose graph evaluation
+			<div class="col-md-6" id="placeholder" style="width:400px;height:300px">
+				<canvas id="cvs" width="400" height="300"></canvas>
+			</div>-->
+			
 			</div>
 		</div>
+		
+		
+		
+		
+		
 	</form>
 </div>
 
