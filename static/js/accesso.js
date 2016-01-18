@@ -458,9 +458,9 @@ function doAccess(myAction){
 				//product:document.getElementById('product').options[document.getElementById('product').selectedIndex].text,
 				//domain:document.getElementById('domain').options[document.getElementById('domain').selectedIndex].text,
 				//area:document.getElementById('area').options[document.getElementById('area').selectedIndex].text
-				product:$('#product li a').text(),
-				domain:$('#domain li a').text(),
-				area:$('#area li a').text()
+				product:document.getElementById('createTestProductValue').value,
+				domain:document.getElementById('createTestDomainValue').value,
+				area:document.getElementById('createTestAreaValue').value
 				},
 			success: createTest,
 			error: function(xhr, textStatus, errorThrown) {
