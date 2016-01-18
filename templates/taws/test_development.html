@@ -715,8 +715,37 @@ $(document).ready(function() {
 	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'right','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 	$('[data-toggle="popover-left"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
-} );
 
+	
+	
+	
+	
+	
+	
+	} );
+
+	
+	
+	
+	
+	
+	
+	$(document).on('click', '#product li a', function () {
+    console.log("Product Selected Option:"+$(this).text());
+    $('#createTestProductValue').val($(this).text());
+	});
+	
+	$(document).on('click', '#domain li a', function () {
+    console.log("Domain Selected Option:"+$(this).text());
+    $('#createTestDomainValue').val($(this).text());
+	});
+	
+	
+	$(document).on('click', '#area li a', function () {
+    console.log("Area Selected Option:"+$(this).text());
+    $('#createTestAreaValue').val($(this).text());
+	});
+	
 </script>
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
@@ -875,6 +904,10 @@ $(document).ready(function() {
 		<input type="hidden" value="" name="azione">
 		<input type="hidden" value="" id="formpresetID">
 		<input type="hidden" value="" id="formtopologyID">
+		<input type="hidden" value="" id="createTestProductValue">
+		<input type="hidden" value="" id="createTestDomainValue">
+		<input type="hidden" value="" id="createTestAreaValue">
+
 		<div class="modal-dialog" style="width:75%">
 			<!-- Modal content-->
 			<div class="modal-content">

@@ -2529,7 +2529,12 @@ def accesso(request):
 			if myTest.isdigit():
 				pass
 			else:
+				try:
+					os.remove(os.readlink(myTest))
+				except:
+					pass
 				os.remove(myTest)
+				os.remove(myTest + '.prs')
 				creationReport+='Test '+myTest+' successfully deleted\n'
 
 		return  JsonResponse({'creationReport':creationReport}, safe=False)
