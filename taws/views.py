@@ -1272,6 +1272,54 @@ def bench(request):
 
 	return render(request,'taws/bench.html',context_dict)
 
+
+
+  
+def getProducts(recordSet,request):
+  print('calling getProducts funct...')
+  recordSet.execute("SELECT * FROM KATE.T_PROD where id_prod <> 0")
+  productAry=[{'productId':row["id_prod"],'product':row["product"]} for row in recordSet]
+
+  return productAry
+   
+def getReleases(recordSet,request):
+ 
+  product = request.POST.get('selectedProduct','')
+  print('calling getReleases funct for ' + str(product) + ' ...')
+  
+  recordSet.execute("SELECT id_sw_rel,sw_rel_name from T_DOMAIN join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+ str(product) + "' group by id_sw_rel")
+  swAry=[{'swName':row["sw_rel_name"],'swID':row["id_sw_rel"]} for row in recordSet]
+  
+  return swAry
+  
+
+    
+def getDomains(recordSet,request):
+  
+  product = request.POST.get('selectedProduct','')
+  release = request.POST.get('selectedRelease','')
+  
+  print('calling getDomains funct for ' + str(product) + ' release ' + str(release) + ' ...')
+  
+  
+  recordSet.execute("SELECT id_scope,description FROM T_SCOPE join T_DOMAIN  on (T_SCOPE_id_scope = id_scope) join T_PROD on (T_PROD_id_prod = id_prod) join T_SW_REL on ( T_SW_REL_id_sw_rel = id_sw_rel) where product = '" + str(product) + "' and  sw_rel_name = '" + str(release) + "' group by id_scope")
+  domainAry=[{'domainName':row["description"],'domainID':row["id_scope"]} for row in recordSet]
+  return domainAry
+    
+def getArea(recordSet,request):
+  product = request.POST.get('selectedProduct','')
+  release = request.POST.get('selectedRelease','')
+  domain = request.POST.get('selectedDomain','')
+  
+  print('calling getDomains funct for ' + str(product) + ' release ' + str(release) + ' domain ' + str(domain) + ' ...')
+  
+  
+  
+  recordSet.execute("SELECT id_area,area_name FROM T_AREA join T_DOMAIN  on (T_area_id_area = id_area) join T_SCOPE on (T_SCOPE_id_scope = id_scope) join T_PROD on (T_PROD_id_prod = id_prod) join T_SW_REL on ( T_SW_REL_id_sw_rel = id_sw_rel) where product = '" + str(product) + "' and sw_rel_name = '" + str(release) + "' and description = '" + str(domain) + "' group by id_area")
+  areaAry=[{'areaName':row["area_name"],'areaID':row["id_area"]} for row in recordSet]
+  return areaAry
+
+
 def createNewTest(request):
 
   import mysql.connector
@@ -1286,8 +1334,20 @@ def createNewTest(request):
   test_name=request.GET.get('testName')
   username=request.session['login']
   
+  phase=request.POST.get('phase','')
+  selectedProduct=request.POST.get('selectedProduct','')
+  
+  
   dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
   myRecordSet = dbConnection.cursor(dictionary=True)
+
+  
+
+
+  
+  runPhase = {'product' : getProducts, 'release': getReleases, 'domain': getDomains, 'area': getArea}
+  
+  queryRes=runPhase[phase](myRecordSet,request)
 
   myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
   userPreset=[{'userPresetName':row["description"],'userPresetID':row["id_preset"]} for row in myRecordSet]
@@ -1295,13 +1355,26 @@ def createNewTest(request):
   myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) order by T_SCOPE.description")
   topoAry=[{'topoID':row["id_topology"],'topoName':row["title"]} for row in myRecordSet]
 
-  myRecordSet.execute("select product,group_concat(scope_area separator '@') as productConcat from (select product,concat(T_SCOPE.description,'?',group_concat(distinct area_name order by area_name separator '%')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) group by product,T_SCOPE.description order by product asc,T_SCOPE.description asc) as scope_area group by product order by product asc")
-  productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
+  #myRecordSet.execute("select product,group_concat(scope_area separator '@') as productConcat from (select product,concat(T_SCOPE.description,'?',group_concat(distinct area_name order by area_name separator '%')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) group by product,T_SCOPE.description order by product asc,T_SCOPE.description asc) as scope_area group by product order by product asc")
+  #productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
   
+  
+  #myRecordSet.execute("SELECT id_sw_rel,sw_rel_name from T_DOMAIN join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='1850TSS320' group by id_sw_rel")
+  #swAry=[{'swName':row["sw_rel_name"],'swID':row["id_sw_rel"]} for row in myRecordSet]
+
+ 
+  
+  #context_dict={'login':request.session['login'],
+  #  'userPreset':userPreset,
+  #  'topoAry':topoAry,
+  #  'productAry':productAry,
+  #  'swAry':swAry}
+
   context_dict={'login':request.session['login'],
-    'userPreset':userPreset,
-    'topoAry':topoAry,
-    'productAry':productAry}
+     'phase':phase,
+     'userPreset':userPreset,
+     'topoAry':topoAry,
+     'queryRes':queryRes}
 
   #return render(request,'taws/createNewTest.html',context_dict)
   return HttpResponse(json.dumps(context_dict),

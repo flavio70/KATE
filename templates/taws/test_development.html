@@ -39,14 +39,14 @@
 <script>
 
 
-var jsonProductAry, jsonTopoAry, jsonUserPreset;
+var jsonProductAry, jsonTopoAry, jsonUserPreset, jsonSWAry, selectedProduct;
 var myProduct;
 var presetName = new Array();
 var presetID = new Array();
 
 
 function checkFields(){
-    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('productbutton').innerHTML.match('Product')==null)&&(document.getElementById('domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('areabutton').innerHTML.match('Area')==null)){
+    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('Productbutton').innerHTML.match('Product')==null)&&(document.getElementById('releasebutton').innerHTML.match('SW Release')==null)&&(document.getElementById('Domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('Areabutton').innerHTML.match('Area')==null)){
       document.getElementById('createBTN').disabled=false;
     }else{
       document.getElementById('createBTN').disabled=true;
@@ -55,13 +55,14 @@ function checkFields(){
 
   
 
-	function fillPreset(myId){
-    document.getElementById('selectPresetbutton').disabled=false;
+function fillPreset(myId){
+    document.getElementById('selectPresetbutton').disabled=true;
     document.getElementById('selectPresetbutton').innerHTML= 'Select Preset <span class="caret"></span>';
     document.getElementById('formtopologyID').value=myId;
     while(document.getElementById('selectPreset').hasChildNodes()){
 			document.getElementById('selectPreset').removeChild(document.getElementById('selectPreset').lastChild);
 		}
+		childCount = false;
     for(i=0;i<presetName.length;i++){
       tempPreset=presetName[i].split('[');
       tempPreset=tempPreset[1].split(']');
@@ -87,11 +88,16 @@ function checkFields(){
 								doAccess('getPresetTemplate');};
 
 							li.appendChild(link);
-							document.getElementById('selectPreset').appendChild(li);  
+							document.getElementById('selectPreset').appendChild(li);
+							childCount = true
 
         }
       }
     }
+    
+    if (childCount) {
+				document.getElementById('selectPresetbutton').disabled=false;
+			}
  
   }  
   
@@ -133,25 +139,43 @@ function fillSelectTestCreator(valueStr,myselect,target,parent){
 
 
 
-function newTest(){
+function newTest(phase){
 		//alert('test');
 		//newTestform.action='/taws/createNewTest/';
 		//newTestform.submit();
 		console.log("newTest function invocation") // sanity check
+		
+		if (phase == 'product') {
+			document.getElementById('Productbutton').disabled=true;
+			document.getElementById('Domainbutton').disabled=true;
+			document.getElementById('Areabutton').disabled=true;
+			document.getElementById('releasebutton').disabled=true;
+		}
+		
+		
+		//console.log ("calling phase: " + phase + " product: " + selectedProduct )
 		$.ajax({
 			url : "/taws/createNewTest/", // the endpoint
 			type : "POST", // http method
-			//data : { the_post : $('#post-text').val() }, // data sent with the post request
+			data : { phase : phase,
+							selectedProduct : document.getElementById('createTestProductValue').value,
+							selectedRelease : document.getElementById('createTestReleaseValue').value,
+							selectedDomain : document.getElementById('createTestDomainValue').value,
+							csrfmiddlewaretoken: '{{ csrf_token }}',
+							}, // data sent with the post request
 			// handle a successful response
 			success : function(json) {
 				//document.getElementById('newTestModalBody').innerHTML=json;
 					//$('#post-text').val(''); // remove the value from the input
-					console.log(json.topoAry); // log the returned json to the console
-					jsonProductAry = json.productAry;
-					jsonTopoAry = json.topoAry;
-					jsonUserPreset = json.userPreset;
-					refreshTestModalBody();
-					console.log("success"); // another sanity check
+					//console.log(json.topoAry); // log the returned json to the console
+					//jsonProductAry = json.productAry;
+					//jsonTopoAry = json.topoAry;
+					//jsonUserPreset = json.userPreset;
+					//jsonSWAry = json.swAry;
+					//console.log(jsonSWAry);
+					refreshTestModalBodyN(phase,json);
+					console.log(json);
+					console.log("Ajax success"); // another sanity check
 			},
 			// handle a non-successful response
 			error : function(xhr,errmsg,err) {
@@ -164,14 +188,217 @@ function newTest(){
 
 
 
+function refreshTestModalBodyN(phase,json) {
+
+
+	document.getElementById('createBTN').disabled=true;
+	
+	
+	
+	switch(phase) {
+		
+		case 'product':
+			presetName = [];
+			presetID = [];
+			// empty the TestName input text option
+			document.getElementById('testName').value="";
+			document.getElementById('preview').value="";
+		
+			// empty the product modal options
+			while(document.getElementById('Product').hasChildNodes()){
+				document.getElementById('Product').removeChild(document.getElementById('Product').lastChild);
+			}
+			document.getElementById('Productbutton').disabled=true;
+			document.getElementById('releasebutton').disabled=true;
+			document.getElementById('releasebutton').innerHTML='SW Release <span class="caret"></span>';
+			document.getElementById('Domainbutton').disabled=true;
+			document.getElementById('Domainbutton').innerHTML='Domain <span class="caret"></span>';
+			document.getElementById('Areabutton').disabled=true;
+			document.getElementById('Areabutton').innerHTML='Area <span class="caret"></span>';
+			document.getElementById('Productbutton').innerHTML='Product <span class="caret"></span>';
+		
+			for (myItem in json.queryRes) { 
+		
+				var li = document.createElement("li");
+				var link = document.createElement("a");             
+				var text = document.createTextNode(json.queryRes[myItem].product);
+			
+				link.appendChild(text);
+				link.href = "#";
+				link.id = json.queryRes[myItem].productId;
+				link.onclick = function() {checkFields(); document.getElementById('Productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
+				li.appendChild(link);
+				document.getElementById('Product').appendChild(li);    
+			
+			}
+		
+			if (json.queryRes.length > 0) {
+				document.getElementById('Productbutton').disabled=false;
+			
+			
+			
+				// reset topology optons
+				while(document.getElementById('selectTopo').hasChildNodes()){
+					document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
+				}
+				document.getElementById('selectTopobutton').innerHTML= 'Select Topology <span class="caret"></span>';
+				
+				while(document.getElementById('selectPreset').hasChildNodes()){
+					document.getElementById('selectPreset').removeChild(document.getElementById('selectPreset').lastChild);
+				}
+				document.getElementById('selectPresetbutton').innerHTML= 'Select Preset <span class="caret"></span>';
+				document.getElementById('selectPresetbutton').disabled=true;	
+				//fill option for topology
+				for (myItem in json.topoAry) { 
+					//var addItem = document.createElement('option');
+					//addItem.text = jsonTopoAry[myItem].topoName;
+					//addItem.value = jsonTopoAry[myItem].topoID;
+					//document.getElementById('selectTopo').add(addItem);
+					
+					var li2 = document.createElement("li");
+					var link2 = document.createElement("a");             
+					var text2 = document.createTextNode(json.topoAry[myItem].topoName);
+					
+					link2.appendChild(text2);
+					link2.href = "#";
+					link2.id = json.topoAry[myItem].topoID;
+					link2.onclick = function() { fillPreset(this.id); document.getElementById('selectTopobutton').innerHTML= this.text + ' <span class="caret"></span>'};
+					li2.appendChild(link2);
+					document.getElementById('selectTopo').appendChild(li2);    
+					
+			
+					
+				}
+				
+				for (myItem in json.userPreset) {
+					presetName.push(json.userPreset[myItem].userPresetName);
+					presetID.push(json.userPreset[myItem].userPresetID);
+				}
+			
+			}
+	
+			
+			break;
+			
+		case 'release':
+			//empty the release modal options
+			while(document.getElementById('testRelease').hasChildNodes()){
+				document.getElementById('testRelease').removeChild(document.getElementById('testRelease').lastChild);
+			}
+			document.getElementById('releasebutton').disabled=true;
+			document.getElementById('releasebutton').innerHTML='SW Release <span class="caret"></span>';
+			document.getElementById('Domainbutton').disabled=true;
+			document.getElementById('Domainbutton').innerHTML='Domain <span class="caret"></span>';
+			document.getElementById('Areabutton').disabled=true;
+			document.getElementById('Areabutton').innerHTML='Area <span class="caret"></span>';
+		
+		
+			for (myItem in json.queryRes) { 
+			
+					var li = document.createElement("li");
+					var link = document.createElement("a");             
+					var text = document.createTextNode(json.queryRes[myItem].swName);
+				
+					link.appendChild(text);
+					link.href = "#";
+					link.id = json.queryRes[myItem].swID;
+					link.onclick = function() {checkFields(); document.getElementById('releasebutton').innerHTML= this.text + ' <span class="caret"></span>'};
+					li.appendChild(link);
+					document.getElementById('testRelease').appendChild(li);    
+				
+				}
+			
+			if (json.queryRes.length > 0) {
+				document.getElementById('releasebutton').disabled=false;
+			}
+			
+		
+			break;
+			
+		case 'domain':
+			//empty the domain modal options
+			while(document.getElementById('Domain').hasChildNodes()){
+				document.getElementById('Domain').removeChild(document.getElementById('Domain').lastChild);
+			}
+			document.getElementById('Domainbutton').disabled=true;
+			document.getElementById('Domainbutton').innerHTML='Domain <span class="caret"></span>';
+			document.getElementById('Areabutton').disabled=true;
+			document.getElementById('Areabutton').innerHTML='Area <span class="caret"></span>';
+			
+			
+			for (myItem in json.queryRes) { 
+			
+					var li = document.createElement("li");
+					var link = document.createElement("a");             
+					var text = document.createTextNode(json.queryRes[myItem].domainName);
+				
+					link.appendChild(text);
+					link.href = "#";
+					link.id = json.queryRes[myItem].domainID;
+					link.onclick = function() {checkFields(); document.getElementById('Domainbutton').innerHTML= this.text + ' <span class="caret"></span>'};
+					li.appendChild(link);
+					document.getElementById('Domain').appendChild(li);    
+				
+				}
+			
+				if (json.queryRes.length > 0) {
+					document.getElementById('Domainbutton').disabled=false;
+				}
+			
+			break;
+			
+		case 'area':
+			//empty the Area modal options
+			while(document.getElementById('Area').hasChildNodes()){
+				document.getElementById('Area').removeChild(document.getElementById('Area').lastChild);
+			}
+			document.getElementById('Areabutton').disabled=true;
+			document.getElementById('Areabutton').innerHTML='Area <span class="caret"></span>';
+		
+		
+			for (myItem in json.queryRes) { 
+			
+				var li = document.createElement("li");
+				var link = document.createElement("a");             
+				var text = document.createTextNode(json.queryRes[myItem].areaName);
+				
+				link.appendChild(text);
+				link.href = "#";
+				link.id = json.queryRes[myItem].areaID;
+				link.onclick = function() {checkFields(); document.getElementById('Areabutton').innerHTML= this.text + ' <span class="caret"></span>'};
+				li.appendChild(link);
+				document.getElementById('Area').appendChild(li);    
+				
+			}
+			
+			if (json.queryRes.length > 0) {
+				document.getElementById('Areabutton').disabled=false;
+			}
+	
+		
+			break;
+	
+	}
+
+	
+}
+
+
+
+
 function refreshTestModalBody() {
 	//reset all modal options
-	while(document.getElementById('product').hasChildNodes()){
-		document.getElementById('product').removeChild(document.getElementById('product').lastChild);
+	while(document.getElementById('Product').hasChildNodes()){
+		document.getElementById('Product').removeChild(document.getElementById('Product').lastChild);
 	}
 
 	while(document.getElementById('selectTopo').hasChildNodes()){
 		document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
+	}
+	
+	
+	while(document.getElementById('testRelease').hasChildNodes()){
+		document.getElementById('testRelease').removeChild(document.getElementById('testRelease').lastChild);
 	}
 	
 	document.getElementById('createBTN').disabled=true;
@@ -187,14 +414,15 @@ function refreshTestModalBody() {
     link.appendChild(text);
     link.href = "#";
     link.id = jsonProductAry[myItem].productConcat;
-    link.onclick = function() { fillSelectTestCreator(link.id,'domain','area',''); checkFields(); document.getElementById('productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
+    link.onclick = function() { fillSelectTestCreator(link.id,'Domain','Area',''); checkFields(); document.getElementById('Productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
     li.appendChild(link);
-    document.getElementById('product').appendChild(li);    
+    document.getElementById('Product').appendChild(li);    
      
 	}
 	
-	document.getElementById('domainbutton').disabled=true;
-	document.getElementById('areabutton').disabled=true;
+	document.getElementById('Domainbutton').disabled=true;
+	document.getElementById('Areabutton').disabled=true;
+	document.getElementById('releasebutton').disabled=false;
 	//fill option for topology
 	for (myItem in jsonTopoAry) { 
 		//var addItem = document.createElement('option');
@@ -213,9 +441,7 @@ function refreshTestModalBody() {
     li2.appendChild(link2);
     document.getElementById('selectTopo').appendChild(li2);    
     
-    
-    
-    
+ 
      
 	}
 	
@@ -224,7 +450,23 @@ function refreshTestModalBody() {
 		presetID.push(jsonUserPreset[myItem].userPresetID);
 	}
 	
+	for (myItem in jsonSWAry) {
 	
+		var li3 = document.createElement("li");
+		var link3 = document.createElement("a");             
+		var text3 = document.createTextNode(jsonSWAry[myItem].swName);
+    
+		link3.appendChild(text3);
+		link3.href = "#";
+		link3.id = jsonSWAry[myItem].swID;
+		link2.onclick = function() { document.getElementById('releasebutton').innerHTML= this.text + ' <span class="caret"></span>'};
+
+		li3.appendChild(link3);
+		document.getElementById('testRelease').appendChild(li3);    
+	
+	
+	
+	}
 
 }
 
@@ -441,7 +683,7 @@ $(document).ready(function() {
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">\
 					<ul class="nav navbar-nav navbar-left">\
 						<div class="btn-group btn-group-xs" data-toggle="tooltip" title="create New Test" role="group">\
-							<button type="button" data-toggle="modal" title="Create New Test" data-target="#newTestModal" onClick="newTest();" class="btn btn-info navbar-btn-xs"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span>New </button>\
+							<button type="button" data-toggle="modal" title="Create New Test" data-target="#newTestModal" onClick="newTest(\'product\');" class="btn btn-info navbar-btn-xs"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span>New </button>\
 						</div><!-- end btn_group-->\
 						<div class="btn-group btn-group-xs" data-toggle="tooltip" title="remove Selected test from DB" role="group">\
 							<button type="button" data-toggle="popover" title="Delete Test" data-content="Delete selected tests from your Development Environment" onclick="deleteTest();" class="btn btn-default navbar-btn-xs btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Del</button>\
@@ -725,26 +967,28 @@ $(document).ready(function() {
 	} );
 
 	
+$(document).on('click', '#testRelease li a', function () {
+	console.log("Release Selected Option:"+$(this).text());
+	$('#createTestReleaseValue').val($(this).text());
+	newTest('domain');
+});
 	
-	
-	
-	
-	
-	$(document).on('click', '#product li a', function () {
-    console.log("Product Selected Option:"+$(this).text());
-    $('#createTestProductValue').val($(this).text());
+$(document).on('click', '#Product li a', function () {
+	console.log("Product Selected Option:"+$(this).text());
+	$('#createTestProductValue').val($(this).text());
+	newTest('release');
 	});
 	
-	$(document).on('click', '#domain li a', function () {
-    console.log("Domain Selected Option:"+$(this).text());
-    $('#createTestDomainValue').val($(this).text());
-	});
+$(document).on('click', '#Domain li a', function () {
+	console.log("Domain Selected Option:"+$(this).text());
+	$('#createTestDomainValue').val($(this).text());
+	newTest('area');
+});
 	
-	
-	$(document).on('click', '#area li a', function () {
-    console.log("Area Selected Option:"+$(this).text());
-    $('#createTestAreaValue').val($(this).text());
-	});
+$(document).on('click', '#Area li a', function () {
+	console.log("Area Selected Option:"+$(this).text());
+	$('#createTestAreaValue').val($(this).text());
+});
 	
 </script>
 
@@ -907,6 +1151,7 @@ $(document).ready(function() {
 		<input type="hidden" value="" id="createTestProductValue">
 		<input type="hidden" value="" id="createTestDomainValue">
 		<input type="hidden" value="" id="createTestAreaValue">
+		<input type="hidden" value="" id="createTestReleaseValue">
 
 		<div class="modal-dialog" style="width:75%">
 			<!-- Modal content-->
@@ -937,24 +1182,33 @@ $(document).ready(function() {
 								<div class="panel-body">
 
 									<div class="btn-group">
-										<button id = "productbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<button id = "Productbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											Product <span class="caret"></span>
 										</button>
-										<ul class="dropdown-menu col-xs-12" id="product"></ul>
+										<ul class="dropdown-menu col-xs-12" id="Product"></ul>
 									</div>
 									
+									
 									<div class="btn-group">
-										<button id = "domainbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<button id = "releasebutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											SW Release <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu col-xs-12" id="testRelease"></ul>
+									</div>	
+									
+									
+									<div class="btn-group">
+										<button id = "Domainbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											Domain <span class="caret"></span>
 										</button>
-										<ul class="dropdown-menu col-xs-12" id="domain"></ul>
+										<ul class="dropdown-menu col-xs-12" id="Domain"></ul>
 									</div>
 									
 									<div class="btn-group">
-										<button id = "areabutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<button id = "Areabutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											Area <span class="caret"></span>
 										</button>
-										<ul class="dropdown-menu col-xs-12" id="area"></ul>
+										<ul class="dropdown-menu col-xs-12" id="Area"></ul>
 									</div>				
 									
 								</div><!--end panel-body-->
@@ -985,7 +1239,7 @@ $(document).ready(function() {
 							<div class="form-group col-md-8">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Preset View</span>
-									<textarea value="" style="font-size : 8pt;width:100%;height:330px;" id="preview"></textarea>															
+									<textarea value="" style="font-size : 8pt;width:100%;height:358px;" id="preview" onchange="checkFields();"></textarea>															
 								</div>
 							</div>
 							
