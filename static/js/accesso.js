@@ -195,7 +195,7 @@ function doAccess(myAction){
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		//alert(sersverResponse_data['creationReport']);
-		showalert(sersverResponse_data['creationReport'],"alert-success");
+		showalert(sersverResponse_data['creationReport'],sersverResponse_data['creationReportType']);
    		 doAccess('localBrowsing');
 	};
 	var viewTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
