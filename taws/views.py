@@ -1782,6 +1782,91 @@ def modify_job(request):
 
 	return render_to_response('taws/modify_job.html',context_dict,context)
 
+
+def setUserRepo(userId,branch):
+	from git import Repo, RemoteProgress
+	
+	class MyProgressPrinter(RemoteProgress):
+		def update(self, op_code, cur_count, max_count=None, message=''):
+			print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
+	# end
+	
+	#setting the development branch name i.e. '7.2_ippolf_dev' for main branch 7.2 and user ippolf
+	dev_branch = branch + "_" + userId + "_dev"
+	
+	res = "Setting GIT Repository for " + userId + " on branch " + dev_branch + " ..."
+	print(res)
+	repoPath='/users/'+userId+settings.GIT_REPO
+	myRepo=Repo(repoPath)
+	git=myRepo.git
+	
+	#check if the user is already using the dev_branch branch
+	
+	if myRepo.active_branch.name == dev_branch:
+		#no more check, just exit in a right way
+		print("GIT Repository for " + userId + " Already SET on branch " + dev_branch)
+		res = "OK"
+		return res
+	
+	#check if repository is in a clean status
+	#if we have modified files we cannot checkout to master branch and we exit with git status message
+	if myRepo.is_dirty(): return "ERROR !! " + str(git.status())
+	print("checking out the GIT Repository " + repoPath + " to master branch ...")
+	# checkout the master branch and pull the content_type
+	myRepo.head.ref = myRepo.heads.master
+	origin = myRepo.remotes.origin
+	if not origin.exists(): return "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"
+	# try to pull the master branch from origin
+
+	for pull_info in origin.pull(progress=MyProgressPrinter()):
+		print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
+
+	# here the check  the pull result is missing, we are assuming no errors in pull operation
+	
+	
+	# check if release branch already exists
+	bfound=False
+	
+	for myitem in myRepo.heads:
+		if myitem.name == branch:
+			bfound=True
+			break
+	
+	
+	# now checkout the release branch
+	if bfound:
+		myRepo.head.ref = myRepo.heads[branch]
+	else:
+		return " GIT branch " + branch + " doesn't exist. Please align your local GIT Repository"
+	
+	# pull again (maybe not necessary)
+
+	for pull_info in origin.pull(progress=MyProgressPrinter()):
+		print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
+	
+	# check if dev_branch already exists
+	bfound=False
+	
+	for myitem in myRepo.heads:
+		if myitem.name == dev_branch:
+			bfound=True
+			break
+			
+	if bfound:
+		print (dev_branch + " found")
+		myRepo.head.ref = myRepo.heads[dev_branch]
+	else:
+		print (dev_branch + " NOT found")
+		myRepo.create_head(dev_branch)
+		myRepo.head.ref = myRepo.heads[dev_branch]
+		
+	#At this point we are set the Rpository to the correct development branch
+	#we have to align/merge with main release branch?
+	
+	print("GIT Repository for " + userId + " SET on branch " + dev_branch)
+	res = "OK"
+	return res
+
 def accesso(request):
 	from taws.models import TTest,TTestRevs
 	from django.core import serializers
@@ -2536,57 +2621,72 @@ def accesso(request):
 		product=request.POST.get('product','')
 		domain=request.POST.get('domain','')
 		area=request.POST.get('area','')
-
+		release=request.POST.get('release','')
 		username=request.session['login']
-
-		if testName[-4:] != '.py':testName+='.py'
-
-		localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
-		remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
-		if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area):
-			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases'):
-				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases')
-				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases',511)
-			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product):
-				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product)
-				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product,511)
-			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain):
-				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain)
-				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain,511)
-			os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area)
-			os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area,511)
-
-		if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports'):
-			if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace'):
-				os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace')
-				os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace',511)
-			os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports')
-			os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports',511)
-
-     
-		testTemplateFile = open(settings.TEST_TEMPLATE,"r")
-		testTemplate=testTemplateFile.read()
-		testTemplateFile.close()
-      
-		localSuite = open(remotePath,"w")
-		localSuite.write(testTemplate)
-		localSuite.close()
-		os.chmod(remotePath,511)
-
-		localPreset = open(localPath+'.prs',"w")
-		localPreset.write(presetBody)
-		localPreset.close()
-		os.chmod(localPath+'.prs',511)
-
-		if os.path.exists(localPath):shutil.rmtree(localPath)
-
-		os.symlink(remotePath,localPath)
 		
-		creationReport='Test '+remotePath+'.py successfully created.\n'+\
-			'Preset '+localPath+'.py.prs successfully created.\n'+\
-			'Symbolic Link '+localPath+'.py successfully created.\n'
+		#Trying to set the user GIT Repository to the correct deveopmen branch, based on the release used
+		gitRes =setUserRepo(username,release)
+		if (gitRes == "OK"):
+			#in this case the GIT Repository is correctly configured
+			if testName[-4:] != '.py':testName+='.py'
 
-		return  JsonResponse({'creationReport':creationReport}, safe=False)
+			localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
+			remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
+			if os.path.isfile(remotePath):
+				#Test name already exists
+				creationReport='Warning !!, Test '+remotePath+'.py already present in your GIT Repository. Please choose a different TestName'
+				creationReportType='alert-warning'
+			else:
+				#Test doesn'exist, we can proceed
+				
+				if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area):
+					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases'):
+						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases')
+						os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases',511)
+					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product):
+						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product)
+						os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product,511)
+					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain):
+						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain)
+						os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain,511)
+					os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area)
+					os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area,511)
+					
+				if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports'):
+					if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace'):
+						os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace')
+						os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace',511)
+					os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports')
+					os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports',511)
+				
+				testTemplateFile = open(settings.TEST_TEMPLATE,"r")
+				testTemplate=testTemplateFile.read()
+				testTemplateFile.close()
+					
+				localSuite = open(remotePath,"w")
+				localSuite.write(testTemplate)
+				localSuite.close()
+				os.chmod(remotePath,511)
+
+				localPreset = open(localPath+'.prs',"w")
+				localPreset.write(presetBody)
+				localPreset.close()
+				os.chmod(localPath+'.prs',511)
+
+				if os.path.exists(localPath):shutil.rmtree(localPath)
+
+				os.symlink(remotePath,localPath)
+				
+				creationReport='Test '+remotePath+'.py successfully created.\n'+\
+					'Preset '+localPath+'.py.prs successfully created.\n'+\
+					'Symbolic Link '+localPath+'.py successfully created.\n'
+				creationReportType='alert-success'
+		else:
+			#failed to set the GIT Repository, just warning the user about that
+			creationReport=gitRes
+			creationReportType='alert-danger'
+			
+		return  JsonResponse({'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
 
 	if myAction=='deleteTest':
    

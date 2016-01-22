@@ -195,7 +195,7 @@ function doAccess(myAction){
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		//alert(sersverResponse_data['creationReport']);
-		showalert(sersverResponse_data['creationReport'],"alert-success");
+		showalert(sersverResponse_data['creationReport'],sersverResponse_data['creationReportType']);
    		 doAccess('localBrowsing');
 	};
 	var viewTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
@@ -460,7 +460,8 @@ function doAccess(myAction){
 				//area:document.getElementById('area').options[document.getElementById('area').selectedIndex].text
 				product:document.getElementById('createTestProductValue').value,
 				domain:document.getElementById('createTestDomainValue').value,
-				area:document.getElementById('createTestAreaValue').value
+				area:document.getElementById('createTestAreaValue').value,
+			  release:document.getElementById('createTestReleaseValue').value,
 				},
 			success: createTest,
 			error: function(xhr, textStatus, errorThrown) {
