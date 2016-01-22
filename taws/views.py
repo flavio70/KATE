@@ -1782,6 +1782,22 @@ def modify_job(request):
 
 	return render_to_response('taws/modify_job.html',context_dict,context)
 
+
+def setUserRepo(userId,branch):
+	from git import Repo
+	
+	res = "Setting GIT Repository for " + userId + " on branch " + branch + " ..."
+	
+	repoPath='/users/'+userId+settings.GIT_REPO
+	myRepo=Repo(repoPath)
+	git=myRepo.git
+	
+	
+
+	print (res)
+	res = repoPath
+	return res
+
 def accesso(request):
 	from taws.models import TTest,TTestRevs
 	from django.core import serializers
@@ -2536,56 +2552,60 @@ def accesso(request):
 		product=request.POST.get('product','')
 		domain=request.POST.get('domain','')
 		area=request.POST.get('area','')
-
+		release=request.POST.get('release','')
 		username=request.session['login']
-
-		if testName[-4:] != '.py':testName+='.py'
-
-		localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
-		remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
-		if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area):
-			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases'):
-				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases')
-				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases',511)
-			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product):
-				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product)
-				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product,511)
-			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain):
-				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain)
-				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain,511)
-			os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area)
-			os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area,511)
-
-		if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports'):
-			if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace'):
-				os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace')
-				os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace',511)
-			os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports')
-			os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports',511)
-
-     
-		testTemplateFile = open(settings.TEST_TEMPLATE,"r")
-		testTemplate=testTemplateFile.read()
-		testTemplateFile.close()
-      
-		localSuite = open(remotePath,"w")
-		localSuite.write(testTemplate)
-		localSuite.close()
-		os.chmod(remotePath,511)
-
-		localPreset = open(localPath+'.prs',"w")
-		localPreset.write(presetBody)
-		localPreset.close()
-		os.chmod(localPath+'.prs',511)
-
-		if os.path.exists(localPath):shutil.rmtree(localPath)
-
-		os.symlink(remotePath,localPath)
 		
-		creationReport='Test '+remotePath+'.py successfully created.\n'+\
-			'Preset '+localPath+'.py.prs successfully created.\n'+\
-			'Symbolic Link '+localPath+'.py successfully created.\n'
+		gitRes =setUserRepo(username,release)
+		if (gitRes == "OK"):
+			if testName[-4:] != '.py':testName+='.py'
 
+			localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
+			remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
+			if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area):
+				if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases'):
+					os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases')
+					os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases',511)
+				if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product):
+					os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product)
+					os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product,511)
+				if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain):
+					os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain)
+					os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain,511)
+				os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area)
+				os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area,511)
+
+			if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports'):
+				if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace'):
+					os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace')
+					os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace',511)
+				os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports')
+				os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports',511)
+
+			
+			testTemplateFile = open(settings.TEST_TEMPLATE,"r")
+			testTemplate=testTemplateFile.read()
+			testTemplateFile.close()
+				
+			localSuite = open(remotePath,"w")
+			localSuite.write(testTemplate)
+			localSuite.close()
+			os.chmod(remotePath,511)
+
+			localPreset = open(localPath+'.prs',"w")
+			localPreset.write(presetBody)
+			localPreset.close()
+			os.chmod(localPath+'.prs',511)
+
+			if os.path.exists(localPath):shutil.rmtree(localPath)
+
+			os.symlink(remotePath,localPath)
+			
+			creationReport='Test '+remotePath+'.py successfully created.\n'+\
+				'Preset '+localPath+'.py.prs successfully created.\n'+\
+				'Symbolic Link '+localPath+'.py successfully created.\n'
+		else:
+			creationReport=gitRes
+			
 		return  JsonResponse({'creationReport':creationReport}, safe=False)
 
 	if myAction=='deleteTest':

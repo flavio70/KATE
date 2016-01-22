@@ -460,7 +460,8 @@ function doAccess(myAction){
 				//area:document.getElementById('area').options[document.getElementById('area').selectedIndex].text
 				product:document.getElementById('createTestProductValue').value,
 				domain:document.getElementById('createTestDomainValue').value,
-				area:document.getElementById('createTestAreaValue').value
+				area:document.getElementById('createTestAreaValue').value,
+			  release:document.getElementById('createTestReleaseValue').value,
 				},
 			success: createTest,
 			error: function(xhr, textStatus, errorThrown) {
