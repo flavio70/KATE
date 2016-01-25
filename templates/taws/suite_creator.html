@@ -634,6 +634,50 @@ $(document).ready(function() {
 	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 } );
 
+$(document).keyup(function (e) {
+    if(e.which == 17) isCtrl=false;
+}).keydown(function (e) {
+    if(e.which == 17) isCtrl=true;
+    if(e.which == 49 && isCtrl == true) {
+        //run code for CTRL+S -- ie, save!
+	insertBundleList(1,'');
+        return false;
+    }
+});
+
+$(document).keyup(function (e) {
+    if(e.which == 17) isCtrl=false;
+}).keydown(function (e) {
+    if(e.which == 17) isCtrl=true;
+    if(e.which == 50 && isCtrl == true) {
+        //run code for CTRL+S -- ie, save!
+	insertAllBundleList();
+        return false;
+    }
+});
+
+$(document).keyup(function (e) {
+    if(e.which == 17) isCtrl=false;
+}).keydown(function (e) {
+    if(e.which == 17) isCtrl=true;
+    if(e.which == 51 && isCtrl == true) {
+        //run code for CTRL+S -- ie, save!
+	removeBundleList();
+        return false;
+    }
+});
+
+$(document).keyup(function (e) {
+    if(e.which == 17) isCtrl=false;
+}).keydown(function (e) {
+    if(e.which == 17) isCtrl=true;
+    if(e.which == 52 && isCtrl == true) {
+        //run code for CTRL+S -- ie, save!
+	removeAllBundleList();
+        return false;
+    }
+});
+
 </script>
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
