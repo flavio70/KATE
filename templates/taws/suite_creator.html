@@ -678,6 +678,15 @@ $(document).keyup(function (e) {
     }
 });
 
+$(document).keyup(function (e) {
+    if(e.which == 38){moveSelected('up');}
+    if(e.which == 40){moveSelected('down');}
+    if(e.which == 37){moveSelectedEdge('up');}
+    if(e.which == 39){moveSelectedEdge('down');}
+
+});
+
+
 </script>
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
