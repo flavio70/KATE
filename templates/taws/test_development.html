@@ -386,89 +386,6 @@ function refreshTestModalBodyN(phase,json) {
 
 
 
-function refreshTestModalBody() {
-	//reset all modal options
-	while(document.getElementById('Product').hasChildNodes()){
-		document.getElementById('Product').removeChild(document.getElementById('Product').lastChild);
-	}
-
-	while(document.getElementById('selectTopo').hasChildNodes()){
-		document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
-	}
-	
-	
-	while(document.getElementById('testRelease').hasChildNodes()){
-		document.getElementById('testRelease').removeChild(document.getElementById('testRelease').lastChild);
-	}
-	
-	document.getElementById('createBTN').disabled=true;
-	presetName = [];
-	presetID = [];
-	//fill option for product
-	for (myItem in jsonProductAry) { 
-	
-    var li = document.createElement("li");
-    var link = document.createElement("a");             
-    var text = document.createTextNode(jsonProductAry[myItem].product);
-    
-    link.appendChild(text);
-    link.href = "#";
-    link.id = jsonProductAry[myItem].productConcat;
-    link.onclick = function() { fillSelectTestCreator(link.id,'Domain','Area',''); checkFields(); document.getElementById('Productbutton').innerHTML= this.text + ' <span class="caret"></span>'};
-    li.appendChild(link);
-    document.getElementById('Product').appendChild(li);    
-     
-	}
-	
-	document.getElementById('Domainbutton').disabled=true;
-	document.getElementById('Areabutton').disabled=true;
-	document.getElementById('releasebutton').disabled=false;
-	//fill option for topology
-	for (myItem in jsonTopoAry) { 
-		//var addItem = document.createElement('option');
-    //addItem.text = jsonTopoAry[myItem].topoName;
-    //addItem.value = jsonTopoAry[myItem].topoID;
-    //document.getElementById('selectTopo').add(addItem);
-    
-    var li2 = document.createElement("li");
-    var link2 = document.createElement("a");             
-    var text2 = document.createTextNode(jsonTopoAry[myItem].topoName);
-    
-    link2.appendChild(text2);
-    link2.href = "#";
-    link2.id = jsonTopoAry[myItem].topoID;
-    link2.onclick = function() { fillPreset(this.id); document.getElementById('selectTopobutton').innerHTML= this.text + ' <span class="caret"></span>'};
-    li2.appendChild(link2);
-    document.getElementById('selectTopo').appendChild(li2);    
-    
- 
-     
-	}
-	
-	for (myItem in jsonUserPreset) {
-		presetName.push(jsonUserPreset[myItem].userPresetName);
-		presetID.push(jsonUserPreset[myItem].userPresetID);
-	}
-	
-	for (myItem in jsonSWAry) {
-	
-		var li3 = document.createElement("li");
-		var link3 = document.createElement("a");             
-		var text3 = document.createTextNode(jsonSWAry[myItem].swName);
-    
-		link3.appendChild(text3);
-		link3.href = "#";
-		link3.id = jsonSWAry[myItem].swID;
-		link2.onclick = function() { document.getElementById('releasebutton').innerHTML= this.text + ' <span class="caret"></span>'};
-
-		li3.appendChild(link3);
-		document.getElementById('testRelease').appendChild(li3);    
-	
-	
-	
-	}
-
-}
 
 
 function changePerspective(){
@@ -959,11 +876,16 @@ $(document).ready(function() {
 	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 
 	
-	
-	
-	
-	
-	
+	$(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+   
+    
+  });
+
+
 	} );
 
 	
@@ -1153,7 +1075,7 @@ $(document).on('click', '#Area li a', function () {
 		<input type="hidden" value="" id="createTestAreaValue">
 		<input type="hidden" value="" id="createTestReleaseValue">
 
-		<div class="modal-dialog" style="width:75%">
+		<div class="modal-dialog" style="width:75%" data-backdrop="static" data-keyboard="false">
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -1294,7 +1216,31 @@ $(document).on('click', '#Area li a', function () {
 			</div>
 		</div>
 	<!--</form>-->
+	</div>
 </div><!-- end modal -->
+
+
+<!-- Modal for New test Cretion messages -->
+<div id="modal_placeholder" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div id="modal_placeholder-Header" class="modal-header alert-success">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 id="modal_placeholder-Title" class="modal-title">Modal Header</h4>
+			</div>
+			<div id="modal_placeholder-Body" class="modal-body">
+				<p>Some text in the modal.</p>
+			</div>
+			<div class="modal-footer">
+				<!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+			</div>
+		</div>
+	</div>
+</div><!-- end modal -->
+
+
+
 
 {% endblock %}
 

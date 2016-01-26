@@ -1810,7 +1810,7 @@ def setUserRepo(userId,branch):
 	
 	#check if repository is in a clean status
 	#if we have modified files we cannot checkout to master branch and we exit with git status message
-	if myRepo.is_dirty(): return "ERROR !! " + str(git.status())
+	if myRepo.is_dirty(): return str(git.status()).replace('\n','<br>')
 	print("checking out the GIT Repository " + repoPath + " to master branch ...")
 	# checkout the master branch and pull the content_type
 	myRepo.head.ref = myRepo.heads.master
@@ -2636,6 +2636,7 @@ def accesso(request):
 				#Test name already exists
 				creationReport='Warning !!, Test '+remotePath+'.py already present in your GIT Repository. Please choose a different TestName'
 				creationReportType='alert-warning'
+				creationReportTitle='Warning!!'
 			else:
 				#Test doesn'exist, we can proceed
 				
@@ -2681,12 +2682,14 @@ def accesso(request):
 					'Preset '+localPath+'.py.prs successfully created.\n'+\
 					'Symbolic Link '+localPath+'.py successfully created.\n'
 				creationReportType='alert-success'
+				creationReportTitle='Create New Test Done!!'
 		else:
 			#failed to set the GIT Repository, just warning the user about that
 			creationReport=gitRes
 			creationReportType='alert-danger'
+			creationReportTitle='Your GIT TestCase Repository must be manually Updated!!'
 			
-		return  JsonResponse({'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
+		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
 
 	if myAction=='deleteTest':
    
