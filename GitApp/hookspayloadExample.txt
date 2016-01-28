@@ -1,0 +1,356 @@
+
+1 - al push del branch development su origin arriva si attiva un push Hook
+
+x_gitlab_event: Push Hook
+Object Kind: push
+Project Id: 10
+Repo Data: {'git_ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git', 'visibility_level': 0, 'name': 'deliveryTest', 'url': 'git@151.98.52.73:Automation/deliveryTest.git', 'description': 'test project for KATE development', 'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest', 'git_http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git'}
+User Id: 6
+User Name: Flavio Ippolito
+User email: flavio.ippolito@alcatel-lucent.com
+        Repository Name: deliveryTest
+        Repository URL: git@151.98.52.73:Automation/deliveryTest.git
+Calling push event management...
+
+{
+	'commits':
+						[
+							{	
+								'id': 'd67c30734f7719a73d2d0e09d2399a022c2e7196',
+								'author': {
+														'email': 'ippolf@it052016.it.alcatel-lucent.com',
+														'name': 'ippolf'
+													},
+								'message': 'file1 added\n',
+								'timestamp': '2016-01-26T14:22:42+01:00',
+								'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/d67c30734f7719a73d2d0e09d2399a022c2e7196'
+							},
+							{	
+								'id': '7f39ba4600b5bff115f082d137ed6ff7f5032def', 
+								'author': {
+														'email': 'ippolf@it052016.it.alcatel-lucent.com',
+														'name': 'ippolf'
+													},
+								'message': 'added file2\n', 
+								'timestamp': '2016-01-26T14:29:46+01:00',
+								'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/7f39ba4600b5bff115f082d137ed6ff7f5032def'
+							}
+						],
+	'user_id': 6, 
+	'message': None, 
+	'total_commits_count': 2,
+	'user_email': 'flavio.ippolito@alcatel-lucent.com', 
+	'repository': 
+								{
+									'git_ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+									'visibility_level': 0,
+									'name': 'deliveryTest',
+									'url': 'git@151.98.52.73:Automation/deliveryTest.git',
+									'description': 'test project for KATE development',
+									'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest',
+									'git_http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git'
+								},
+	'before': '0000000000000000000000000000000000000000',
+	'user_name': 'Flavio Ippolito',
+	'ref': 'refs/heads/7.2_ippolf_Development',
+	'object_kind': 'push',
+	'checkout_sha': '7f39ba4600b5bff115f082d137ed6ff7f5032def',
+	'project_id': 10,
+	'after': '7f39ba4600b5bff115f082d137ed6ff7f5032def'
+}
+
+
+
+
+
+
+
+2- alla richiesta di merge del branch utente nel branch main si attiva un mergw request hook
+
+(n.b. questo fa riferimento ad un reopen on ad un open)
+
+x_gitlab_event: Merge Request Hook
+Object Kind: merge_request
+Project Id:
+Repo Data: {'url': 'git@151.98.52.73:Automation/deliveryTest.git', 'description': 'test project for KATE development', 'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest', 'name': 'deliveryTest'}
+User Id:
+User Name:
+User email:
+        Repository Name: deliveryTest
+        Repository URL: git@151.98.52.73:Automation/deliveryTest.git
+Calling merge request event management...
+
+{
+	'object_attributes': 
+		{
+			'updated_at': '2016-01-26 13:51:38 UTC',
+			'id': 141,
+			'state': 'reopened', 
+			'source_project_id': 10,
+			'locked_at': None,
+			'source': 
+					{
+						'name': 'deliveryTest',
+						'visibility_level': 0,
+						'web_url': 'http://151.98.52.73:4554/Automation/deliveryTest',
+						'ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+						'namespace': 'Automation',
+						'http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git'
+					},
+			'target':
+					{
+						'name': 'deliveryTest', 
+						'visibility_level': 0, 
+						'web_url': 'http://151.98.52.73:4554/Automation/deliveryTest',
+						'ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+						'namespace': 'Automation',
+						'http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git'
+					},
+			'description': '',
+			'last_commit':
+				{
+					'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/7f39ba4600b5bff115f082d137ed6ff7f5032def',
+					'id': '7f39ba4600b5bff115f082d137ed6ff7f5032def', 
+					'message': 'added file2\n',
+					'timestamp': '2016-01-26T14:29:46+01:00',
+					'author': 
+						{
+							'email': 'ippolf@it052016.it.alcatel-lucent.com',
+							'name': 'ippolf'
+						}
+				},
+			'source_branch': '7.2_ippolf_Development',
+			'title': 'added file2',
+			'milestone_id': None,
+			'target_branch': '7.2',
+			'target_project_id': 10,
+			'merge_status': 'can_be_merged',
+			'created_at': '2016-01-26 13:47:24 UTC',
+			'assignee_id': 12,
+			'action': 'reopen',
+			'updated_by_id': None,
+			'position': 0,
+			'author_id': 6,
+			'iid': 1,
+			'url': 'http://151.98.52.73:4554/Automation/deliveryTest/merge_requests/1'
+		},
+	'user':
+		{
+			'username': 'ippolf',
+			'avatar_url': 'http://www.gravatar.com/avatar/824e550c67e4f2574f7e5d36fc3439ef?s=40&d=identicon',
+			'name': 'Flavio Ippolito'
+		},
+	'object_kind': 'merge_request',
+	'repository': 
+		{
+			'url': 'git@151.98.52.73:Automation/deliveryTest.git',
+			'description': 'test project for KATE development',
+			'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest',
+			'name': 'deliveryTest'
+		}
+	}
+
+
+
+3- alla accettazione (qui automatica) del merge request si attivano due hook un push ed un merge request (per la chiusura)
+se fatto a mano il merge sarebbero separati
+
+x_gitlab_event: Push Hook
+Object Kind: push
+Project Id: 10
+Repo Data: {'git_ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git', 'git_http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git', 'visibility_level': 0, 'url': 'git@151.98.52.73:Automation/deliveryTest.git', 'name': 'deliveryTest', 'description': 'test project for KATE development', 'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest'}
+User Id: 12
+User Name: smotools
+User email: smotools@alcatel-lucent.com
+        Repository Name: deliveryTest
+        Repository URL: git@151.98.52.73:Automation/deliveryTest.git
+Calling push event management...
+{
+	'checkout_sha': '55cfb163bfe03f672b5bf149ca25e53178e83297',
+	'commits': 
+		[
+			{
+				'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/7f39ba4600b5bff115f082d137ed6ff7f5032def',
+				'id': '7f39ba4600b5bff115f082d137ed6ff7f5032def',
+				'message': 'added file2\n',
+				'timestamp': '2016-01-26T14:29:46+01:00',
+				'author':
+					{
+						'email': 'ippolf@it052016.it.alcatel-lucent.com',
+						'name': 'ippolf'
+					}
+			},
+			{
+				'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/55cfb163bfe03f672b5bf149ca25e53178e83297',
+				'id': '55cfb163bfe03f672b5bf149ca25e53178e83297',
+				'message': "Merge branch '7.2_ippolf_Development' into '7.2'\r\n\r\nadded file2\r\n\r\n\r\n\r\nSee merge request !1",
+				'timestamp': '2016-01-26T15:01:48+01:00',
+				'author': 
+					{
+						'email': 'smotools@alcatel-lucent.com',
+						'name': 'smotools'
+					}
+			}
+		],
+ 'before': 'd67c30734f7719a73d2d0e09d2399a022c2e7196',
+ 'total_commits_count': 2,
+ 'ref': 'refs/heads/7.2',
+ 'user_name': 'smotools',
+ 'after': '55cfb163bfe03f672b5bf149ca25e53178e83297',
+ 'user_id': 12,
+ 'repository': 
+	{
+		'git_ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+		'git_http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git',
+		'visibility_level': 0,
+		'url': 'git@151.98.52.73:Automation/deliveryTest.git',
+		'name': 'deliveryTest',
+		'description': 'test project for KATE development',
+		'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest'
+	},
+ 'user_email': 'smotools@alcatel-lucent.com',
+ 'project_id': 10,
+ 'object_kind': 'push',
+ 'message': None
+}
+
+
+
+#################
+
+Object Kind: merge_request
+Project Id:
+Repo Data: {'url': 'git@151.98.52.73:Automation/deliveryTest.git', 'description': 'test project for KATE development', 'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest', 'name': 'deliveryTest'}
+User Id:
+User Name:
+User email:
+        Repository Name: deliveryTest
+        Repository URL: git@151.98.52.73:Automation/deliveryTest.git
+Calling merge request event management...
+{
+	'object_attributes':
+		{
+			'updated_at': '2016-01-26 14:01:53 UTC',
+			'id': 141,
+			'state': 'merged',
+			'source_project_id': 10,
+			'locked_at': None,
+			'source': 
+				{
+					'name': 'deliveryTest', 
+					'visibility_level': 0,
+					'web_url': 'http://151.98.52.73:4554/Automation/deliveryTest',
+					'ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+					'namespace': 'Automation',
+					'http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git'
+				},
+			'target':
+				{
+					'name': 'deliveryTest',
+					'visibility_level': 0,
+					'web_url': 'http://151.98.52.73:4554/Automation/deliveryTest',
+					'ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+					'namespace': 'Automation',
+					'http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git'
+				},
+			'description': '',
+			'last_commit': 
+				{
+					'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/7f39ba4600b5bff115f082d137ed6ff7f5032def',
+					'id': '7f39ba4600b5bff115f082d137ed6ff7f5032def',
+					'message': 'added file2\n',
+					'timestamp': '2016-01-26T14:29:46+01:00',
+					'author': 
+						{
+							'email': 'ippolf@it052016.it.alcatel-lucent.com',
+							'name': 'ippolf'
+						}
+				},
+			'source_branch': '7.2_ippolf_Development',
+			'title': 'added file2',
+			'milestone_id': None,
+			'target_branch': '7.2',
+			'target_project_id': 10,
+			'merge_status': 'can_be_merged',
+			'created_at': '2016-01-26 13:47:24 UTC',
+			'assignee_id': 12,
+			'action': 'merge',
+			'updated_by_id': None,
+			'position': 0,
+			'author_id': 6,
+			'iid': 1,
+			'url': 'http://151.98.52.73:4554/Automation/deliveryTest/merge_requests/1'
+		},
+	'user': 
+		{
+			'username': 'smotools',
+			'avatar_url': 'http://www.gravatar.com/avatar/4e60e264404a2e821ee637e5ac39a00d?s=40&d=identicon',
+			'name': 'smotools'
+		},
+	'object_kind': 'merge_request',
+	'repository': 
+		{
+			'url': 'git@151.98.52.73:Automation/deliveryTest.git',
+			'description': 'test project for KATE development',
+			'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest',
+			'name': 'deliveryTest'
+		}
+	}
+
+
+4- alla generazione della tag sul branch main (dopo il merge) viene invocato un tag Push Hook
+
+x_gitlab_event: Tag Push Hook
+Object Kind: tag_push
+Project Id: 10
+Repo Data: {'git_ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git', 'git_http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git', 'visibility_level': 0, 'url': 'git@151.98.52.73:Automation/deliveryTest.git', 'name': 'deliveryTest', 'description': 'test project for KATE development', 'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest'}
+User Id: 12
+User Name: smotools
+User email: smotools@alcatel-lucent.com
+        Repository Name: deliveryTest
+        Repository URL: git@151.98.52.73:Automation/deliveryTest.git
+Calling Tag push event management...
+{
+	'checkout_sha': '55cfb163bfe03f672b5bf149ca25e53178e83297',
+	'commits': 
+		[
+			{
+				'url': 'http://151.98.52.73:4554/Automation/deliveryTest/commit/55cfb163bfe03f672b5bf149ca25e53178e83297',
+				'id': '55cfb163bfe03f672b5bf149ca25e53178e83297',
+				'message': "Merge branch '7.2_ippolf_Development' into '7.2'\r\n\r\nadded file2\r\n\r\n\r\n\r\nSee merge request !1",
+				'timestamp': '2016-01-26T15:01:48+01:00',
+				'author':
+					{
+						'email': 'smotools@alcatel-lucent.com',
+						'name': 'smotools'
+					}
+			}
+		],
+	'before': '0000000000000000000000000000000000000000',
+	'total_commits_count': 1,
+	'ref': 'refs/tags/V7.2.01',
+	'user_name': 'smotools',
+	'after': '9c6fc6afac03b50396d196edb6c506702f3cd30d',
+	'user_id': 12,
+	'repository': 
+		{
+			'git_ssh_url': 'git@151.98.52.73:Automation/deliveryTest.git',
+			'git_http_url': 'http://151.98.52.73:4554/Automation/deliveryTest.git',
+			'visibility_level': 0,
+			'url': 'git@151.98.52.73:Automation/deliveryTest.git',
+			'name': 'deliveryTest',
+			'description': 'test project for KATE development',
+			'homepage': 'http://151.98.52.73:4554/Automation/deliveryTest'
+		},
+	'user_email': 'smotools@alcatel-lucent.com',
+	'project_id': 10,
+	'object_kind': 'tag_push',
+	'message': 'V7.2.01 test releases'
+}
+
+
+
+
+
+e7d976ba48bb79772af535f9395867cb2d20def6
+

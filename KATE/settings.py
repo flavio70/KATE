@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'taws',
+    'GitApp',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -103,6 +104,7 @@ JOB_TEMPLATE = TEMPLATES_DIR + '/taws/tempJenkins.xml'
 
 
 GIT_REPO = '/GITREPOS/KATETESTS'
+TAG_SPLIT = '@'
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
