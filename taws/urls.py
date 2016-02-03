@@ -28,5 +28,6 @@ urlpatterns = [
 	url(r'^viewTestCase/$', views.viewTestCase),
 	url(r'^morgue/$', views.morgue),
 	url(r'^topology/$', views.topology),
-  url(r'^modify_job/$', views.modify_job)
+  url(r'^modify_job/$', views.modify_job),
+  url(r'^temp/$', views.temp)
 ]

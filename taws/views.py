@@ -2776,3 +2776,11 @@ def accesso(request):
 #			#creationReport+=localPath+'\n'+remotePath+'\n'
 #
 #		return  JsonResponse({'creationReport':creationReport}, safe=False)
+
+
+
+def temp(request):
+	context = RequestContext(request)
+	context_dict={'nothing':'nothing'}
+	return render_to_response('taws/temp.html',context_dict,context)
+
