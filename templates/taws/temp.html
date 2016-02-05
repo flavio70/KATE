@@ -1,0 +1,294 @@
+{% extends "taws/jenkins_template.html" %}
+{% block body %}
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
+<script type="text/javascript" src="{% static "js/dataTables.rowReorder.min.js" %}"></script>
+
+
+<script>
+
+
+var dataSetExample = [
+    [ "Tiger Nixon", "System Architect", "Edinburgh", "5421", "2011/04/25", "$320,800" ],
+    [ "Garrett Winters", "Accountant", "Tokyo", "8422", "2011/07/25", "$170,750" ],
+    [ "Ashton Cox", "Junior Technical Author", "San Francisco", "1562", "2009/01/12", "$86,000" ]
+    ];
+
+var testSetExample = [
+    ["", "1", "TPS1", "Test1", "Lab1", "rev1"],
+    ["", "2", "TPS2", "Test2", "Lab2", "rev2"]
+      ];
+
+
+$(document).ready(function() {
+	var table = $('#example').DataTable( {
+        rowReorder: {
+            selector: 'tr'
+        },
+        columnDefs: [
+            { targets: 0, visible: false }
+        ],
+        data: dataSetExample,
+        columns: [
+            { title: "Name" },
+            { title: "Position" },
+            { title: "Office" },
+            { title: "Extn." },
+            { title: "Start date" },
+            { title: "Salary" }
+        ]
+    } );
+  var testTable1 = $('#testTable1').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testAction">><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		data: testSetExample,
+		rowReorder: {
+            selector: 'tr'
+        },
+		order: [[ 2, "desc" ]],
+		scrollY:'380px',
+		scrollCollapse:true,
+		columns: [
+            { title: "Name",
+							className: "details-control"
+						},
+            { title: "Position" },
+            { title: "Office" },
+            { title: "Extn." },
+            { title: "Start date" },
+            { title: "Salary" }
+        ]
+		/*columns: [
+			{
+				//"className":      'details-control',
+				//"orderable":      false,
+				"data":           "control",
+				//"defaultContent": 'aaa'
+			},
+		{
+			"data": "num", 
+			//"orderable":      false,
+			"className": "dt-center" 
+		},
+		{
+			"data": "tps", 
+		},
+		{ "data": "test" },
+		{
+			"data": "lab", 
+			"className": "dt-center"
+		},
+		{ "data": "rev" },
+		{
+			"data": "time", 
+			"className": "dt-center"
+		},
+		{
+			"data": "topo",
+			 "className": "dt-center"
+		},
+		{
+			"data": "sect1",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect2",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect3",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect4",
+			"className": "dt-center"
+		 },
+		{
+			"data": "sect5",
+			"className": "dt-center"
+		 },
+		{ 
+			"data": "testId",
+			"visible": true
+		},
+		{ 
+			"data": "dependency",
+			"visible": true 
+		},
+		{ 
+			"data": "metric",
+			"visible": true 
+		},
+		{ 
+			"data": "assignment",
+			"visible": true 
+		},
+		{ 
+			"data": "author",
+			"visible": true 
+		},
+		{ 
+			"data": "description",
+			"visible": true 
+		},
+		{ 
+			"data": "relDate",
+			"visible": true 
+		},
+		{ 
+			"data": "lastUpdate",
+			"visible": true 
+		},
+		{ 
+			"data": "testString",
+			"visible": true 
+		}
+]*/
+	});
+
+    
+} );
+
+</script>
+<style>
+
+table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:static;outline:2px solid #888;outline-offset:-2px;z-index:2001}tr.dt-rowReorder-moving{outline:2px solid #555;outline-offset:-2px}body.dt-rowReorder-noOverflow{overflow-x:hidden}table.dataTable td.reorder{text-align:center;cursor:move}
+
+
+</style>
+
+
+
+<div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
+	<table id="example" class="display table table-striped table-hover table-condensed" cellspacing="0" width="100%"></table>
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable1" style="width:100%">
+		<!--<thead>       
+			<tr>     
+				<th style="width:20px" rowspan="2"></th>        
+				<th style="width:20px" rowspan="2">Pos</th>
+				<th style="width:115px" rowspan="2">TPS</th>
+				<th rowspan="2">Test</th>
+				<th style="width:33px" rowspan="2">Lab</th>
+				<th style="width:50px" rowspan="2">Rev</th>
+				<th style="width:40px" rowspan="2">Time</th>
+				<th style="width:30px" rowspan="2">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+			<tr>     
+				<th style="width:20px">DUT<br>Setup</th>
+				<th style="width:20px">Test<br>Setup</th>
+				<th style="width:20px">Test<br>Body</th>
+				<th style="width:20px">Test<br>CleanUp</th>
+				<th style="width:20px">DUT<br>CleanUp</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+		</thead>     
+		<tfoot>       
+			<tr>
+				<th style="width:20px"></th>         
+				<th style="width:20px" title="Pos">Pos</th>
+				<th style="width:115px" title="TPS">TPS</th>
+				<th title="Test">Test</th>
+				<th style="width:33px" title="Lab">Lab</th>
+				<th style="width:50px" title="Rev">Rev</th>
+				<th style="width:40px" title="Time">Time</th>
+				<th style="width:30px" title="Tpgy">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>
+		</tfoot>
+		<tbody>
+			<tr>
+				<td>1</td>
+				<td>2</td>
+				<td>3</td>
+				<td>4</td>
+				<td>5</td>
+				<td>6</td>
+				<td>7</td>
+				<td>8</td>
+				<td>9</td>
+				<td>10</td>
+				<td>11</td>
+				<td>12</td>
+				<td>13</td>
+				<td>14</td>
+				<td>15</td>
+				<td>16</td>
+				<td>17</td>
+				<td>18</td>
+				<td>19</td>
+				<td>20</td>
+				<td>21</td>
+				<td>22</td>
+			</tr>
+			<tr>
+				<td>a1</td>
+				<td>a2</td>
+				<td>a3</td>
+				<td>a4</td>
+				<td>a5</td>
+				<td>a6</td>
+				<td>a7</td>
+				<td>a8</td>
+				<td>a9</td>
+				<td>a10</td>
+				<td>a11</td>
+				<td>a12</td>
+				<td>a13</td>
+				<td>a14</td>
+				<td>a15</td>
+				<td>a16</td>
+				<td>a17</td>
+				<td>a18</td>
+				<td>a19</td>
+				<td>a20</td>
+				<td>a21</td>
+				<td>a22</td>
+			</tr>
+		</tbody>-->
+		
+	</table>
+</div>
+
+
+
+
+
+{% endblock %}
+

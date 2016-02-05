@@ -11,6 +11,68 @@ from django.conf import settings
 
 from django.http import HttpResponse
 
+def get_testinfo(testpath):
+	""" 
+		get metadata from testcase
+		:param testpath: Full testcase path
+		
+		:return: Dictionary containing availables info fields
+		
+		Description,Topology,Dependency,Lab,TPS,RUnSections,Author
+	"""
+	import ast,re,os
+	res=None
+	#testFullName = os.path.abspath(testpath).decode('ascii')
+	#testFullname = testpath
+
+	M = ast.parse(''.join(open(testpath)))
+	doc=ast.get_docstring(M)
+		
+	if doc is not None:
+		docre = re.findall(':field (.*)?',doc,re.MULTILINE)
+		docre=[i.split(':') for i in docre]
+		res={}
+		res['Description']=''
+		res['TPS']=''
+		for elem in docre:
+			if (elem[0] == "Description"):
+				#print('Description %s'%elem[1])
+				res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
+			elif (elem[0] == "TPS"):
+				res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '\n'
+			else:
+				res[elem[0]]=re.sub('["\']+','',elem[1])
+				#print( '%s %s' %(elem[0],elem[1]))
+	return res
+
+
+def check_testinfo_format(f,testinfo):
+	"""
+		check testcase metadata format for mandatory fields
+		:Description,Dependency,LAB,TPS,Author,Topology: String without escape chars
+		:RunSections:[0|1] len=5
+		
+		
+		:returns: True|False
+		
+	"""
+	import re
+	res = True
+	
+	if not testinfo: return False
+	
+	if 'RunSections' not in testinfo: return False
+	if 'Description' not in testinfo: return False
+	if 'Dependency' not in testinfo: return False
+	if 'Lab' not in testinfo: return False
+	if 'TPS' not in testinfo: return False
+	if 'Author' not in testinfo: return False
+	if 'Topology' not in testinfo: return False
+	if not re.match('^[01]{5}$',testinfo['RunSections'].strip()): return False
+	
+	
+	return res
+
 def thread_jenkins():
 	from jenkinsapi.jenkins import Jenkins
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
@@ -303,7 +365,7 @@ def selectEqpt(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"'")
+	myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) left join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"'")
 	eqptAry=[{'myVars':myVars,
 		'eqptID':row["id_equipment"],
 		'eqptName':row["name"],
@@ -653,7 +715,7 @@ def viewBuildDetails(request):
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
 	#myRecordSet.execute("select *,count(*) as myCount,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode from T_RUNTIME join T_RTM_BODY on(id_run=T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
-	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by T_RUNTIME_id_run) as myReport on(id_run=myReport.T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.label_ref as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by T_RUNTIME_id_run) as myReport on(id_run=myReport.T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
 	
 	swp_ref = {}
 
@@ -786,7 +848,7 @@ def collectReports(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by T_RUNTIME_id_run) as myReport on(id_run=myReport.T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
+	myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.label_ref as nodeSWP,T_RUNTIME.owner as suiteOwner,if(id_report is null,'KO','OK') as KateDB from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack) left join (select * from T_REPORT group by T_RUNTIME_id_run) as myReport on(id_run=myReport.T_RUNTIME_id_run) where job_name='"+job_name+"' and job_iteration="+str(buildId))
 	
 	swp_ref = {}
 
@@ -858,7 +920,7 @@ def collectReports(request):
 						#myRecordSet.execute("INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')")
 						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"','"+request.session['login']+"','' FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) join T_TEST_REVS on(id_TestREv=T_TEST_REV_id_TestRev) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID+")")
 						#nodeType="INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')"
-						#myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.name as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
+						#myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.label_ref as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
 						dbConnection.commit()
 					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'noteCounter':noteCounter,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
 					noteCounter+=1
@@ -924,8 +986,8 @@ def createRunJenkins(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	#myRecordSet.execute("select *,group_concat(piddu) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,concat(sw_rel_name,'#',group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%')) as piddu,T_EQUIPMENT.name as eqptName,owner,T_EQUIPMENT.description,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
-	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.name,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.name from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where "+sqlStr+" group by T_PROD.product,sw_rel_name) as mytable group by prodName")
+	#myRecordSet.execute("select *,group_concat(piddu) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,concat(sw_rel_name,'#',group_concat(concat(T_PACKAGES.label_ref,'|',id_pack) separator '%')) as piddu,T_EQUIPMENT.name as eqptName,owner,T_EQUIPMENT.description,T_PACKAGES.label_ref from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
+	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.label_ref,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.label_ref from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where "+sqlStr+" group by T_PROD.product,sw_rel_name) as mytable group by prodName")
 
 	for row in myRecordSet:
 		if str(row['swRelList'])!='None':
@@ -1514,19 +1576,19 @@ def statistics_sw_executed(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	#myRecordSet.execute("select concat('<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',product,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(myPackages separator ''),'</ul></li>') from (SELECT T_PROD_id_prod,concat('<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',sw_rel_name,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(concat('<li><a href="#">',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product
-	#myRecordSet.execute("select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\\\'[dropdown-selection]\\\')=',id_pack,char(39),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
-	#myRecordSet.execute("select concat('<li class=',char(34),'dropdown',char(34),'><a href=',char(34),'#',char(34),' class=',char(34),'dropdown-toggle',char(34),' data-toggle=',char(34),'dropdown',char(34),' role=',char(34),'button',char(34),' aria-haspopup=',char(34),'true',char(34),' aria-expanded=',char(34),'false',char(34),'>',product,' <span class=',char(34),'caret',char(34),'></span></a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(34),'#',char(34),' class=',char(34),'dropdown-toggle',char(34),' data-toggle=',char(34),'dropdown',char(34),' role=',char(34),'button',char(34),' aria-haspopup=',char(34),'true',char(34),' aria-expanded=',char(34),'false',char(34),'>',sw_rel_name,' <span class=',char(34),'caret',char(34),'></span></a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.[dropdown-selection]_val.value=',char(39),T_PACKAGES.name,char(39),';filtro.submit();',char(34),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
-	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	#myRecordSet.execute("select concat('<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',product,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(myPackages separator ''),'</ul></li>') from (SELECT T_PROD_id_prod,concat('<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',sw_rel_name,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(concat('<li><a href="#">',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product
+	#myRecordSet.execute("select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\\\'[dropdown-selection]\\\')=',id_pack,char(39),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	#myRecordSet.execute("select concat('<li class=',char(34),'dropdown',char(34),'><a href=',char(34),'#',char(34),' class=',char(34),'dropdown-toggle',char(34),' data-toggle=',char(34),'dropdown',char(34),' role=',char(34),'button',char(34),' aria-haspopup=',char(34),'true',char(34),' aria-expanded=',char(34),'false',char(34),'>',product,' <span class=',char(34),'caret',char(34),'></span></a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(34),'#',char(34),' class=',char(34),'dropdown-toggle',char(34),' data-toggle=',char(34),'dropdown',char(34),' role=',char(34),'button',char(34),' aria-haspopup=',char(34),'true',char(34),' aria-expanded=',char(34),'false',char(34),'>',sw_rel_name,' <span class=',char(34),'caret',char(34),'></span></a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.[dropdown-selection]_val.value=',char(39),T_PACKAGES.label_ref,char(39),';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
-	#swp_dropdown="select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\'[dropdown-selection]\')=',id_pack,char(39),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product"
+	#swp_dropdown="select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\'[dropdown-selection]\')=',id_pack,char(39),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product"
 	#myRecordSet.execute("SELECT group_concat(distinct concat('<li><a href=',char(39),'#',lcase(description),'-tab',char(39),' data-toggle=',char(39),'tab',char(39),'>',ucase(description),'</a></li>')) as selected_tab,group_concat(distinct concat('<div class=',char(39),'tab-pane',char(39),' id=',char(39),'',lcase(description),'-tab',char(39),'></div>')) as selected_div FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack="+id_pack1)
 	#myRecordSet.execute("SELECT distinct(description) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) where id_pack=1")
 	#tab_list=[{'tab':row["myTab"]} for row in myRecordSet]
 	#myRecordSet.execute("select description,area_name,count(*) as numTPS from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) where id_pack="+id_pack1+" group by id_domain,id_area")
 	#myRecordSet.execute("select description,area_name,count(*) as numTPS,sum(if(T_REPORT1.result='Failed',1,0)) as KO1,sum(if(T_REPORT1.result='Passed',1,0)) as OK1,sum(if(T_REPORT1.result<>'',1,0)) as TOT1,sum(if(T_REPORT2.result='Failed',1,0)) as KO2,sum(if(T_REPORT2.result='Passed',1,0)) as OK2,sum(if(T_REPORT2.result<>'',1,0)) as TOT2,sum(if(T_REPORT3.result='Failed',1,0)) as KO3,sum(if(T_REPORT3.result='Passed',1,0)) as OK3,sum(if(T_REPORT3.result<>'',1,0)) as TOT3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack1+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT1 on(id_tps=T_REPORT1.T_TPS_id_tps) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack2+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT2 on(id_tps=T_REPORT2.T_TPS_id_tps) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack3+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT3 on(id_tps=T_REPORT3.T_TPS_id_tps) where id_pack="+id_pack1+" group by id_domain,id_area order by description")
-	myRecordSet.execute("select name1,name2,name3,description,if(numTest1 is null,0,numTest1) as numTest1,if(numTest2 is null,0,numTest2) as numTest2,if(numTest3 is null,0,numTest3) as numTest3,area_name,numTPS1,if(numTPS2 is null,0,numTPS2) as numTPS2,if(numTPS3 is null,0,numTPS3) as numTPS3,OK1,KO1,TOT1,if(OK2 is null,0,OK2) as OK2,if(KO2 is null,0,KO2) as KO2,if(TOT2 is null,0,TOT2) as TOT2,if(OK3 is null,0,OK3) as OK3,if(KO3 is null,0,KO3) as KO3,if(TOT3 is null,0,TOT3) as TOT3 from (select T_PACKAGES.name as name1,description,area_name,count(*) as numTPS1,sum(if(report1.result='Failed',1,0)) as KO1,sum(if(report1.result='Passed',1,0)) as OK1,sum(if(report1.result<>'',1,0)) as TOT1,planned_test as numTest1 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) where id_pack="+id_pack1+" group by id_domain,id_area order by description) as rep1 left join (select T_PACKAGES.name as name2,description,area_name,count(*) as numTPS2,sum(if(report2.result='Failed',1,0)) as KO2,sum(if(report2.result='Passed',1,0)) as OK2,sum(if(report2.result<>'',1,0)) as TOT2,planned_test as numTest2 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps2 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport2 group by T_TPS_id_tps) as report2 on(id_tps=report2.T_TPS_id_tps) where id_pack="+id_pack2+" group by id_domain,id_area order by description) as rep2 using(description,area_name) left join (select T_PACKAGES.name as name3,description,area_name,count(*) as numTPS3,sum(if(report3.result='Failed',1,0)) as KO3,sum(if(report3.result='Passed',1,0)) as OK3,sum(if(report3.result<>'',1,0)) as TOT3,planned_test as numTest3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps3 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport3 group by T_TPS_id_tps) as report3 on(id_tps=report3.T_TPS_id_tps) where id_pack="+id_pack3+" group by id_domain,id_area order by description) as rep3 using(description,area_name)")
+	myRecordSet.execute("select name1,name2,name3,description,if(numTest1 is null,0,numTest1) as numTest1,if(numTest2 is null,0,numTest2) as numTest2,if(numTest3 is null,0,numTest3) as numTest3,area_name,numTPS1,if(numTPS2 is null,0,numTPS2) as numTPS2,if(numTPS3 is null,0,numTPS3) as numTPS3,OK1,KO1,TOT1,if(OK2 is null,0,OK2) as OK2,if(KO2 is null,0,KO2) as KO2,if(TOT2 is null,0,TOT2) as TOT2,if(OK3 is null,0,OK3) as OK3,if(KO3 is null,0,KO3) as KO3,if(TOT3 is null,0,TOT3) as TOT3 from (select T_PACKAGES.label_ref as name1,description,area_name,count(*) as numTPS1,sum(if(report1.result='Failed',1,0)) as KO1,sum(if(report1.result='Passed',1,0)) as OK1,sum(if(report1.result<>'',1,0)) as TOT1,planned_test as numTest1 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) where id_pack="+id_pack1+" group by id_domain,id_area order by description) as rep1 left join (select T_PACKAGES.label_ref as name2,description,area_name,count(*) as numTPS2,sum(if(report2.result='Failed',1,0)) as KO2,sum(if(report2.result='Passed',1,0)) as OK2,sum(if(report2.result<>'',1,0)) as TOT2,planned_test as numTest2 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps2 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport2 group by T_TPS_id_tps) as report2 on(id_tps=report2.T_TPS_id_tps) where id_pack="+id_pack2+" group by id_domain,id_area order by description) as rep2 using(description,area_name) left join (select T_PACKAGES.label_ref as name3,description,area_name,count(*) as numTPS3,sum(if(report3.result='Failed',1,0)) as KO3,sum(if(report3.result='Passed',1,0)) as OK3,sum(if(report3.result<>'',1,0)) as TOT3,planned_test as numTest3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps3 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport3 group by T_TPS_id_tps) as report3 on(id_tps=report3.T_TPS_id_tps) where id_pack="+id_pack3+" group by id_domain,id_area order by description) as rep3 using(description,area_name)")
 	#row=myRecordSet.fetchone()
 	#selected_tab=row['selected_tab']
 	#selected_div=row['selected_div']
@@ -1566,10 +1628,10 @@ def statistics_sw_executed_details(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
 
-	myRecordSet.execute("select * from (select concat(product,'-',T_PACKAGES.name) as tpack1,tps_reference,test_name,T_SCOPE.description,area_name,result as result1,id_report as id_report1,report_date as date1,T_REPORT1.author as author1,convert(info using utf8) as dump1 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestREv) join T_TEST on(test_id=T_TEST_test_id) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack1+" order by report_date desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT1 on(id_tps=T_REPORT1.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod)  where id_pack="+id_pack1+" and T_SCOPE.description='"+description+"' and area_name='"+area_name+"') as rep1 left join (select concat(product,'-',T_PACKAGES.name) as tpack2,tps_reference,description,area_name,result as result2,id_report as id_report2,report_date as date2,T_REPORT2.author as author2 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack2+" order by report_date desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT2 on(id_tps=T_REPORT2.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack2+" and description='"+description+"' and area_name='"+area_name+"') as rep2 using(tps_reference,description,area_name) left join (select concat(product,'-',T_PACKAGES.name) as tpack3,tps_reference,description,area_name,result as result3,id_report as id_report3,report_date as date3,T_REPORT3.author as author3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack3+" order by report_date desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT3 on(id_tps=T_REPORT3.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack3+" and description='"+description+"' and area_name='"+area_name+"') as rep3 using(tps_reference,description,area_name)")
+	myRecordSet.execute("select * from (select concat(product,'-',T_PACKAGES.label_ref) as tpack1,tps_reference,test_name,T_SCOPE.description,area_name,result as result1,id_report as id_report1,report_date as date1,T_REPORT1.author as author1,convert(info using utf8) as dump1 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestREv) join T_TEST on(test_id=T_TEST_test_id) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack1+" order by report_date desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT1 on(id_tps=T_REPORT1.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod)  where id_pack="+id_pack1+" and T_SCOPE.description='"+description+"' and area_name='"+area_name+"') as rep1 left join (select concat(product,'-',T_PACKAGES.label_ref) as tpack2,tps_reference,description,area_name,result as result2,id_report as id_report2,report_date as date2,T_REPORT2.author as author2 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack2+" order by report_date desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT2 on(id_tps=T_REPORT2.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack2+" and description='"+description+"' and area_name='"+area_name+"') as rep2 using(tps_reference,description,area_name) left join (select concat(product,'-',T_PACKAGES.label_ref) as tpack3,tps_reference,description,area_name,result as result3,id_report as id_report3,report_date as date3,T_REPORT3.author as author3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack3+" order by report_date desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT3 on(id_tps=T_REPORT3.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack3+" and description='"+description+"' and area_name='"+area_name+"') as rep3 using(tps_reference,description,area_name)")
 	details_row=[{'tps_reference':row["tps_reference"],'test_name':os.path.basename(row["test_name"]),'result1':row["result1"],'author1':row["author1"],'date1':row["date1"],'dump1':row["dump1"],'id_report1':row["id_report1"],'tpack1':row["tpack1"],'result2':row["result2"],'id_report2':row["id_report2"],'tpack2':row["tpack2"],'result3':row["result3"],'id_report3':row["id_report3"],'tpack3':row["tpack3"]} for row in myRecordSet]
 
 	myRecordSet.execute("SELECT distinct(concat(description,'-',area_name)) as myTab FROM T_DOMAIN JOIN T_PACKAGES using(T_SW_REL_id_sw_rel,T_PROD_id_prod) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) where id_pack="+id_pack1+" order by description")
@@ -1614,10 +1676,10 @@ def morgue(request):
 				dbConnection.commit()
 
 
-	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.name,'</a></li>') order by T_PACKAGES.name separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
 
-	myRecordSet.execute("select id_report,description,area_name,tps_reference,result,info,notes,concat(product,'-',T_PACKAGES.name) as tpack from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack+" order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack+" and result='Failed' order by description,area_name,tps_reference")
+	myRecordSet.execute("select id_report,description,area_name,tps_reference,result,info,notes,concat(product,'-',T_PACKAGES.label_ref) as tpack from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack+" order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack+" and result='Failed' order by description,area_name,tps_reference")
 	morgue_row=[{'id_report':row["id_report"],'tpack':row["tpack"],'description':row["description"],'area_name':row['area_name'],'tps_reference':row['tps_reference'],'info':row['info'],'notes':row['notes']} for row in myRecordSet]
 
 	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack')),
@@ -1650,6 +1712,8 @@ def viewTestCase(request):
 		myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
 		git=myRepo.git
 		myFile=git.show(myTest['revision']+':'+myTest['test_name'])
+		
+		print
 
 		myRecordSet.execute("select revision,id_TestRev from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where test_id="+str(myTest['test_id']))
 		revList=[{'rev':row["revision"],'revId':row["id_TestRev"]} for row in myRecordSet]
@@ -2246,24 +2310,22 @@ def accesso(request):
 		localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
 		for f in glob.glob(localPath+'*.py'):
 			if os.path.isfile(f+'.prs'):
-				tempTest = open(f,"r")
-				myFile=tempTest.read()
-				if myFile.rfind('[DESCRIPTION]'):
-					metaInfo=myFile.split('[DESCRIPTION]')
-					description=metaInfo[1]
-					metaInfo=myFile.split('[TOPOLOGY]')
-					topology=metaInfo[1]
-					metaInfo=myFile.split('[DEPENDENCY]')
-					dependency=metaInfo[1]
-					metaInfo=myFile.split('[LAB]')
-					lab=metaInfo[1]
-					metaInfo=myFile.split('[TPS]')
-					tps=metaInfo[1].replace(',','<br>')
-					metaInfo=myFile.split('[RUNSECTIONS]')
-					runsection=metaInfo[1]
-					#if runsection.isdigit()==False:runsection='11111'
-					metaInfo=myFile.split('[AUTHOR]')
-					author=metaInfo[1]
+				#tempTest = open(f,"r")
+				#myFile=tempTest.read()
+				res=get_testinfo(f)
+				check_testinfo_format(f,res)
+				print('docinfo for %s: %s'%(f,res))
+				if check_testinfo_format(f,res):
+					print('docinfo format ok for file %s'%f)
+					
+					description=res['Description']
+					topology=res['Topology']
+					dependency=res['Dependency']
+					lab=res['Lab']
+					#tps=metaInfo[1].replace(',','<br>')
+					tps=res['TPS']
+					runsection=res['RunSections']
+					author=res['Author']
 				else:
 					description="NA"
 					topology="NA"
@@ -2272,10 +2334,16 @@ def accesso(request):
 					tps="NA"
 					runsection='00000'
 					author="NA"
-
+				
 				if(runsection.isdigit()==False):runsection='00000'
-
-				tempTest.close()
+				print('Description %s' % description)
+				print('topology %s' % topology)
+				print('Dependency %s' % dependency)
+				print('Lab %s' % lab)
+				print('tps %s' % tps)
+				print('runsections %s' % runsection)
+				print('author %s' % author)
+				#tempTest.close()
 				testString+=f+"#"+\
 				"NA#"+\
 				"NA#"+\
@@ -2303,24 +2371,19 @@ def accesso(request):
 			for myLine in localSuite.read().split('\n'):
 				tempLine=myLine.split('.py')
 				if os.path.isfile(tempLine[0]+'.py'):
-					tempTest = open(tempLine[0]+'.py',"r")
-					myFile=tempTest.read()
-					if myFile.rfind('[DESCRIPTION]'):
-						metaInfo=myFile.split('[DESCRIPTION]')
-						description=metaInfo[1]
-						metaInfo=myFile.split('[TOPOLOGY]')
-						topology=metaInfo[1]
-						metaInfo=myFile.split('[DEPENDENCY]')
-						dependency=metaInfo[1]
-						metaInfo=myFile.split('[LAB]')
-						lab=metaInfo[1]
-						metaInfo=myFile.split('[TPS]')
-						tps=metaInfo[1].replace(',','<br>')
-						metaInfo=myFile.split('[RUNSECTIONS]')
-						runsection=metaInfo[1]
-						#if runsection.isdigit()==False:runsection='11111'
-						metaInfo=myFile.split('[AUTHOR]')
-						author=metaInfo[1]
+					res=get_testinfo(tempLine[0]+'.py')
+					check_testinfo_format(tempLine[0]+'.py',res)
+					print('docinfo for %s: %s'%(tempLine[0]+'.py',res))
+					if check_testinfo_format(tempLine[0]+'.py',res):
+						print('docinfo format ok for file %s'%tempLine[0]+'.py')
+						description=res['Description']
+						topology=res['Topology']
+						dependency=res['Dependency']
+						lab=res['Lab']
+						#tps=metaInfo[1].replace(',','<br>')
+						tps=res['TPS']
+						runsection=res['RunSections']
+						author=res['Author']
 					else:
 						description="NA"
 						topology="NA"
@@ -2339,7 +2402,7 @@ def accesso(request):
 						if myLine.rfind('--testBody')>=0:tempSection[2]='2'
 						if myLine.rfind('--testClean')>=0:tempSection[3]='2'
 						if myLine.rfind('--DUTClean')>=0:tempSection[4]='2'
-					tempTest.close()
+					
 					localString+=tempLine[0]+".py#"+\
 					"NA#"+\
 					"NA#"+\
@@ -2361,8 +2424,7 @@ def accesso(request):
 					"NA#"+\
 					lab+"$"
 			
-					tempTest.close()
-		    
+
 			localSuite.close()
 		
    
@@ -2776,3 +2838,11 @@ def accesso(request):
 #			#creationReport+=localPath+'\n'+remotePath+'\n'
 #
 #		return  JsonResponse({'creationReport':creationReport}, safe=False)
+
+
+
+def temp(request):
+	context = RequestContext(request)
+	context_dict={'nothing':'nothing'}
+	return render_to_response('taws/temp.html',context_dict,context)
+
