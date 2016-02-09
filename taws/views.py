@@ -39,7 +39,7 @@ def get_testinfo(testpath):
 				#print('Description %s'%elem[1])
 				res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
 			elif (elem[0] == "TPS"):
-				res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '\n'
+				res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '<br>'
 			else:
 				res[elem[0]]=re.sub('["\']+','',elem[1])
 				#print( '%s %s' %(elem[0],elem[1]))
