@@ -184,7 +184,7 @@ $(document).ready(function() {
 				<div class="collapse navbar-collapse" id="bs-suiteaction-navbar-collapse">\
 					<ul class="nav navbar-nav navbar-center">\
 						<div class="btn-group btn-group-sm" data-toggle="popover" title="PERSONAL SUITE COMMANDS" data-content="Select your saved personal suite and LOAD,SAVE,DELETE or SHARE it" role="group">\
-							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="if(owner==\'LOCAL\'){emptyTable(\'testTable\');}if(suiteID.value!=\'\'){owner=\'{{ login }}\';doAccess(\'loadSuite\');};"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
+							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Load User Suite" onclick="location.reload()"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></button>\
 							<button type="button" class="btn btn-default navbar-btn" data-toggle="tooltip" title="Save User Suite" onclick="saveTunedSuite();"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span></button>\
 						</div>\
 					</ul>\

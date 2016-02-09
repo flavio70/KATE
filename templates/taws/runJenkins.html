@@ -111,7 +111,9 @@ function fillSelectCreator(valueStr,myObj,selection){
 	}
 
 
-function runJenkinsJob(jobname,action="",target=""){
+function runJenkinsJob(jobname,action,target){
+	action = action || '';
+	target = target || '';
 		console.log("Jenkins Job invocation: " + jobname + " action: " + action + " target: " + target); // sanity check
 		$.ajax({
 			url : "/taws/createRunJenkins/", // the endpoint createRunJenkins
