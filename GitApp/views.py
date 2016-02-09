@@ -7,12 +7,66 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import JsonResponse
 from django.conf import settings
 
-
+from GitApp.models import *
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+import re
 
 # Create your views here.
+
+
+def get_testinfo(testpath):
+	""" 
+		get metadata from testcase
+		:param testpath: Full testcase path
+		
+		:return: Dictionary containing availables info fields
+		
+		Description,Topology,Dependency,Lab,TPS,RUnSections,Author
+	"""
+	import ast,re
+	res=None
+	#testFullName = os.path.abspath(testpath).decode('ascii')
+	#print('TestFullPath: %s'% testpath)
+	
+	M = ast.parse(testpath)
+	doc=ast.get_docstring(M)
+		
+	if doc is not None:
+		docre = re.findall(':field (.*)?',doc,re.MULTILINE)
+		docre=[i.split(':') for i in docre]
+		res={}
+		res['Description']=''
+		res['TPS']=''
+		for elem in docre:
+			if (elem[0] == "Description"):
+				#print('Description %s'%elem[1])
+				res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
+			elif (elem[0] == "TPS"):
+				res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '*'
+			else:
+				res[elem[0]]=re.sub('["\']+','',elem[1])
+				#print( '%s %s' %(elem[0],elem[1]))
+	
+	return res
+
+
+
+
+
+def addTestListToDB(testList):
+	
+	#testAry=[{'fullPath':'TestCases/1850TSS320/DATA/DATAQOS/pippo.py','tag':'7.2@01','diff':'A','dependency':'dep1','author':'COLOMX','lab':'SVT','description':'descr1','topology':'topo1','run_section':'11111','tps':'1.2.3*4.5.6'}]
+
+
+	listReport=''
+
+	for myTest in testList:
+		if myTest['diff']=='A':listReport+=addTestToDB(myTest)
+		#print(testList)
+	return listReport
+
 
 
 def push_hook(data):
@@ -46,7 +100,7 @@ def tag_push_hook(data):
 	print('\ncheckout sha: %s\n' % checkout_sha)
 	print('Current TAG value: %s \n' % currentTag)
 
-	if not checkout_sha:return "Are we deleting tag?... Stopping execution..."
+	if not checkout_sha:return "Are we deleting tag?... Nothing to do. Stopping execution..."
 
 	print('\nchecking current TAG: %s Format...' % currentTag)
 	'''
@@ -126,60 +180,51 @@ def tag_push_hook(data):
 		print("Setting before commit value to commit: %s" % before)
 	
 	
-	
-	#if (before == '0000000000000000000000000000000000000000'):
-	#	#we have to get the first commit
-	#	print('Setting before commit to First GIT Commit...')
-	#	before = firstCommit
-	#	#beforeIndex = len(commitList)
-	#else:
-	#	for litem in commitList:
-	#		if litem.hexsha == before:
-	#			beforeIndex = commitList.index(litem)
-	#			break
-		
-	#if (after == '0000000000000000000000000000000000000000'):
-	#	#we have to get the first commit
-	#	print('Setting after commit to First GIT Commit...')
-	#	after = firstCommit
-	#	#afterIndex = len(commitList)
-	#else:
-	#	for litem in commitList:
-	#		if litem.hexsha == after:
-	#			afterIndex = commitList.index(litem)
-
-	#print('before index: %s after index: %s' % (beforeIndex,afterIndex))  
-	#if (afterIndex < beforeIndex):
-	#	print ('Checking Differences between %s and %s commits ... \n' % (after,before))
-	#	beforeCommit = myRepo.commit(before)
-	#	tagDiffsA = beforeCommit.diff(after).iter_change_type('A')
-	#	tagDiffsD = beforeCommit.diff(after).iter_change_type('D')
-	#	tagDiffsR = beforeCommit.diff(after).iter_change_type('R')
-	#	tagDiffsM = beforeCommit.diff(after).iter_change_type('M')
-	#	print ('diff items:')
-	
 	beforeCommit = myRepo.commit(before)
 	#print("\nBefore commit: %s, TAG commit: %s \n" % (beforeCommit.hexsha,checkout_sha))
+	
+	tagdiff=beforeCommit.diff(checkout_sha)
 	print("\nTAG Differences...\n")
-	for litem in beforeCommit.diff(checkout_sha):
-		print(litem)
-		if litem.new_file:
-			#new file
-			res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'A'}
-		elif litem.deleted_file:
-			#deleted file
-			res={'fullPath': litem.a_path,'tag': currentTag, 'diff': 'D'}
-		elif litem.renamed:
-			#renamed file
-			res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'R'}
-		else:
-			#modified file
-			res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'M'}
-		
-		result.append(res)
 	
+	try:
+		for litem in tagdiff:
+			#print('\n' + litem)
+			if litem.new_file:
+				#new file
+				#getting file content "litem.b_blob.data_stream.read()" and parsing the doc_string content
+				if not re.match('.*__.+__\.py',litem.b_path):
+					if re.match('.*.py',litem.b_path):
+						print('TestCase %s Added. Getting metadata ...'%litem.b_path)
+						tinfo=get_testinfo(litem.b_blob.data_stream.read())
+						print('\n TestCase Metadata:\n %s \n'%tinfo)
+						res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'A', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
+						result.append(res)
+			elif litem.deleted_file:
+				print('Deleted file %s . Not yet managed in DB Export')
+				#deleted file
+				#res={'fullPath': litem.a_path,'tag': currentTag, 'diff': 'D', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
+			elif litem.renamed:
+				print('Renamed file %s . Not yet managed in DB Export')
+				#renamed file
+				#res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'R', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
+			else:
+				#modified file
+				#getting file content "litem.b_blob.data_stream.read()" and parsing the doc_string content
+				if not re.match('.*__.+__\.py',litem.b_path):
+					if re.match('.*.py',litem.b_path):
+						print('TestCase %s Modified. Getting metadata'%litem.b_path)
+						tinfo=get_testinfo(litem.b_blob.data_stream.read())
+						print('\n TestCase Metadata:\n %s \n'%tinfo)
+						res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'M', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
+						result.append(res)
+	except Exception as eee:
+		print(str(eee))
+		return str(eee)
 	
-	return result
+	#print(result)
+	print('\nAdding testcases to K@TE MySQL DB...\n')
+	finalres=addTestListToDB(result)
+	return finaleres
 
 
 
@@ -236,180 +281,9 @@ def gitlab_webhook(request):
 			
 			print(queryRes)
 			
+			
 			return HttpResponse(runPhase)
-			#webhook = Gitlab_Webhook.objects.filter(
-				#repo_name = repo_name,
-				#repo_url = repo_url,
-				#object_kind = object_kind,
-				#project_id = project_id,
-				#http_x_gitlab_event = http_x_gitlab_event
-			#).first()
-			#if webhook:
-				# Add your code here
-				#print ('User %s %s %s call this webhook' % (user_id, user_name, user_email))
-				#return HttpResponse('Done!')
+
 	return HttpResponse('Hehe! No POST or not request.body')
 
-def addTestListToDB(testList):
-	
-	#testAry=[{'fullPath':'TestCases/1850TSS320/DATA/DATAQOS/pippo.py','tag':'7.2@01','diff':'A','dependency':'dep1','author':'COLOMX','lab':'SVT','description':'descr1','topology':'topo1','run_section':'11111','tps':'1.2.3*4.5.6'}]
-
-	listReport=''
-
-	for myTest in testList:
-		if myTest['diff']=='A':listReport+=addTestToDB(myTest)
-
-	return listReport
-
-def addTestToDB(testDict):
-
-	import mysql.connector
-
-	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-	myRecordSet=dbConnection.cursor(dictionary=True)
-
-	testReport=''
-	#------------------------Adding Test ID---------------------------------
-	myRecordSet.execute("SELECT count(test_name) as myCount from T_TEST WHERE test_name='"+testDict['fullPath']+"'")
-	row=myRecordSet.fetchone()
-	testNotFound=False
-	if row['myCount']==0:
-		testNotFound=True
-		testReport+='Test Name '+testDict['fullPath']+' not found in T_TEST adding...'
-		myRecordSet.execute("INSERT INTO T_TEST (test_name,test_description) VALUES('"+testDict['fullPath']+"','')")
-		dbConnection.commit()
-		testReport+='DONE\n'
-	myRecordSet.execute("SELECT test_id from T_TEST where test_name='"+testDict['fullPath']+"'")
-	row=myRecordSet.fetchone()
-	test_id = row['test_id']
-	testReport+='Test ID = '+str(test_id)+'\n'
-	tempFields=testDict['fullPath'].split('/')
-	#------------------------Checking Product ID---------------------------------
-	myRecordSet.execute("SELECT count(id_prod) as myCount from T_PROD WHERE product='"+tempFields[1]+"'")
-	row=myRecordSet.fetchone()
-	if row['myCount']==0:
-		testReport=+'***ERROR*** product '+tempFields[1]+' not found in DB!!!\n'
-		testReport=+'Rolling Back...\n'
-		if testNotFound==True:
-			testReport+='Deleting Test ID '+str(test_id)+'...'
-			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
-			testReport+='DONE\n'
-		return testReport
-	myRecordSet.execute("SELECT id_prod from T_PROD where product='"+tempFields[1]+"'")
-	row=myRecordSet.fetchone()
-	id_prod = row['id_prod']
-	testReport+='Product ID = '+str(id_prod)+'\n'
-	#------------------------Checking Scope ID---------------------------------
-	myRecordSet.execute("SELECT count(id_scope) as myCount from T_SCOPE WHERE description='"+tempFields[2]+"'")
-	row=myRecordSet.fetchone()
-	if row['myCount']==0:
-		testReport+='***ERROR*** SCOPE '+tempFields[2]+' not found in DB!!!\n'
-		testReport+='Rolling Back...\n'
-		if testNotFound==True:
-			testReport=+'Deleting Test ID '+str(test_id)+'...'
-			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
-			testReport+='DONE\n'
-		return testReport
-	myRecordSet.execute("SELECT id_scope from T_SCOPE where description='"+tempFields[2]+"'")
-	row=myRecordSet.fetchone()
-	id_scope = row['id_scope']
-	testReport+='SCOPE ID = '+str(id_scope)+'\n'
-	#------------------------Checking Area ID---------------------------------
-	myRecordSet.execute("SELECT count(id_area) as myCount from T_AREA WHERE area_name='"+tempFields[3]+"'")
-	row=myRecordSet.fetchone()
-	if row['myCount']==0:
-		testReport+='***ERROR*** AREA '+tempFields[3]+' not found in DB!!!\n'
-		testReport+='Rolling Back...\n'
-		if testNotFound==True:
-			testReport=+'Deleting Test ID '+str(test_id)+'...'
-			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
-			testReport+='DONE\n'
-		return testReport
-	myRecordSet.execute("SELECT id_area from T_AREA where area_name='"+tempFields[3]+"'")
-	row=myRecordSet.fetchone()
-	id_area = row['id_area']
-	testReport+='Area ID = '+str(id_area)+'\n'
-	#------------------------Checking Release ID---------------------------------
-	tempRelease=testDict['tag'].split('@')
-	myRecordSet.execute("SELECT count(id_sw_rel) as myCount from T_SW_REL WHERE sw_rel_name='"+tempRelease[0]+"'")
-	row=myRecordSet.fetchone()
-	if row['myCount']==0:
-		testReport+='***ERROR*** AREA '+tempFields[3]+' not found in DB!!!\n'
-		testReport+='Rolling Back...\n'
-		if testNotFound==True:
-			testReport+='Deleting Test ID '+str(test_id)+'...'
-			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
-			testReport+='DONE\n'
-		return testReport
-	myRecordSet.execute("SELECT id_sw_rel from T_SW_REL where sw_rel_name='"+tempRelease[0]+"'")
-	row=myRecordSet.fetchone()
-	id_sw_rel=row['id_sw_rel']
-	revision=tempRelease[1]
-	testReport+='Release ID = '+str(id_sw_rel)+'\n'
-	#------------------------Getting Domain ID---------------------------------
-	myRecordSet.execute("SELECT count(id_domain) as myCount from T_DOMAIN WHERE T_SW_REL_id_sw_rel="+str(id_sw_rel)+" and T_PROD_id_prod="+str(id_prod)+" and T_AREA_id_area="+str(id_area)+" and T_SCOPE_id_scope="+str(id_scope))
-	row=myRecordSet.fetchone()
-	if row['myCount']==0:
-		testReport+='***ERROR*** DOMAIN '+tempFields[3]+' not found in DB!!!\n'
-		testReport+='Rolling Back...\n'
-		if testNotFound==True:
-			testReport+='Deleting Test ID '+str(test_id)+'...'
-			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
-			testReport+='DONE\n'
-		return testReport
-	myRecordSet.execute("SELECT id_domain from T_DOMAIN WHERE T_SW_REL_id_sw_rel="+str(id_sw_rel)+" and T_PROD_id_prod="+str(id_prod)+" and T_AREA_id_area="+str(id_area)+" and T_SCOPE_id_scope="+str(id_scope))
-	row=myRecordSet.fetchone()
-	id_domain=row['id_domain']
-	testReport+='Domain ID = '+str(id_domain)+'\n'
-	#------------------------Adding Entry to T_TEST_REVS---------------------------------
-	try:
-		myRecordSet.execute("INSERT INTO T_TEST_REVS (T_TEST_test_id,revision,duration,metric,assignment,dependency,author,release_date,lab,description,topology,run_section,last_update) VALUES("+str(test_id)+","+revision+",0,0,'','"+testDict['dependency']+"','"+testDict['author']+"',CURRENT_TIMESTAMP,'"+testDict['lab']+"','"+testDict['description']+"','"+testDict['topology']+"','"+testDict['run_section']+"',CURRENT_TIMESTAMP)")
-		dbConnection.commit()
-	except Exception as err:
-		testReport+='***ERROR*** Unable to add TEST REVS entry!!!\n'
-		testReport+=str(err.args)
-		testReport+='Rolling Back...\n'
-		if testNotFound==True:
-			testReport+='Deleting Test ID '+str(test_id)+'...'
-			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
-			testReport+='DONE\n'
-		return testReport
-	myRecordSet.execute("SELECT MAX(id_testRev) as id_testRev from T_TEST_REVS")
-	row=myRecordSet.fetchone()
-	id_testRev=row['id_testRev']
-	testReport+='TEST REV ID = '+str(id_testRev)+'\n'
-	#------------------------Adding Entry to T_TPS---------------------------------
-	for myTps in testDict['tps'].split('*'):
-		try:
-			myRecordSet.execute("INSERT INTO T_TPS (tps_reference,T_DOMAIN_id_domain,T_TEST_REVS_id_TestRev) VALUES('"+myTps+"',"+str(id_domain)+","+str(id_testRev)+")")
-			dbConnection.commit()
-		except:
-			testReport+='***ERROR*** Unable to add T_TPS entry!!!\n'
-			testReport+='Rolling Back...\n'
-			if testNotFound==True:
-				testReport+='Deleting TPS for Test Rev ID '+str(id_testRev)+'...'
-				myRecordSet.execute("DELETE FROM T_TPS WHERE T_TEST_REVS_id_TestRev="+str(id_testRev))
-				dbConnection.commit()
-				testReport+='DONE\n'
-				testReport+='Deleting Test Rev ID '+str(id_testRev)+'...'
-				myRecordSet.execute("DELETE FROM T_TEST_REVS WHERE test_id="+str(id_testRev))
-				dbConnection.commit()
-				testReport+='DONE\n'
-				testReport+='Deleting Test ID '+str(test_id)+'...'
-				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
-				testReport+='DONE\n'
-			return testReport
-		myRecordSet.execute("SELECT MAX(id_tps) as id_tps from T_TPS")
-		row=myRecordSet.fetchone()
-		id_tps=row['id_tps']
-		testReport+='TPS ID ADDED = '+str(id_tps)+'\n'
-
-	return testReport
 
