@@ -41,37 +41,6 @@ class Gitlab_Webhook(models.Model):
 			
 			
 			
-
-
-
-def check_DB_Author(author):
-	""" check the presence of author  in the right table """
-	if author.strip() == '':return False
-	try:
-		cursor = connection.cursor()
-		cursor.execute("SELECT count(id) as myCount from auth_user WHERE username='"+author.strip()+"'")
-		row=cursor.fetchone()
-		if row[0]==0:
-			return False
-		else:
-			return True
-	except Exception as eee:
-		print(str(eee))
-		return False
-
-
-
-
-
-def addTestToDBtemp(mytestdict):
-	print('DB funct Test for %s' %mytestdict)
-	return "A"
-
-
-
-
-
-
 def addTestToDB(testDict):
 	""" add test reference to KATE DB
 		:param: testDict, Dictionary containing all test info to be stored into MySQL DB
@@ -95,7 +64,6 @@ def addTestToDB(testDict):
 	#myRecordSet=dbConnection.cursor(dictionary=True)
 	myRecordSet = connection.cursor()
 	testReport=''
-	
 	try:
 		#------------------------Adding Test ID---------------------------------
 		#print('\nAdding Test ID into T_TEST Table...')
@@ -112,13 +80,14 @@ def addTestToDB(testDict):
 		myRecordSet.execute("SELECT test_id from T_TEST where test_name='"+testDict['fullPath']+"'")
 		row=myRecordSet.fetchone()
 		test_id = row[0]
-		print('\n\tTestID for test %s already present into T_TEST table with id: %s'% (testDict['fullPath'],str(test_id)))
+		print('\n\t%s TestID from T_TEST = %s'% (testDict['fullPath'],str(test_id)))
 		testReport+='Test ID = '+str(test_id)+'\n'
 		tempFields=testDict['fullPath'].split('/')
 		#print('...Done\n')
 	except Exception as eee:
 		print('\nERROR Adding testID into T_TEST Table')
 		print(str(eee))
+		return testReport
 	
 	try:
 		#------------------------Checking Product ID---------------------------------
@@ -131,7 +100,7 @@ def addTestToDB(testDict):
 			if testNotFound==True:
 				testReport+='Deleting Test ID '+str(test_id)+'...'
 				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
+				connection.commit()
 				testReport+='DONE\n'
 				print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
 			return testReport
@@ -143,6 +112,7 @@ def addTestToDB(testDict):
 	except Exception as eee:
 		print('ERROR Getting Product ID from T_PROD')
 		print(str(eee))
+		return testReport
 	
 	try:
 		#------------------------Checking Scope ID---------------------------------
@@ -155,7 +125,7 @@ def addTestToDB(testDict):
 			if testNotFound==True:
 				testReport=+'Deleting Test ID '+str(test_id)+'...'
 				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
+				connection.commit()
 				testReport+='DONE\n'
 				print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
 			return testReport
@@ -167,6 +137,7 @@ def addTestToDB(testDict):
 	except Exception as eee:
 		print('ERROR Getting Scope ID from T_SCOPE')
 		print(str(eee))
+		return testReport
 	
 	try:
 		#------------------------Checking Area ID---------------------------------
@@ -179,7 +150,7 @@ def addTestToDB(testDict):
 			if testNotFound==True:
 				testReport=+'Deleting Test ID '+str(test_id)+'...'
 				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
+				connection.commit()
 				testReport+='DONE\n'
 				print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
 			return testReport
@@ -191,6 +162,7 @@ def addTestToDB(testDict):
 	except Exception as eee:
 		print('ERROR Getting Area ID from T_AREA')
 		print(str(eee))
+		return testReport
 	
 	
 	try:
@@ -205,19 +177,20 @@ def addTestToDB(testDict):
 			if testNotFound==True:
 				testReport+='Deleting Test ID '+str(test_id)+'...'
 				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
+				connection.commit()
 				testReport+='DONE\n'
 				print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
 			return testReport
 		myRecordSet.execute("SELECT id_sw_rel from T_SW_REL where sw_rel_name='"+tempRelease[0]+"'")
 		row=myRecordSet.fetchone()
 		id_sw_rel=row[0]
-		revision=tempRelease[1]
+		revision=testDict['tag'].strip()
 		testReport+='Release ID = '+str(id_sw_rel)+'\n'
 		print('\tSelected Release Id from T_SW_REL for %s : %s'%(tempRelease[0],str(id_sw_rel)))
 	except Exception as eee:
 		print('ERROR Getting Release ID from T_SW_REL')
 		print(str(eee))
+		return testReport
 	
 	
 	
@@ -232,7 +205,7 @@ def addTestToDB(testDict):
 			if testNotFound==True:
 				testReport+='Deleting Test ID '+str(test_id)+'...'
 				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
+				connection.commit()
 				testReport+='DONE\n'
 				print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
 			return testReport
@@ -244,55 +217,71 @@ def addTestToDB(testDict):
 	except Exception as eee:
 		print('ERROR Getting Domain ID from T_DOMAIN')
 		print(str(eee))
+		return testReport
 	
 	
 	
-	"""
 	#------------------------Adding Entry to T_TEST_REVS---------------------------------
 	try:
-		myRecordSet.execute("INSERT INTO T_TEST_REVS (T_TEST_test_id,revision,duration,metric,assignment,dependency,author,release_date,lab,description,topology,run_section,last_update) VALUES("+str(test_id)+","+revision+",0,0,'','"+testDict['dependency']+"','"+testDict['author']+"',CURRENT_TIMESTAMP,'"+testDict['lab']+"','"+testDict['description']+"','"+testDict['topology']+"','"+testDict['run_section']+"',CURRENT_TIMESTAMP)")
-		dbConnection.commit()
+		myRecordSet.execute("INSERT INTO T_TEST_REVS (T_TEST_test_id,revision,duration,metric,assignment,dependency,author,release_date,lab,description,topology,run_section,last_update) VALUES("+str(test_id)+",'"+testDict['tag']+"',0,0,'','"+testDict['dependency']+"','"+testDict['author']+"',CURRENT_TIMESTAMP,'"+testDict['lab']+"','"+testDict['description']+"','"+testDict['topology']+"','"+testDict['run_section']+"',CURRENT_TIMESTAMP)")
+		connection.commit()
 	except Exception as err:
 		testReport+='***ERROR*** Unable to add TEST REVS entry!!!\n'
 		testReport+=str(err.args)
 		testReport+='Rolling Back...\n'
+		print('\t***ERROR*** Unable to add TEST REVS entry!!\n%s\n%s!'%(str(err),str(err.args)))
 		if testNotFound==True:
 			testReport+='Deleting Test ID '+str(test_id)+'...'
 			myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-			dbConnection.commit()
+			connection.commit()
 			testReport+='DONE\n'
+			print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
 		return testReport
 	myRecordSet.execute("SELECT MAX(id_testRev) as id_testRev from T_TEST_REVS")
 	row=myRecordSet.fetchone()
-	id_testRev=row['id_testRev']
+	id_testRev=row[0]
 	testReport+='TEST REV ID = '+str(id_testRev)+'\n'
+	print('\tTest Id: %s Added to T_TEST_REVS Table with ID: %s'%(str(test_id),str(id_testRev)))
+	
+	
 	#------------------------Adding Entry to T_TPS---------------------------------
 	for myTps in testDict['tps'].split('*'):
-		try:
-			myRecordSet.execute("INSERT INTO T_TPS (tps_reference,T_DOMAIN_id_domain,T_TEST_REVS_id_TestRev) VALUES('"+myTps+"',"+str(id_domain)+","+str(id_testRev)+")")
-			dbConnection.commit()
-		except:
-			testReport+='***ERROR*** Unable to add T_TPS entry!!!\n'
-			testReport+='Rolling Back...\n'
-			if testNotFound==True:
-				testReport+='Deleting TPS for Test Rev ID '+str(id_testRev)+'...'
-				myRecordSet.execute("DELETE FROM T_TPS WHERE T_TEST_REVS_id_TestRev="+str(id_testRev))
-				dbConnection.commit()
-				testReport+='DONE\n'
-				testReport+='Deleting Test Rev ID '+str(id_testRev)+'...'
-				myRecordSet.execute("DELETE FROM T_TEST_REVS WHERE test_id="+str(id_testRev))
-				dbConnection.commit()
-				testReport+='DONE\n'
-				testReport+='Deleting Test ID '+str(test_id)+'...'
-				myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
-				dbConnection.commit()
-				testReport+='DONE\n'
-			return testReport
-		myRecordSet.execute("SELECT MAX(id_tps) as id_tps from T_TPS")
-		row=myRecordSet.fetchone()
-		id_tps=row['id_tps']
-		testReport+='TPS ID ADDED = '+str(id_tps)+'\n'
-	"""
+		myTps=myTps.strip()
+		if myTps != "":
+			tpslist=myTps.split('__')
+			#tpslist[0] contains the domain reference
+			#tpslist[1] contains the tps id
+			try:
+				myRecordSet.execute("INSERT INTO T_TPS (tps_reference,T_DOMAIN_id_domain,T_TEST_REVS_id_TestRev) VALUES('"+myTps+"',"+str(id_domain)+","+str(id_testRev)+")")
+				#myRecordSet.execute("INSERT INTO T_TPS (tps_reference,T_DOMAIN_id_domain,T_TEST_REVS_id_TestRev) VALUES('"+str(tpslist[1])+"',"+str(id_domain)+","+str(id_testRev)+")")
+				connection.commit()
+			except Exception as err:
+				testReport+='***ERROR*** Unable to add T_TPS entry!!!\n'
+				testReport+='Rolling Back...\n'
+				print('\t***ERROR*** Unable to add %s into T_TPS entry!!\n%s\n%s!'%(myTps,str(err),str(err.args)))
+				if testNotFound==True:
+					testReport+='Deleting TPS for Test Rev ID '+str(id_testRev)+'...'
+					myRecordSet.execute("DELETE FROM T_TPS WHERE T_TEST_REVS_id_TestRev="+str(id_testRev))
+					connection.commit()
+					testReport+='DONE\n'
+					print('\tDeleting test revision Id: %s from T_TPS...'%str(id_testRev))
+					testReport+='Deleting Test Rev ID '+str(id_testRev)+'...'
+					myRecordSet.execute("DELETE FROM T_TEST_REVS WHERE test_id="+str(id_testRev))
+					connection.commit()
+					testReport+='DONE\n'
+					print('\tDeleting test Rev Id: %s from T_TEST_REVS...'%str(id_testRev))
+					testReport+='Deleting Test ID '+str(test_id)+'...'
+					myRecordSet.execute("DELETE FROM T_TEST WHERE test_id="+str(test_id))
+					connection.commit()
+					testReport+='DONE\n'
+					print('\tDeleting test Id: %s from T_TEST...'%str(test_id))
+				return testReport
+			myRecordSet.execute("SELECT MAX(id_tps) as id_tps from T_TPS")
+			row=myRecordSet.fetchone()
+			id_tps=row[0]
+			testReport+='TPS ID ADDED = '+str(id_tps)+'\n'
+			print('\tTPS %s Added to T_TPS Table with ID: %s'%(myTps,str(id_tps)))
+	
 	return testReport
 
 

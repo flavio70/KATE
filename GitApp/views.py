@@ -51,29 +51,20 @@ def get_testinfo(testpath):
 	
 	return res
 
-
-
-
-
 def addTestListToDB(testList):
-	
+	"""
 	#testAry=[{'fullPath':'TestCases/1850TSS320/DATA/DATAQOS/pippo.py','tag':'7.2@01','diff':'A','dependency':'dep1','author':'COLOMX','lab':'SVT','description':'descr1','topology':'topo1','run_section':'11111','tps':'1.2.3*4.5.6'}]
-
-
+"""
 	listReport=''
-
 	for myTest in testList:
 		if myTest['diff']=='A':listReport+=addTestToDB(myTest)
 		#print(testList)
 	return listReport
 
-
-
 def push_hook(data):
 	print('Calling push event management...')
 	print(data)
 	return '2B Implemented'
-
 
 def tag_push_hook(data):
 	from git import Repo, RemoteProgress
@@ -224,9 +215,7 @@ def tag_push_hook(data):
 	#print(result)
 	print('\nAdding testcases to K@TE MySQL DB...\n')
 	finalres=addTestListToDB(result)
-	return finaleres
-
-
+	return finalres
 
 def issue_hook(data):
 	print('Calling Issue event management...')
@@ -242,8 +231,6 @@ def merge_request_hook(data):
 	print('Calling merge request event management...')
 	print(data)
 	return '2B Implemented'
-
-
 
 @csrf_exempt
 def gitlab_webhook(request):
@@ -279,7 +266,7 @@ def gitlab_webhook(request):
   
 			queryRes=runPhase[http_x_gitlab_event](json_data)
 			
-			print(queryRes)
+			print('\n\n TAG PUSH HOOK Results:\n%s\n\n'%queryRes)
 			
 			
 			return HttpResponse(runPhase)
