@@ -3,6 +3,7 @@ from django.db import models
 from django.db import connection
 from django.utils.translation import ugettext as _
 from taws.models import *
+from django.conf import settings
 
 # Create your models here.
 
@@ -140,7 +141,7 @@ def addTestToDB(testDict):
 			try:
 				myRecordSet.execute("INSERT INTO T_TEST_REVS (T_TEST_test_id,revision,duration,metric,assignment,dependency,author,release_date,lab,description,topology,run_section,last_update) VALUES("+str(testId)+",'"+tag+"',0,0,'','"+dependency+"','"+author+"',CURRENT_TIMESTAMP,'"+lab+"','"+description+"','"+topology+"','"+run_section+"',CURRENT_TIMESTAMP)")
 				connection.commit()
-			except Exception as eee:
+			except Exception as err:
 				testReport+='***ERROR*** Unable to add TEST REVS entry!!!\n'
 				testReport+=str(err.args)
 				testReport+='Rolling Back...\n'
@@ -341,7 +342,7 @@ def addTestToDB(testDict):
 		id_area=get_area_id(tempFields[3])
 		if id_area is None: return testReport
 		
-		tempRelease=testDict['tag'].split('@')[0]
+		tempRelease=testDict['tag'].split(settings.TAG_SPLIT)[0]
 		
 		id_sw_rel=get_sw_rel_id(tempRelease)
 		if id_sw_rel is None:return testReport
@@ -360,7 +361,7 @@ def addTestToDB(testDict):
 		if test_id is None:return testReport
 		
 		#add test to T_TEST_REVS Table
-		id_testRev =add_testCase_revision(test_id,testDict['tag'],testDict['dependency'],testDict['author'],testDict['lab'],testDict['description'],testDict['topology'],testDict['run_section'])
+		id_testRev =add_testCase_revision(test_id,testDict['tag'],testDict['dependency'],testDict['author'].strip(),testDict['lab'].strip(),testDict['description'],testDict['topology'].strip(),testDict['run_section'].strip())
 		if id_testRev is None:return testReport
 		
 		#adding TPS references to T_TPS
@@ -368,7 +369,7 @@ def addTestToDB(testDict):
 		for myTps in testDict['tps'].split('*'):
 			myTps=myTps.strip()
 			if myTps != "":
-				tpslist=myTps.split('__')
+				tpslist=myTps.split(settings.TPS_SPLIT)
 				#tpslist[0] contains the Area reference
 				#tpslist[1] contains the tps id
 				#getting areaid for tps area reference
