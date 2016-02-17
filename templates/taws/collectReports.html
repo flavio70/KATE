@@ -3,6 +3,19 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "css/report.css" %}" />
 <script>
+	function download(filename, text) {
+	  var element = document.createElement('a');
+	  element.setAttribute('href', 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(text));
+	  element.setAttribute('download', filename);
+
+	  element.style.display = 'none';
+	  document.body.appendChild(element);
+
+	  element.click();
+
+	  document.body.removeChild(element);
+	}
+
 	var jobTable;
 	function goToJob(){
 		sendDBReport.action='/taws/viewJobDetails/?jobName={{ job_name }}';
@@ -34,7 +47,13 @@
 		{
 			text:'<i class="fa fa-database fa"></i>',
 			titleAttr: 'Export report to K@TE Database',
-			action:function(){sendDBReport.submit();},
+			action:function(){sendDBReport.azione.value='addResult';sendDBReport.submit();},
+			className:'btn-custom'
+		},
+		{
+			text:'<i class="fa fa-database fa"></i>',
+			titleAttr: 'Export report to JIRA',
+			action:function(){sendDBReport.azione.value='exportJIRA';sendDBReport.submit();},
 			className:'btn-custom'
 		},
 		
@@ -130,6 +149,11 @@
 	}
 </script>
 
+{% if JIRAcsv != "" %}
+<script>
+	download('{{ job_name }}-{{ instance }}.bat', '{{ JIRAcsv }}');
+</script>
+{% endif %}
 
 <div style="width:1024px;position:fixed;left:50%;margin-left:-512px;z-index:9;height:700px;margin-top:30px">
 	<div>
@@ -145,11 +169,10 @@
 
 
 
-
 <form name="sendDBReport" action="/taws/collectReports/" method="post" target="_self">{% csrf_token %}
 	<input type="hidden" name="jobName" value="{{ job_name }}">
 	<input type="hidden" name="buildId" value="{{ instance }}">
-	<input type="hidden" name="azione" value="addResult">
+	<input type="hidden" name="azione" value="">
 	<input type="hidden" name="notes" value="">
 
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="reportTable">
