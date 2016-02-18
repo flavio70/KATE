@@ -56,10 +56,19 @@ def addTestListToDB(testList):
 	#testAry=[{'fullPath':'TestCases/1850TSS320/DATA/DATAQOS/pippo.py','tag':'7.2@01','diff':'A','dependency':'dep1','author':'COLOMX','lab':'SVT','description':'descr1','topology':'topo1','run_section':'11111','tps':'1.2.3*4.5.6'}]
 """
 	listReport=''
-	for myTest in testList:
-		if myTest['diff']=='A':listReport+=addTestToDB(myTest)
-		#print(testList)
-	return listReport
+	liststatus = True
+	try:
+		for myTest in testList:
+			if myTest['diff']=='A':
+				res=addTestToDB(myTest)
+				listReport+=res['data']
+				if not res['status']:liststatus = False
+			#print(testList)
+		return {'status':liststatus,'data':listReport}
+	except Exception as xxx:
+		print('ERROR on addTestListToDB')
+		print(str(xxx))
+
 
 def push_hook(data):
 	print('Calling push event management...')
@@ -91,14 +100,14 @@ def tag_push_hook(data):
 	print('\ncheckout sha: %s\n' % checkout_sha)
 	print('Current TAG value: %s \n' % currentTag)
 
-	if not checkout_sha:return "Are we deleting tag?... Nothing to do. Stopping execution..."
+	if not checkout_sha:return {'status':False,'data':"Are we deleting tag?... Nothing to do. Stopping execution..."}
 
 	print('\nchecking current TAG: %s Format...' % currentTag)
 	'''
-	TAG FORMAT Expected coming from branch xxxxx: XXXXX__abcd
+	TAG FORMAT Expected coming from branch xxxxx: XXXXX@abcd
 	'''
 	tagSplit = currentTag.split(settings.TAG_SPLIT)
-	if (len(tagSplit) != 2): return "current TAG " + currentTag + " is Not in the right format, exiting ..."
+	if (len(tagSplit) != 2): return {'status':False,'data':"current TAG " + currentTag + " is Not in the right format, exiting ..."}
 	
 	tagBranchu=tagSplit[0]
 	tagBranchl=tagBranchu.lower()
@@ -122,7 +131,7 @@ def tag_push_hook(data):
 	
 	#getting origin
 	origin = myRepo.remotes.origin
-	if not origin.exists(): return "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"
+	if not origin.exists(): return {'status':False,'data': "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"}
 	# checkout on master
 	myRepo.head.ref=myRepo.heads.master
 	# try to fetch from origin
@@ -145,7 +154,7 @@ def tag_push_hook(data):
 		 myRepo.head.ref = myRepo.remotes.origin.refs[tagBranchl]
 		 print("Repo head set to %s" % tagBranchl)
 	except:
-		return "Failed to chekout to branch " + tagBranchl + " exiting..."
+		return {'status':False,'data':"Failed to chekout to branch " + tagBranchl + " exiting..."}
 
 	print('Getting commits and tags...')
 	commitList=list(myRepo.iter_commits())
@@ -210,12 +219,24 @@ def tag_push_hook(data):
 						result.append(res)
 	except Exception as eee:
 		print(str(eee))
-		return str(eee)
+		return {'status':False,'data':str(eee)}
 	
-	#print(result)
-	print('\nAdding testcases to K@TE MySQL DB...\n')
-	finalres=addTestListToDB(result)
-	return finalres
+	try:
+		#print(result)
+		print('\nAdding testcases to K@TE MySQL DB...\n')
+		finalres=addTestListToDB(result)
+		
+		swrel=TSwRel.objects.get(sw_rel_name=tagBranchu)
+		#adding the result to KATE DB
+		#newitem = TGitActivity(status='ppp',data='xxx',tag=currentTag,t_sw_rel_id_sw_rel=swrel)
+		newitem = TGitActivity(status=finalres['status'],data=finalres['data'],tag=currentTag,t_sw_rel_id_sw_rel=swrel)
+		newitem.save()
+		#updating Users git flag
+		#return{'status':'ppp','data':'xxx'}
+		return {'status':finalres['status'],'data':finalres['data']}
+	except Exception as eee:
+		print(str(eee))
+		return {'status':False,'data':str(eee)}
 
 def issue_hook(data):
 	print('Calling Issue event management...')
@@ -266,11 +287,60 @@ def gitlab_webhook(request):
   
 			queryRes=runPhase[http_x_gitlab_event](json_data)
 			
-			print('\n\n TAG PUSH HOOK Results:\n%s\n\n'%queryRes)
+			print('\n\n TAG PUSH HOOK Results: %s\n\n%s\n\n'%(queryRes['status'],queryRes['data']))
 			
 			
-			return HttpResponse(runPhase)
+			return HttpResponse(queryRes)
 
 	return HttpResponse('Hehe! No POST or not request.body')
 
 
+
+def getgittag(request):
+	
+	import mysql.connector
+	import json
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'createNewTest'}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	username=request.session['login']
+	#phase=request.POST.get('phase','')
+  
+	res=get_DB_git_show(username)
+  
+	context_dict={'login':request.session['login'], 
+							'content':'xxxxxxxxx',
+							'showgit':res}
+
+
+	#return render(request,'taws/createNewTest.html',context_dict)
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+  
+
+
+def setGitFlag(request):
+	
+	import mysql.connector
+	import json
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'createNewTest'}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	username=request.session['login']
+	flag=request.POST.get('flag','0')
+  
+	res=set_DB_git_flag(username,flag.strip())
+	context_dict={'login':request.session['login'], 
+							'res':res}
+
+
+	#return render(request,'taws/createNewTest.html',context_dict)
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+  
