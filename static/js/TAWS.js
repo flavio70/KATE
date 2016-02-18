@@ -1277,3 +1277,8 @@ function showmodal(title,message,modaltype) {
 	$('#modal_placeholder').modal('show')
 	
 }
+
+function showgittag(message,alerttype) {
+	$('#alert_gittag_placeholder').html('<div id="gittagalertdiv" class="alert ' +  alerttype + '"><a id="gitalertbtn" class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>')
+	$("#alert_gittag_placeholder").fadeToggle("slow");
+}

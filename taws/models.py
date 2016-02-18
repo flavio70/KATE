@@ -370,3 +370,4 @@ class TTpyEntity(models.Model):
         managed = False
         db_table = 'T_TPY_ENTITY'
 
+

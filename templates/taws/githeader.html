@@ -1,0 +1,60 @@
+<script>
+	
+	function setUser(myflag){
+		
+				$.ajax({
+			url : "/gitapp/setGitFlag/", // the endpoint
+			type : "POST", // http method
+			data :{
+							currentUser : '{{ login }}',
+							csrfmiddlewaretoken: '{{ csrf_token }}',
+							flag : myflag,
+							}, // data sent with the post request
+			// handle a successful response
+			success : function(json) {
+					console.log(json);
+					console.log("set user git flag Ajax success to value: "+myflag); // another sanity check
+			},
+			// handle a non-successful response
+			error : function(xhr,errmsg,err) {
+				alert('Oops! We have encountered an error: '+xhr.status)
+				console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+			}
+		});
+		
+	}
+	
+	
+	
+	$(document).ready(function() {
+		
+		$.ajax({
+			url : "/gitapp/getgittag/", // the endpoint
+			type : "POST", // http method
+			data :{
+							currentUser : '{{ login }}',
+							csrfmiddlewaretoken: '{{ csrf_token }}',
+							}, // data sent with the post request
+			// handle a successful response
+			success : function(json) {
+					console.log(json);
+					console.log("get git flag Ajax success"); // another sanity check
+					if (json.showgit) {showgittag(json.content,"alert-info");}
+			},
+			// handle a non-successful response
+			error : function(xhr,errmsg,err) {
+				alert('Oops! We have encountered an error: '+xhr.status)
+				console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+			}
+		});	
+		
+	});
+		
+	$(document).on('click', '#gitalertbtn', function () {
+		console.log("Acknowledgment on git info "+$(this).text());
+		setUser(0);
+	});	
+
+	</script>
+	
+	<div id="alert_gittag_placeholder" style="position:fixed;top:55px;z-index:100;width:100%;left:0px;display:none;"></div>

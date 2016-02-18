@@ -1,9 +1,11 @@
 # coding=utf-8
+from __future__ import unicode_literals
 from django.db import models
 from django.db import connection
 from django.utils.translation import ugettext as _
 from taws.models import *
 from django.conf import settings
+
 
 # Create your models here.
 
@@ -11,6 +13,23 @@ from django.conf import settings
 testReport=''
 testNotFound = False
 
+
+
+
+class TGitActivity(models.Model):
+	id_git = models.AutoField(primary_key=True)
+	t_sw_rel_id_sw_rel = models.ForeignKey(TSwRel, db_column='T_SW_REL_id_sw_rel')  # Field name made lowercase.
+	tag = models.CharField(db_column='tag',max_length=45)
+	status = models.CharField(db_column='status',max_length=5)
+	data = models.TextField(db_column='data',blank=True, null=True)
+
+	class Meta:
+		managed = False
+		db_table = 'T_GIT_ACTIVITY'
+		
+	def __str__(self):
+		return self.tag
+		
 class Gitlab_Webhook(models.Model):
     ''' Model for webhook of gitlab
 
@@ -336,21 +355,21 @@ def addTestToDB(testDict):
 		
 		#getting all required values from DB, exiting in case of trouble...
 		id_prod=get_product_id(tempFields[1])
-		if id_prod is None: return testReport
+		if id_prod is None: return {'status':False,'data':testReport}
 		id_scope=get_scope_id(tempFields[2])
-		if id_scope is None: return testReport
+		if id_scope is None: return {'status':False,'data':testReport}
 		id_area=get_area_id(tempFields[3])
-		if id_area is None: return testReport
+		if id_area is None: return {'status':False,'data':testReport}
 		
 		tempRelease=testDict['tag'].split(settings.TAG_SPLIT)[0]
 		
 		id_sw_rel=get_sw_rel_id(tempRelease)
-		if id_sw_rel is None:return testReport
+		if id_sw_rel is None:return {'status':False,'data':testReport}
 		
 		revision=testDict['tag'].strip()
 		
 		id_domain = get_domain_id(id_prod,id_scope,id_area,tempFields[3],id_sw_rel)
-		if id_domain is None:return testReport
+		if id_domain is None:return {'status':False,'data':testReport}
 		
 		#at this point all required fields are correctly collected from DB
 		#trying to push test case into DB
@@ -358,11 +377,11 @@ def addTestToDB(testDict):
 		
 		#add test to T_TEST Table
 		test_id=add_testCase(testDict['fullPath'])
-		if test_id is None:return testReport
+		if test_id is None:return {'status':False,'data':testReport}
 		
 		#add test to T_TEST_REVS Table
 		id_testRev =add_testCase_revision(test_id,testDict['tag'],testDict['dependency'],testDict['author'].strip(),testDict['lab'].strip(),testDict['description'],testDict['topology'].strip(),testDict['run_section'].strip())
-		if id_testRev is None:return testReport
+		if id_testRev is None:return {'status':False,'data':testReport}
 		
 		#adding TPS references to T_TPS
 		testReport+=('\nTPS References:\n')
@@ -378,14 +397,14 @@ def addTestToDB(testDict):
 					rollback_test_tps(id_testRev)
 					rollback_test_revision(id_testRev)
 					rollback_test(test_id)
-					return testReport
+					return {'status':False,'data':testReport}
 				tpsDomainId=get_domain_id(id_prod,id_scope,tpsAreaId,tpslist[0],id_sw_rel)
 				
 				if tpsDomainId is None:
 					rollback_test_tps(id_testRev)
 					rollback_test_revision(id_testRev)
 					rollback_test(test_id)
-					return testReport
+					return {'status':False,'data':testReport}
 				
 				print('\tAdding TPS %s %s area %s domain %s to T_TPS table'%(tpslist[0],tpslist[1],tpsAreaId,tpsDomainId))
 				
@@ -403,13 +422,44 @@ def addTestToDB(testDict):
 					rollback_test_tps(id_testRev)
 					rollback_test_revision(id_testRev)
 					rollback_test(test_id)
-					return testReport
+					return {'status':False,'data':testReport}
 				
 		print('\nEverithing OK\n')
-		return testReport
+		return {'status':True,'data':testReport}
 	
 	except Exception as xxx:
 			print('ERROR on addTestToDB')
 			print(str(xxx))
-			return None
+			return {'status':False,'data':None}
 	
+
+
+
+
+def get_DB_git_show(user):
+	""" check the presence of git_show flag for the user  in the right table """
+	if user.strip() == '':return False
+	try:
+		cursor = connection.cursor()
+		cursor.execute("SELECT git_usershow as myshow from auth_user WHERE username='"+user.strip()+"'")
+		row=cursor.fetchone()
+		if row[0]==0:
+			return False
+		else:
+			return True
+	except Exception as eee:
+		print(str(eee))
+		return False
+
+def set_DB_git_flag(user,flag):
+	""" unset the git_show flag for the user"""
+	if user.strip() == '':return False
+	try:
+		
+		cursor = connection.cursor()
+		cursor.execute("UPDATE auth_user SET git_usershow = '"+ flag +"' WHERE username='"+user.strip()+"'")
+		connection.commit()
+		return True
+	except Exception as eee:
+		print(str(eee))
+		return False
