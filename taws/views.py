@@ -2693,6 +2693,28 @@ def accesso(request):
 
 		return  JsonResponse({'templatePreset':json.dumps(ast.literal_eval(myPreset), ensure_ascii=False, indent=4, separators=(',', ':'))}, safe=False)
 
+	if myAction=='getTopoTemplate':
+
+		import mysql.connector,json,ast
+   
+		topoID = request.POST.get('topoID','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+
+		myRecordSet.execute("SET group_concat_max_len = 200000")
+		dbConnection.commit()
+
+		myRecordSet.execute("select concat('{',group_concat(myTuple),'}') as presets from (SELECT entityName,T_TOPOLOGY_id_topology,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),'',char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),'',char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY where T_TOPOLOGY_id_topology="+topoID+" group by entityName) as presets")
+		#myRecordSet.execute("select concat('{',group_concat(myTuple),'}') as presets from (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" and T_TOPOLOGY_id_topology="+topoID+" group by entityName) as presets")
+		#myRecordSet.execute("select concat('{',group_concat(myTuple),'}') as presets from (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+presetID+" and T_TOPOLOGY_id_topology="+topoID+" group by entityName) as presets")
+		#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
+		row = myRecordSet.fetchone()
+		myPreset=row['presets']   
+#json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
+
+		return  JsonResponse({'templatePreset':json.dumps(ast.literal_eval(myPreset), ensure_ascii=False, indent=4, separators=(',', ':'))}, safe=False)
+
 	if myAction=='createTest':
    
 		import os 
