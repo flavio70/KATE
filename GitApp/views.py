@@ -115,8 +115,8 @@ def tag_push_hook(data):
 	print('\nOK TAG is in the correct format: branch %s Tag Separator %s  tag version %s \n' % (tagBranchl,settings.TAG_SPLIT,tagVal))
 	
 	
-	local_repo_dir=settings.BASE_DIR + '/wrepos'
-	local_repo_path= settings.BASE_DIR + '/wrepos/' + repository_name
+	local_repo_dir=settings.BASE_DIR + settings.GIT_REPO_PATH
+	local_repo_path= settings.BASE_DIR + settings.GIT_REPO_PATH + '/' + repository_name
 	
 	
 	if not os.path.isdir(local_repo_dir):os.mkdir(local_repo_dir)
