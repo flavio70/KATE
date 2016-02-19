@@ -131,7 +131,7 @@ def tag_push_hook(data):
 	
 	#getting origin
 	origin = myRepo.remotes.origin
-	if not origin.exists(): return {'status':False,'data': "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"}
+	if not origin.exists(): return {'status':False,'data': "remote origin not found for GIT repository " + local_repo_path + " Please check your GIT Repository configuration"}
 	# checkout on master
 	myRepo.head.ref=myRepo.heads.master
 	# try to fetch from origin
@@ -151,8 +151,8 @@ def tag_push_hook(data):
 		
 	#trying to checkout the tag release branch
 	try:
-		 myRepo.head.ref = myRepo.remotes.origin.refs[tagBranchl]
-		 print("Repo head set to %s" % tagBranchl)
+		myRepo.head.ref = myRepo.remotes.origin.refs[tagBranchl]
+		print("Repo head set to %s" % tagBranchl)
 	except:
 		return {'status':False,'data':"Failed to chekout to branch " + tagBranchl + " exiting..."}
 
@@ -232,6 +232,7 @@ def tag_push_hook(data):
 		newitem = TGitActivity(status=finalres['status'],data=finalres['data'],tag=currentTag,t_sw_rel_id_sw_rel=swrel)
 		newitem.save()
 		#updating Users git flag
+		AuthUser.objects.filter(is_active=1).update(git_usershow=1)
 		#return{'status':'ppp','data':'xxx'}
 		return {'status':finalres['status'],'data':finalres['data']}
 	except Exception as eee:
@@ -284,7 +285,6 @@ def gitlab_webhook(request):
 			
 			
 			runPhase = {'Push Hook': push_hook, 'Tag Push Hook' : tag_push_hook, 'Issue Hook' : issue_hook, 'Note Hook' : note_hook, 'Merge Request Hook' : merge_request_hook}
-  
 			queryRes=runPhase[http_x_gitlab_event](json_data)
 			
 			print('\n\n TAG PUSH HOOK Results: %s\n\n%s\n\n'%(queryRes['status'],queryRes['data']))
@@ -298,44 +298,43 @@ def gitlab_webhook(request):
 
 def getgittag(request):
 	
-	import mysql.connector
-	import json
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':'createNewTest'}
+		context_dict={'fromPage':'index'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	username=request.session['login']
 	#phase=request.POST.get('phase','')
-  
+	
 	res=get_DB_git_show(username)
-  
+	last = TGitActivity.objects.last()
+	if last:
+		ctag=last.tag
+		cstatus=last.status
+		cdata=last.data
+		
 	context_dict={'login':request.session['login'], 
-							'content':'xxxxxxxxx',
+							'tag':ctag,
+							'status':cstatus,
+							'content':cdata,
 							'showgit':res}
 
 
 	#return render(request,'taws/createNewTest.html',context_dict)
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
-  
 
 
 def setGitFlag(request):
-	
-	import mysql.connector
-	import json
+
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':'createNewTest'}
+		context_dict={'fromPage':'index'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	username=request.session['login']
 	flag=request.POST.get('flag','0')
-  
 	res=set_DB_git_flag(username,flag.strip())
 	context_dict={'login':request.session['login'], 
 							'res':res}
@@ -343,4 +342,51 @@ def setGitFlag(request):
 
 	#return render(request,'taws/createNewTest.html',context_dict)
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
-  
+
+
+def gitTagShow(request):
+	import re
+	from django.utils.safestring import mark_safe
+	
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		context_dict={'fromPage':'index'}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	curruser=request.session['login']
+	treeView=''
+	AuthUser.objects.filter(username=curruser).update(git_usershow=0)
+	alltags = TGitActivity.objects.all()
+	for tag in reversed(alltags):
+		print('tag %s'%tag.tag)
+		print('tag Status:%s'%tag.status)
+		
+		treeView+="{text: '"+tag.tag+"',"
+		treeView+="href: '#"+tag.tag+"',"
+		
+		if tag.status=='True':
+			print('Tag OK')
+			treeView+="tags: [],"
+		else:
+			print('Tag KO')
+			treeView+="tags: ['1'],"
+		
+		res=re.findall('TestCases(.*)?',tag.data,re.MULTILINE)	
+		print('%s items in current tag'%len(res))
+		if len(res)>0:
+			treeView+="nodes:["
+			for mytest in res:
+				print(mytest)
+				treeView+="{text: '"+mytest+"',"
+				treeView+="href: '#"+mytest+"',"
+				treeView+="tags: [],},"
+			
+			treeView+="]"
+		treeView+="},"		
+	
+	context_dict={'login':request.session['login'],
+		'treeView':mark_safe(treeView)}
+	return render(request,'GitApp/gitTagShow.html',context_dict)
+
+
+

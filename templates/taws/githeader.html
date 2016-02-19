@@ -39,7 +39,21 @@
 			success : function(json) {
 					console.log(json);
 					console.log("get git flag Ajax success"); // another sanity check
-					if (json.showgit) {showgittag(json.content,"alert-info");}
+					linkmsg = '<a href="/gitapp/gitTagShow/">check here</a>';
+					if(json.status == "True"){
+						alerttype="alert-info"
+						custommsg="successfully"
+					}else{
+						alerttype="alert-danger"
+						console.log('alert-danger')
+						custommsg="unsuccessfully"
+					}
+					if (json.showgit) {
+						message = "TAG "+json.tag+ " has been "+custommsg+" submitted to K@TE Database from GIT Administrator <br><br> Please "+linkmsg+" for details about test contents";
+						
+						showgittag(message,alerttype);
+						
+					}
 			},
 			// handle a non-successful response
 			error : function(xhr,errmsg,err) {
