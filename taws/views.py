@@ -24,7 +24,7 @@ def get_testinfo(testpath):
 	res=None
 	#testFullName = os.path.abspath(testpath).decode('ascii')
 	#testFullname = testpath
-
+	if not os.path.exists(testpath):return res
 	M = ast.parse(''.join(open(testpath)))
 	doc=ast.get_docstring(M)
 		
@@ -505,7 +505,7 @@ def tuningEngine(request):
 		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
 	myIDX=1
 	test_plan=''
-	myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
+	myRepo=Repo(settings.BASE_DIR + settings.GIT_REPO_PATH + settings.GIT_REPO_NAME)
 	git=myRepo.git
 	for row in rows:
 		test_name=str(myIDX).zfill(6)+'_'+str(row['id_TestRev'])+'_'+ntpath.basename(row['test_name'])
@@ -522,7 +522,7 @@ def tuningEngine(request):
 				shutil.rmtree(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name)
 				tempStr+='DONE!\n'
 			localPath=suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name
-			remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/'+row['test_name']
+			remotePath='/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/'+row['test_name']
 			os.symlink(remotePath,localPath)
 		with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
 			#tempStr+=row["presets"]
@@ -1728,7 +1728,8 @@ def viewTestCase(request):
 		myRecordSet.execute("select revision,test_name,test_id from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where id_TestRev="+idTestRev)
 		myTest=myRecordSet.fetchone()
 
-		myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
+		
+		myRepo=Repo(settings.BASE_DIR + settings.GIT_REPO_PATH + settings.GIT_REPO_NAME)
 		git=myRepo.git
 		myFile=git.show(myTest['revision']+':'+myTest['test_name'])
 		
@@ -1879,7 +1880,7 @@ def setUserRepo(userId,branch):
 	
 	res = "Setting GIT Repository for " + userId + " on branch " + dev_branch + " ..."
 	print(res)
-	repoPath='/users/'+userId+settings.GIT_REPO
+	repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
 	myRepo=Repo(repoPath)
 	git=myRepo.git
 	
@@ -2331,59 +2332,61 @@ def accesso(request):
 			if os.path.isfile(f+'.prs'):
 				#tempTest = open(f,"r")
 				#myFile=tempTest.read()
-				res=get_testinfo(f)
-				check_testinfo_format(f,res)
-				print('docinfo for %s: %s'%(f,res))
-				if check_testinfo_format(f,res):
-					print('docinfo format ok for file %s'%f)
+				if os.path.exists(f):
+					print('Testcase %s found'%f)
+					res=get_testinfo(f)
+					check_testinfo_format(f,res)
+					print('docinfo for %s: %s'%(f,res))
+					if check_testinfo_format(f,res):
+						print('docinfo format ok for file %s'%f)
 					
-					description=res['Description']
-					topology=res['Topology']
-					dependency=res['Dependency']
-					lab=res['Lab']
-					#tps=metaInfo[1].replace(',','<br>')
-					tps=res['TPS']
-					runsection=res['RunSections']
-					author=res['Author']
-				else:
-					description="NA"
-					topology="NA"
-					dependency="NA"
-					lab="NA"
-					tps="NA"
-					runsection='00000'
-					author="NA"
+						description=res['Description']
+						topology=res['Topology']
+						dependency=res['Dependency']
+						lab=res['Lab']
+						#tps=metaInfo[1].replace(',','<br>')
+						tps=res['TPS']
+						runsection=res['RunSections']
+						author=res['Author']
+					else:
+						description="NA"
+						topology="NA"
+						dependency="NA"
+						lab="NA"
+						tps="NA"
+						runsection='00000'
+						author="NA"
 				
-				if(runsection.isdigit()==False):runsection='00000'
-				print('Description %s' % description)
-				print('topology %s' % topology)
-				print('Dependency %s' % dependency)
-				print('Lab %s' % lab)
-				print('tps %s' % tps)
-				print('runsections %s' % runsection)
-				print('author %s' % author)
-				#tempTest.close()
-				testString+=f+"#"+\
-				"NA#"+\
-				"NA#"+\
-				"0#"+\
-				"NA#"+\
-				tps+"#"+\
-				ntpath.basename(f)+"#"+\
-				"0#"+\
-				"0#"+\
-				topology+"#"+\
-				"NA#"+\
-				"NA#"+\
-				dependency+"#"+\
-				f+"#"+\
-				author+"#"+\
-				description+"#"+\
-				"NA#"+\
-				runsection+"#"+\
-				"NA#"+\
-				lab+"$"
-        
+					if(runsection.isdigit()==False):runsection='00000'
+					print('Description %s' % description)
+					print('topology %s' % topology)
+					print('Dependency %s' % dependency)
+					print('Lab %s' % lab)
+					print('tps %s' % tps)
+					print('runsections %s' % runsection)
+					print('author %s' % author)
+					#tempTest.close()
+					testString+=f+"#"+\
+					"NA#"+\
+					"NA#"+\
+					"0#"+\
+					"NA#"+\
+					tps+"#"+\
+					ntpath.basename(f)+"#"+\
+					"0#"+\
+					"0#"+\
+					topology+"#"+\
+					"NA#"+\
+					"NA#"+\
+					dependency+"#"+\
+					f+"#"+\
+					author+"#"+\
+					description+"#"+\
+					"NA#"+\
+					runsection+"#"+\
+					"NA#"+\
+					lab+"$"
+					
 		if os.path.isfile(localPath+'suite.txt'):
 			localSuite = open(localPath+'suite.txt',"r")
 			#localString=localSuite.read()
@@ -2734,7 +2737,7 @@ def accesso(request):
 			if testName[-4:] != '.py':testName+='.py'
 
 			localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
-			remotePath='/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
+			remotePath='/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
 			if os.path.isfile(remotePath):
 				#Test name already exists
 				creationReport='Warning !!, Test '+remotePath+'.py already present in your GIT Repository. Please choose a different TestName'
@@ -2743,18 +2746,18 @@ def accesso(request):
 			else:
 				#Test doesn'exist, we can proceed
 				
-				if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area):
-					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases'):
-						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases')
-						os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases',511)
-					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product):
-						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product)
-						os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product,511)
-					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain):
-						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain)
-						os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain,511)
-					os.makedirs('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area)
-					os.chmod('/users/'+request.session['login']+settings.GIT_REPO+'/TestCases/'+product+'/'+domain+'/'+area,511)
+				if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain+'/'+area):
+					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases'):
+						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases')
+						os.chmod('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases',511)
+					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product):
+						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product)
+						os.chmod('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product,511)
+					if not os.path.exists('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain):
+						os.makedirs('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain)
+						os.chmod('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain,511)
+					os.makedirs('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain+'/'+area)
+					os.chmod('/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain+'/'+area,511)
 					
 				if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports'):
 					if not os.path.exists(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace'):
@@ -2839,7 +2842,8 @@ def accesso(request):
 			myRecordSet.execute("select revision,test_name,test_id from T_TEST_REVS join T_TEST on (T_TEST_test_id=test_id) where id_TestRev="+idTestRev)
 			myTest=myRecordSet.fetchone()
 
-			myRepo=Repo('/tools/smotools'+settings.GIT_REPO)
+			
+			myRepo=Repo(settings.BASE_DIR + settings.GIT_REPO_PATH + settings.GIT_REPO_NAME)
 			git=myRepo.git
 			myFile=git.show(myTest['revision']+':'+myTest['test_name'])
 
