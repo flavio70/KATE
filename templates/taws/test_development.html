@@ -56,9 +56,11 @@ function checkFields(){
   
 
 function fillPreset(myId){
+	
     document.getElementById('selectPresetbutton').disabled=true;
     document.getElementById('selectPresetbutton').innerHTML= 'Select Preset <span class="caret"></span>';
     document.getElementById('formtopologyID').value=myId;
+    doAccess('getTopoTemplate');
     while(document.getElementById('selectPreset').hasChildNodes()){
 			document.getElementById('selectPreset').removeChild(document.getElementById('selectPreset').lastChild);
 		}

@@ -447,6 +447,31 @@ function doAccess(myAction){
 		});
 	}
 
+	
+	if(myAction=='getTopoTemplate'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				topoID: document.getElementById('formtopologyID').value
+				 //topoID: document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value,
+        //presetID: document.getElementById('selectPreset').options[document.getElementById('selectPreset').selectedIndex].value
+				},
+			success: getPresetTemplate,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+	
+	
+	
+	
+	
+	
+	
 	if(myAction=='createTest'){
 		$.ajax({
 			type: "POST",
