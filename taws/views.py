@@ -2767,7 +2767,7 @@ def accesso(request):
 					os.makedirs(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports')
 					os.chmod(settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/test-reports',511)
 				
-				testTemplateFile = open(settings.TEST_TEMPLATE+'#'+topoID+'#',"r")
+				testTemplateFile = open(settings.TEST_TEMPLATE+topoID+'.txt',"r")
 				testTemplate=testTemplateFile.read()
 				testTemplateFile.close()
 					

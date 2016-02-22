@@ -98,7 +98,7 @@ JENKINS = {
 
 # TEMPLATE FILES
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
-TEST_TEMPLATE = TEMPLATES_DIR + '/taws/testTemplate.txt'
+TEST_TEMPLATE = TEMPLATES_DIR + '/taws/testTemplate/'
 JOB_PROPS_TEMPLATE = TEMPLATES_DIR + '/taws/tempProperties.xml'
 JOB_TEMPLATE = TEMPLATES_DIR + '/taws/tempJenkins.xml'
 
