@@ -473,7 +473,7 @@ function doAccess(myAction){
 	
 	
 	if(myAction=='createTest'){
-		alert(document.getElementById('formtopologyID').value);
+		
 		$.ajax({
 			type: "POST",
 			dataType: 'json',

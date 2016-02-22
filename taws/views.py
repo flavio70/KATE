@@ -2719,8 +2719,8 @@ def accesso(request):
 		return  JsonResponse({'templatePreset':json.dumps(ast.literal_eval(myPreset), ensure_ascii=False, indent=4, separators=(',', ':'))}, safe=False)
 
 	if myAction=='createTest':
-   
-		import os 
+
+		import shutil,os
 
 		testName = request.POST.get('testName','')
 		presetBody = request.POST.get('presetBody','')
@@ -2731,7 +2731,7 @@ def accesso(request):
 		release=request.POST.get('release','')
 		username=request.session['login']
 		
-		#Trying to set the user GIT Repository to the correct deveopmen branch, based on the release used
+		#Trying to set the user GIT Repository to the correct development branch, based on the release used
 		gitRes =setUserRepo(username,release)
 		if (gitRes == "OK"):
 			#in this case the GIT Repository is correctly configured
@@ -2739,6 +2739,7 @@ def accesso(request):
 
 			localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
 			remotePath='/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
+			testpath = '/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
 			if os.path.isfile(remotePath):
 				#Test name already exists
 				creationReport='Warning !!, Test '+remotePath+'.py already present in your GIT Repository. Please choose a different TestName'
@@ -2785,9 +2786,11 @@ def accesso(request):
 
 				os.symlink(remotePath,localPath)
 				
-				creationReport='Test '+remotePath+'.py successfully created.\n'+\
-					'Preset '+localPath+'.py.prs successfully created.\n'+\
-					'Symbolic Link '+localPath+'.py successfully created.\n'
+				creationReport='Test: <font color="blue">'+testpath+' </font> successfully created in your GIT Repository.<br>'+\
+					'Preset: <font color="blue">'+testName+'.prs </font> successfully created in your Development Environment.<br>'+\
+					'Link: <font color="blue">'+testName+' </font> successfully created in your Development Environment.<br><br><br>'+\
+					'<font color="red">GIT repository Path:</font> /users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+' <br>'+\
+					'<font color="red">Development environment path:</font> '+settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/<br>'
 				creationReportType='alert-success'
 				creationReportTitle='Create New Test Done!!'
 		else:
@@ -2799,16 +2802,15 @@ def accesso(request):
 		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
 
 	if myAction=='deleteTest':
-   
+
 		import os 
 
 		testList = request.POST.get('deleteList','').split('#')
 
 		username=request.session['login']
 		creationReport=''
-   
+
 		for myTest in testList:
-   
 			if myTest.isdigit():
 				pass
 			else:
@@ -2818,9 +2820,13 @@ def accesso(request):
 					pass
 				os.remove(myTest)
 				os.remove(myTest + '.prs')
-				creationReport+='Test '+myTest+' successfully deleted\n'
+				creationReportType='alert-success'
+				creationReportTitle='Delete TestCase Done!!'
+				creationReport+='Test <font color="blue"> '+myTest+'</font> successfully deleted\n'
 
-		return  JsonResponse({'creationReport':creationReport}, safe=False)
+		#return  JsonResponse({'creationReport':creationReport}, safe=False)
+		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
+
 
 	if myAction=='viewTestCase':
 

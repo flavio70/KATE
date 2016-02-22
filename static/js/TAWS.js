@@ -1271,6 +1271,7 @@ function showmodal(title,message,modaltype) {
 	if ( $('#modal_placeholder-Header').hasClass('alert-success') ) {$('#modal_placeholder-Header').removeClass('alert-success')}
 	if ( $('#modal_placeholder-Header').hasClass('alert-warning') ) {$('#modal_placeholder-Header').removeClass('alert-warning')}
 	if ( $('#modal_placeholder-Header').hasClass('alert-danger') ) {$('#modal_placeholder-Header').removeClass('alert-danger')}
+	if ( $('#modal_placeholder-Header').hasClass('alert-info') ) {$('#modal_placeholder-Header').removeClass('alert-info')}
 	$('#modal_placeholder-Header').addClass(modaltype)
 	$('#modal_placeholder-Title').html(title);
 	$('#modal_placeholder-Body').html('<p>' + message + '</p>');
