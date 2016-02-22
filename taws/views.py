@@ -24,7 +24,7 @@ def get_testinfo(testpath):
 	res=None
 	#testFullName = os.path.abspath(testpath).decode('ascii')
 	#testFullname = testpath
-
+	if not os.path.exists(testpath):return res
 	M = ast.parse(''.join(open(testpath)))
 	doc=ast.get_docstring(M)
 		
@@ -2332,59 +2332,61 @@ def accesso(request):
 			if os.path.isfile(f+'.prs'):
 				#tempTest = open(f,"r")
 				#myFile=tempTest.read()
-				res=get_testinfo(f)
-				check_testinfo_format(f,res)
-				print('docinfo for %s: %s'%(f,res))
-				if check_testinfo_format(f,res):
-					print('docinfo format ok for file %s'%f)
+				if os.path.exists(f):
+					print('Testcase %s found'%f)
+					res=get_testinfo(f)
+					check_testinfo_format(f,res)
+					print('docinfo for %s: %s'%(f,res))
+					if check_testinfo_format(f,res):
+						print('docinfo format ok for file %s'%f)
 					
-					description=res['Description']
-					topology=res['Topology']
-					dependency=res['Dependency']
-					lab=res['Lab']
-					#tps=metaInfo[1].replace(',','<br>')
-					tps=res['TPS']
-					runsection=res['RunSections']
-					author=res['Author']
-				else:
-					description="NA"
-					topology="NA"
-					dependency="NA"
-					lab="NA"
-					tps="NA"
-					runsection='00000'
-					author="NA"
+						description=res['Description']
+						topology=res['Topology']
+						dependency=res['Dependency']
+						lab=res['Lab']
+						#tps=metaInfo[1].replace(',','<br>')
+						tps=res['TPS']
+						runsection=res['RunSections']
+						author=res['Author']
+					else:
+						description="NA"
+						topology="NA"
+						dependency="NA"
+						lab="NA"
+						tps="NA"
+						runsection='00000'
+						author="NA"
 				
-				if(runsection.isdigit()==False):runsection='00000'
-				print('Description %s' % description)
-				print('topology %s' % topology)
-				print('Dependency %s' % dependency)
-				print('Lab %s' % lab)
-				print('tps %s' % tps)
-				print('runsections %s' % runsection)
-				print('author %s' % author)
-				#tempTest.close()
-				testString+=f+"#"+\
-				"NA#"+\
-				"NA#"+\
-				"0#"+\
-				"NA#"+\
-				tps+"#"+\
-				ntpath.basename(f)+"#"+\
-				"0#"+\
-				"0#"+\
-				topology+"#"+\
-				"NA#"+\
-				"NA#"+\
-				dependency+"#"+\
-				f+"#"+\
-				author+"#"+\
-				description+"#"+\
-				"NA#"+\
-				runsection+"#"+\
-				"NA#"+\
-				lab+"$"
-        
+					if(runsection.isdigit()==False):runsection='00000'
+					print('Description %s' % description)
+					print('topology %s' % topology)
+					print('Dependency %s' % dependency)
+					print('Lab %s' % lab)
+					print('tps %s' % tps)
+					print('runsections %s' % runsection)
+					print('author %s' % author)
+					#tempTest.close()
+					testString+=f+"#"+\
+					"NA#"+\
+					"NA#"+\
+					"0#"+\
+					"NA#"+\
+					tps+"#"+\
+					ntpath.basename(f)+"#"+\
+					"0#"+\
+					"0#"+\
+					topology+"#"+\
+					"NA#"+\
+					"NA#"+\
+					dependency+"#"+\
+					f+"#"+\
+					author+"#"+\
+					description+"#"+\
+					"NA#"+\
+					runsection+"#"+\
+					"NA#"+\
+					lab+"$"
+					
 		if os.path.isfile(localPath+'suite.txt'):
 			localSuite = open(localPath+'suite.txt',"r")
 			#localString=localSuite.read()
