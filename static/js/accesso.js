@@ -456,6 +456,7 @@ function doAccess(myAction){
 				action: myAction,
         testName:document.getElementById('testName').value,
         presetBody:document.getElementById('preview').value,
+        topoID:document.getElementById('formtopologyID').value,
 				//product:document.getElementById('product').options[document.getElementById('product').selectedIndex].text,
 				//domain:document.getElementById('domain').options[document.getElementById('domain').selectedIndex].text,
 				//area:document.getElementById('area').options[document.getElementById('area').selectedIndex].text
