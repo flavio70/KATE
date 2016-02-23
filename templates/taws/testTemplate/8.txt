@@ -3,7 +3,7 @@
 TestCase template for K@TE test developers
 
 :field Description:
-:field Topology: 6
+:field Topology: 8
 :field Dependency:
 :field Lab: 
 :field TPS: 
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     NE1 = Eqpt1850TSS320('NE1', CTEST.kenvironment)
 	NE1_S1=NE1.get_preset("S1")
 	NE1_M1=NE1.get_preset("M1")
+	NE1_MS1=NE1.get_preset("MS1")
     CTEST.add_eqpt(NE1)
 
     # Run Test main flow
