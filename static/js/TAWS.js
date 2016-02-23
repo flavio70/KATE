@@ -1266,7 +1266,7 @@ function showalert(message,alerttype) {
     }, 5000);
   }
 
-function showmodal(title,message,modaltype) {
+function showmodal(title,message,modaltype,footer) {
 	
 	if ( $('#modal_placeholder-Header').hasClass('alert-success') ) {$('#modal_placeholder-Header').removeClass('alert-success')}
 	if ( $('#modal_placeholder-Header').hasClass('alert-warning') ) {$('#modal_placeholder-Header').removeClass('alert-warning')}
@@ -1275,6 +1275,7 @@ function showmodal(title,message,modaltype) {
 	$('#modal_placeholder-Header').addClass(modaltype)
 	$('#modal_placeholder-Title').html(title);
 	$('#modal_placeholder-Body').html('<p>' + message + '</p>');
+	$('#modal_placeholder-footer').html(footer);
 	$('#modal_placeholder').modal('show')
 	
 }

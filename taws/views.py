@@ -205,7 +205,7 @@ def test_development(request):
 		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'test_development'}
 		return render_to_response('taws/login.html',context_dict,context)
-
+	activeBranch=getUserRepoBranch(request.session['login'])
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
 	myRecordSet.execute("SET group_concat_max_len = 200000")
@@ -250,7 +250,8 @@ def test_development(request):
 		#	'labAry':labAry}
 
 	context_dict={'login':request.session['login'].upper(),
-		'permission':1}
+		'permission':1,
+		'activebranch':activeBranch}
 
 	return render_to_response('taws/test_development.html',context_dict,context)
 
@@ -1867,6 +1868,21 @@ def modify_job(request):
 	return render_to_response('taws/modify_job.html',context_dict,context)
 
 
+def getUserRepoBranch(userId):
+	from git import Repo
+	currbranch = None
+	repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
+	try:
+		myRepo=Repo(repoPath)
+		currbranch=myRepo.active_branch.name.split(settings.GIT_DEVBRANCH_SPLIT)[0]
+		print('\n\nCurrent User GIT Repo checkout on branch: %s\n\n'%currbranch)
+		return currbranch
+	except Exception as xxx:
+		print('ERROR on getUserRepoBranch')
+		print(str(xxx))
+		return currbranch
+
+
 def setUserRepo(userId,branch):
 	from git import Repo, RemoteProgress
 	
@@ -1875,82 +1891,87 @@ def setUserRepo(userId,branch):
 			print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
 	# end
 	
-	#setting the development branch name i.e. '7.2_ippolf_dev' for main branch 7.2 and user ippolf
-	dev_branch = branch + "_" + userId + "_dev"
+	#setting the development branch name i.e. '7.2#ippolf_dev' for main branch 7.2 and user ippolf
+	dev_branch = branch + settings.GIT_DEVBRANCH_SPLIT + userId + "_dev"
 	
 	res = "Setting GIT Repository for " + userId + " on branch " + dev_branch + " ..."
 	print(res)
-	repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
-	myRepo=Repo(repoPath)
-	git=myRepo.git
+	try:
+		repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
+		myRepo=Repo(repoPath)
+		git=myRepo.git
+		
+		#check if the user is already using the dev_branch branch
+		
+		if myRepo.active_branch.name == dev_branch:
+			#no more check, just exit in a right way
+			print("GIT Repository for " + userId + " Already SET on branch " + dev_branch)
+			res = "OK"
+			return res
+		
+		#check if repository is in a clean status
+		#if we have modified files we cannot checkout to master branch and we exit with git status message
+		if myRepo.is_dirty(): return str(git.status()).replace('\n','<br>')
+		print("checking out the GIT Repository " + repoPath + " to master branch ...")
+		# checkout the master branch and pull the content_type
+		myRepo.head.ref = myRepo.heads.master
+		origin = myRepo.remotes.origin
+		if not origin.exists(): return "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"
+		# try to pull the master branch from origin
 	
-	#check if the user is already using the dev_branch branch
+		for pull_info in origin.pull(progress=MyProgressPrinter()):
+			print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
 	
-	if myRepo.active_branch.name == dev_branch:
-		#no more check, just exit in a right way
-		print("GIT Repository for " + userId + " Already SET on branch " + dev_branch)
+		# here the check  the pull result is missing, we are assuming no errors in pull operation
+		
+		
+		# check if release branch already exists
+		bfound=False
+		
+		for myitem in myRepo.heads:
+			if myitem.name == branch:
+				bfound=True
+				break
+		
+		
+		# now checkout the release branch
+		if bfound:
+			myRepo.head.ref = myRepo.heads[branch]
+		else:
+			return " GIT branch " + branch + " doesn't exist. Please align your local GIT Repository"
+		
+		# pull again (maybe not necessary)
+	
+		for pull_info in origin.pull(progress=MyProgressPrinter()):
+			print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
+		
+		# check if dev_branch already exists
+		bfound=False
+		
+		for myitem in myRepo.heads:
+			if myitem.name == dev_branch:
+				bfound=True
+				break
+				
+		if bfound:
+			print (dev_branch + " found")
+			myRepo.head.ref = myRepo.heads[dev_branch]
+		else:
+			print (dev_branch + " NOT found")
+			myRepo.create_head(dev_branch)
+			myRepo.head.ref = myRepo.heads[dev_branch]
+			
+		#At this point we are set the Rpository to the correct development branch
+		#we have to align/merge with main release branch?
+		
+		print("GIT Repository for " + userId + " SET on branch " + dev_branch)
 		res = "OK"
 		return res
-	
-	#check if repository is in a clean status
-	#if we have modified files we cannot checkout to master branch and we exit with git status message
-	if myRepo.is_dirty(): return str(git.status()).replace('\n','<br>')
-	print("checking out the GIT Repository " + repoPath + " to master branch ...")
-	# checkout the master branch and pull the content_type
-	myRepo.head.ref = myRepo.heads.master
-	origin = myRepo.remotes.origin
-	if not origin.exists(): return "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"
-	# try to pull the master branch from origin
-
-	for pull_info in origin.pull(progress=MyProgressPrinter()):
-		print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
-
-	# here the check  the pull result is missing, we are assuming no errors in pull operation
-	
-	
-	# check if release branch already exists
-	bfound=False
-	
-	for myitem in myRepo.heads:
-		if myitem.name == branch:
-			bfound=True
-			break
-	
-	
-	# now checkout the release branch
-	if bfound:
-		myRepo.head.ref = myRepo.heads[branch]
-	else:
-		return " GIT branch " + branch + " doesn't exist. Please align your local GIT Repository"
-	
-	# pull again (maybe not necessary)
-
-	for pull_info in origin.pull(progress=MyProgressPrinter()):
-		print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
-	
-	# check if dev_branch already exists
-	bfound=False
-	
-	for myitem in myRepo.heads:
-		if myitem.name == dev_branch:
-			bfound=True
-			break
-			
-	if bfound:
-		print (dev_branch + " found")
-		myRepo.head.ref = myRepo.heads[dev_branch]
-	else:
-		print (dev_branch + " NOT found")
-		myRepo.create_head(dev_branch)
-		myRepo.head.ref = myRepo.heads[dev_branch]
+	except Exception as xxx:
+		print('ERROR on setUserRepo')
+		print(str(xxx))
+		return 'KO'
 		
-	#At this point we are set the Rpository to the correct development branch
-	#we have to align/merge with main release branch?
-	
-	print("GIT Repository for " + userId + " SET on branch " + dev_branch)
-	res = "OK"
-	return res
-
 def accesso(request):
 	from taws.models import TTest,TTestRevs
 	from django.core import serializers
@@ -2793,13 +2814,15 @@ def accesso(request):
 					'<font color="red">Development environment path:</font> '+settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/<br>'
 				creationReportType='alert-success'
 				creationReportTitle='Create New Test Done!!'
+				userBranch=release
 		else:
 			#failed to set the GIT Repository, just warning the user about that
 			creationReport=gitRes
 			creationReportType='alert-danger'
 			creationReportTitle='Your GIT TestCase Repository must be manually Updated!!'
+			userBranch=getUserRepoBranch(request.session['login'])
 			
-		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
+		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'userBranch':userBranch}, safe=False)
 
 	if myAction=='deleteTest':
 
@@ -2823,9 +2846,10 @@ def accesso(request):
 				creationReportType='alert-success'
 				creationReportTitle='Delete TestCase Done!!'
 				creationReport+='Test <font color="blue"> '+myTest+'</font> successfully deleted\n'
+				userBranch=getUserRepoBranch(request.session['login'])
 
 		#return  JsonResponse({'creationReport':creationReport}, safe=False)
-		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
+		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'userBranch':userBranch}, safe=False)
 
 
 	if myAction=='viewTestCase':

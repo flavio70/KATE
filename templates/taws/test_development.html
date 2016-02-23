@@ -43,6 +43,7 @@ var jsonProductAry, jsonTopoAry, jsonUserPreset, jsonSWAry, selectedProduct;
 var myProduct;
 var presetName = new Array();
 var presetID = new Array();
+var userbranch='{{ activebranch }}';
 
 
 function checkFields(){
@@ -607,6 +608,12 @@ $(document).ready(function() {
 							<button type="button" data-toggle="popover" title="Delete Test" data-content="Delete selected tests from your Development Environment" onclick="deleteTest();" class="btn btn-default navbar-btn-xs btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Del</button>\
 						</div><!-- end btn_group-->\
 					</ul>\
+					<ul class="nav navbar-nav navbar-center">\
+						<a id gitbranch class="navbar-brand" style="margin-left:10px;">Branch:</a>\
+						<div style="margin-top:5px;" class="btn-group btn-group-xs" data-toggle="tooltip" title="create New Test" role="group">\
+							<span id="gituserbranch" style="font-size:12px;"class="label label-primary navbar-btn-xs"></span>\
+						</div><!-- end btn_group-->\
+					</ul>\
 					<ul class="nav navbar-nav navbar-right">\
 					<a class="navbar-brand">Job Builder</a>\
 						<div class="btn-group btn-group-xs" role="group">\
@@ -885,8 +892,8 @@ $(document).ready(function() {
    
     
   });
-
-
+	console.log("User GIT Branch set to: "+userbranch)
+	document.getElementById('gituserbranch').innerHTML=userbranch;
 	} );
 
 	
@@ -1233,7 +1240,9 @@ $(document).on('click', '#Area li a', function () {
 			<div id="modal_placeholder-Body" class="modal-body">
 				<p>Some text in the modal.</p>
 			</div>
-			<div class="modal-footer">
+			<div  style="text-align:center" class="modal-footer">
+				<h4>Your GIT Repository is set on <span id="modal_placeholder-footer" class="label label-default">XXX</span> Release Branch.</h4>
+				<p>Your local test browsing is referred to selected branch content!</p>
 				<!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
 			</div>
 		</div>

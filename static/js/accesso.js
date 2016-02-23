@@ -196,7 +196,11 @@ function doAccess(myAction){
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		//alert(sersverResponse_data['creationReport']);
-		showmodal(sersverResponse_data['creationReportTitle'],sersverResponse_data['creationReport'],sersverResponse_data['creationReportType']);
+		console.log('CreateTest Ajax success')
+		console.log(sersverResponse_data)
+		console.log("User GIT Branch set to: "+sersverResponse_data['userBranch'])
+		document.getElementById('gituserbranch').innerHTML=sersverResponse_data['userBranch'];
+		showmodal(sersverResponse_data['creationReportTitle'],sersverResponse_data['creationReport'],sersverResponse_data['creationReportType'],sersverResponse_data['userBranch']);
    		 doAccess('localBrowsing');
 	};
 	var viewTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
@@ -498,7 +502,7 @@ function doAccess(myAction){
 		});
 	}
 
-	if(myAction=='deleteTest'){
+	if(myAction=='deleteTest' && deleteList != ''){
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
