@@ -73,11 +73,6 @@ def check_testinfo_format(f,testinfo):
 	
 	return res
 
-def thread_jenkins():
-	from jenkinsapi.jenkins import Jenkins
-	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
-	request.session['thread_jenkins']='OK'
-
 def index(request):
 	context = RequestContext(request)
 	context_dict = {'nothing':'nothing'}
@@ -89,7 +84,6 @@ def index(request):
 
 def login(request):
 	context = RequestContext(request)
-	fromPage = request.META.get('HTTP_REFERER')
 	context_dict={'fromPage':'index'}
 	return render_to_response('taws/login.html',context_dict,context)
 	#render_template_block(get_template("taws/template_menu.html"),'body',context)
@@ -134,7 +128,6 @@ def development_index(request):
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'development_index'}
 		return render_to_response('taws/login.html',context_dict,context)
 	else:
@@ -147,7 +140,6 @@ def suite_creator(request):
 	import mysql.connector
 
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'suite_creator'}
 		return render_to_response('taws/login.html',context_dict,context)
 	else:
@@ -202,7 +194,6 @@ def test_development(request):
 	import mysql.connector
 
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'test_development'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -261,11 +252,9 @@ def tuning(request):
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'tuning'}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	suiteOwner=''
 	suiteID = request.POST['savingName']
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
@@ -284,27 +273,6 @@ def tuning(request):
 	fileName=myRecord["name"]
 	suiteOwner='SERVER'
 	myTopologies=myRecord["topologyNeeded"].split('-')
-	topoAry=[]
-#	for myTopology in myTopologies:
-		#myRecordSet.execute("SELECT if(group_concat(concat(description,'$',label) order by indice separator '$') is null,'topoerror',group_concat(concat(description,'$',label) order by indice separator '$')) as dataValues,numNE from topologyBody join topologies using(topoID) where topoID ='"+myTopology+"'")
-#		myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'_',elemName) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'_',elemName) order by id_entity separator '$')) as dataValues,1 as numNE from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where id_topology="+myTopology)
-		#myRecord=myRecordSet.fetchall()
-#		for myRecord in myRecordSet:
-#			dataValues=myRecord['dataValues']
-#			if myTopology!='000' and dataValues != 'topoerror':
-#				tempAry1=[]
-#				tempAry2=[]
-#				tempAry3=[]
-#				tempLabels = dataValues.split("$")
-#				for labelIndex in range(0,len(tempLabels),2):
-#					tempAry1.append(tempLabels[labelIndex+1])
-#					tempAry2.append(tempLabels[labelIndex])
-#					tempAry3.append('')
-#				topoAry.append({"myTopology":myTopology,
-#					"tempAry1":tempAry1,
-#					"tempAry2":tempAry2,
-#					"tempAry3":tempAry3,
-#					"numNE":myRecord['numNE']})
 	topoAry='';
 	for myTopology in myTopologies:
 		#myRecordSet.execute("SELECT if(group_concat(concat(description,'$',label) order by indice separator '$') is null,'topoerror',group_concat(concat(description,'$',label) order by indice separator '$')) as dataValues,numNE from topologyBody join topologies using(topoID) where topoID ='"+myTopology+"'")
@@ -354,7 +322,6 @@ def selectEqpt(request):
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'selectEqpt'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -388,15 +355,13 @@ def selectEqpt(request):
 
 def tuningEngine(request):
 
-	import mysql.connector,os,shutil,ntpath
-	from os.path import expanduser
+	import mysql.connector,shutil,ntpath
 	from git import Repo
 	import json,ast
 
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}
 	suiteID=request.POST.get('tuningBundle')
-	presetID = request.POST.get('presets')
 	savingString = request.POST.get('changeValues','')
 	description = request.POST.get('description','')
 	sharedJob = request.POST.get('sharedJob','off')
@@ -404,7 +369,6 @@ def tuningEngine(request):
 	tuningLabel = request.POST.get('tuningLabel','').replace(' ','_')
 
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'tuningEngine'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -434,7 +398,6 @@ def tuningEngine(request):
 	#tempStr+="PresetID :"+str(presetID)+"\n"
 	#tempStr+="SuiteID :"+str(suiteID)+"\n"
 	tempStr+="Tuning Test Cases for Jenkins...\n\n"
-	tuningReport=''
 	global TAWS_path,os
 	myRecordSet.execute("select name from T_SUITES where id_suite="+str(suiteID))
 	myRecord=myRecordSet.fetchone()
@@ -569,7 +532,6 @@ def runJenkins(request):
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'runJenkins'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -611,7 +573,6 @@ def viewJobDetails(request):
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'viewJobDetails'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -619,8 +580,6 @@ def viewJobDetails(request):
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
 	job_name=request.GET.get('jobName')
-	page_num=int(request.GET.get('pageNum',1))
-	page_size=1000
 	buildNumber=0
 	
 	if (server.has_job(job_name)):
@@ -645,6 +604,7 @@ def viewJobDetails(request):
 					total+=1
 					#Response.Write(suites.text)
 					for stderr in suites.iter('stderr'):
+						stderr+=''
 						failed+=1
 						#Response.Write("	<td style='width:50px'>KO</td>")
 						break
@@ -695,13 +655,10 @@ def viewBuildDetails(request):
 
 	import mysql.connector
 	import xml.etree.ElementTree as ET
-	from os.path import basename
-	from datetime import timedelta, datetime
 	from jenkinsapi.jenkins import Jenkins
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'viewBuildDetails'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -788,11 +745,10 @@ def viewBuildDetails(request):
 						
 
 					#tpsProd=myRecordSet.fetchone()['eType']
-					tpsTestStatus='Passed'
 					tpsBgcolor='info'
 					tpsFontcolor="black"
 					for stderr in tps.iter('stderr'):
-						tpsTestStatus='Failed'
+						stderr+=''
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
 						break
@@ -827,22 +783,17 @@ def collectReports(request):
 
 	import mysql.connector
 	import xml.etree.ElementTree as ET
-	from os.path import basename
-	from datetime import timedelta, datetime
 	from jenkinsapi.jenkins import Jenkins
 	from django.utils.safestring import mark_safe
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'collectReports'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	job_name=request.POST.get('jobName')
 	buildId=request.POST.get('buildId')
 	azione=request.POST.get('azione')
-	target='NA'
-	owner='NA'
 	KateDB="KO"
 
 
@@ -854,7 +805,6 @@ def collectReports(request):
 	swp_ref = {}
 
 	for row in myRecordSet:
-		owner=row['suiteOwner']
 		id_run=row['id_run']
 		KateDB=row['KateDB']
 		if row['checkNode'] != 'NA': swp_ref[str(row['T_EQUIPMENT_id_equipment'])] = (row['nodeName'],row['nodeType'],row['nodeSWP'],row['id_pack'])
@@ -909,7 +859,7 @@ def collectReports(request):
 					tpsBgcolor='info'
 					tpsFontcolor="black"
 					errMsg="NA"
-
+					Tstr=0
 					
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
@@ -970,7 +920,6 @@ def collectReports(request):
 
 def createRunJenkins(request):
 
-	import datetime
 	from jenkinsapi.jenkins import Jenkins
 	import mysql.connector
 	import json
@@ -978,7 +927,6 @@ def createRunJenkins(request):
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'createRunJenkins'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -1060,7 +1008,6 @@ def add_bench(request):
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'add_bench'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -1209,9 +1156,8 @@ def add_bench(request):
 		note=row['benchNote']
 		if row['serials'] != None:
 			serialAry=row['serials'].split('|')
-			for myId,serial in enumerate(serialAry):
+			for serial in enumerate(serialAry):
 				tempSerial=serial.split('#')
-				tempIP=tempSerial[0].split('.')
 				serials.append({'ip':tempSerial[0],
 					'port':tempSerial[1],
 					'slot':tempSerial[2],
@@ -1283,8 +1229,6 @@ def add_bench(request):
 
 def bench(request):
 
-	filters=request.POST.get('filters','')
-	pattern=request.POST.get('pattern','')
 	deleteBench=request.POST.get('deleteBench','')
 	action=request.GET.get('action','')
 
@@ -1293,7 +1237,6 @@ def bench(request):
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
-		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'bench'}
 		return render_to_response('taws/login.html',context_dict,context)
 
@@ -1354,39 +1297,36 @@ def bench(request):
 	return render(request,'taws/bench.html',context_dict)
 
 
-
-  
 def getProducts(recordSet,request):
-  print('calling getProducts funct...')
-  recordSet.execute("SELECT * FROM KATE.T_PROD where id_prod <> 0")
-  productAry=[{'productId':row["id_prod"],'product':row["product"]} for row in recordSet]
+	print('calling getProducts funct...')
+	recordSet.execute("SELECT * FROM KATE.T_PROD where id_prod <> 0")
+	productAry=[{'productId':row["id_prod"],'product':row["product"]} for row in recordSet]
 
-  return productAry
-   
+	return productAry
+
 def getReleases(recordSet,request):
- 
-  product = request.POST.get('selectedProduct','')
-  print('calling getReleases funct for ' + str(product) + ' ...')
-  
-  recordSet.execute("SELECT id_sw_rel,sw_rel_name from T_DOMAIN join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+ str(product) + "' group by id_sw_rel")
-  swAry=[{'swName':row["sw_rel_name"],'swID':row["id_sw_rel"]} for row in recordSet]
-  
-  return swAry
-  
 
-    
+	product = request.POST.get('selectedProduct','')
+	print('calling getReleases funct for ' + str(product) + ' ...')
+
+	recordSet.execute("SELECT id_sw_rel,sw_rel_name from T_DOMAIN join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+ str(product) + "' group by id_sw_rel")
+	swAry=[{'swName':row["sw_rel_name"],'swID':row["id_sw_rel"]} for row in recordSet]
+
+	return swAry
+
+
+
 def getDomains(recordSet,request):
-  
-  product = request.POST.get('selectedProduct','')
-  release = request.POST.get('selectedRelease','')
-  
-  print('calling getDomains funct for ' + str(product) + ' release ' + str(release) + ' ...')
-  
-  
-  recordSet.execute("SELECT id_scope,description FROM T_SCOPE join T_DOMAIN  on (T_SCOPE_id_scope = id_scope) join T_PROD on (T_PROD_id_prod = id_prod) join T_SW_REL on ( T_SW_REL_id_sw_rel = id_sw_rel) where product = '" + str(product) + "' and  sw_rel_name = '" + str(release) + "' group by id_scope")
-  domainAry=[{'domainName':row["description"],'domainID':row["id_scope"]} for row in recordSet]
-  return domainAry
-    
+
+	product = request.POST.get('selectedProduct','')
+	release = request.POST.get('selectedRelease','')
+
+	print('calling getDomains funct for ' + str(product) + ' release ' + str(release) + ' ...')
+	
+	recordSet.execute("SELECT id_scope,description FROM T_SCOPE join T_DOMAIN  on (T_SCOPE_id_scope = id_scope) join T_PROD on (T_PROD_id_prod = id_prod) join T_SW_REL on ( T_SW_REL_id_sw_rel = id_sw_rel) where product = '" + str(product) + "' and  sw_rel_name = '" + str(release) + "' group by id_scope")
+	domainAry=[{'domainName':row["description"],'domainID':row["id_scope"]} for row in recordSet]
+	return domainAry
+
 def getArea(recordSet,request):
   product = request.POST.get('selectedProduct','')
   release = request.POST.get('selectedRelease','')
@@ -1593,7 +1533,7 @@ def statistics_sw_executed(request):
 	#id_pack3='0'
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-	myRecordSet = dbConnection.cursor(dictionary=True)
+	myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
 
 	#myRecordSet.execute("select concat('<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',product,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(myPackages separator ''),'</ul></li>') from (SELECT T_PROD_id_prod,concat('<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',sw_rel_name,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(concat('<li><a href="#">',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product
 	#myRecordSet.execute("select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\\\'[dropdown-selection]\\\')=',id_pack,char(39),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
@@ -1608,14 +1548,14 @@ def statistics_sw_executed(request):
 	#myRecordSet.execute("select description,area_name,count(*) as numTPS from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) where id_pack="+id_pack1+" group by id_domain,id_area")
 	#myRecordSet.execute("select description,area_name,count(*) as numTPS,sum(if(T_REPORT1.result='Failed',1,0)) as KO1,sum(if(T_REPORT1.result='Passed',1,0)) as OK1,sum(if(T_REPORT1.result<>'',1,0)) as TOT1,sum(if(T_REPORT2.result='Failed',1,0)) as KO2,sum(if(T_REPORT2.result='Passed',1,0)) as OK2,sum(if(T_REPORT2.result<>'',1,0)) as TOT2,sum(if(T_REPORT3.result='Failed',1,0)) as KO3,sum(if(T_REPORT3.result='Passed',1,0)) as OK3,sum(if(T_REPORT3.result<>'',1,0)) as TOT3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as T_TPS join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack1+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT1 on(id_tps=T_REPORT1.T_TPS_id_tps) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack2+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT2 on(id_tps=T_REPORT2.T_TPS_id_tps) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack3+" order by T_RUNTIME_id_run desc) as T_REPORT group by T_TPS_id_tps) as T_REPORT3 on(id_tps=T_REPORT3.T_TPS_id_tps) where id_pack="+id_pack1+" group by id_domain,id_area order by description")
 	myRecordSet.execute("select name1,name2,name3,description,if(numTest1 is null,0,numTest1) as numTest1,if(numTest2 is null,0,numTest2) as numTest2,if(numTest3 is null,0,numTest3) as numTest3,area_name,numTPS1,if(numTPS2 is null,0,numTPS2) as numTPS2,if(numTPS3 is null,0,numTPS3) as numTPS3,OK1,KO1,TOT1,if(OK2 is null,0,OK2) as OK2,if(KO2 is null,0,KO2) as KO2,if(TOT2 is null,0,TOT2) as TOT2,if(OK3 is null,0,OK3) as OK3,if(KO3 is null,0,KO3) as KO3,if(TOT3 is null,0,TOT3) as TOT3 from (select T_PACKAGES.label_ref as name1,description,area_name,count(*) as numTPS1,sum(if(report1.result='Failed',1,0)) as KO1,sum(if(report1.result='Passed',1,0)) as OK1,sum(if(report1.result<>'',1,0)) as TOT1,planned_test as numTest1 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) where id_pack="+id_pack1+" group by id_domain,id_area order by description) as rep1 left join (select T_PACKAGES.label_ref as name2,description,area_name,count(*) as numTPS2,sum(if(report2.result='Failed',1,0)) as KO2,sum(if(report2.result='Passed',1,0)) as OK2,sum(if(report2.result<>'',1,0)) as TOT2,planned_test as numTest2 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps2 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport2 group by T_TPS_id_tps) as report2 on(id_tps=report2.T_TPS_id_tps) where id_pack="+id_pack2+" group by id_domain,id_area order by description) as rep2 using(description,area_name) left join (select T_PACKAGES.label_ref as name3,description,area_name,count(*) as numTPS3,sum(if(report3.result='Failed',1,0)) as KO3,sum(if(report3.result='Passed',1,0)) as OK3,sum(if(report3.result<>'',1,0)) as TOT3,planned_test as numTest3 from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps3 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack=1 order by report_date desc) as tempReport3 group by T_TPS_id_tps) as report3 on(id_tps=report3.T_TPS_id_tps) where id_pack="+id_pack3+" group by id_domain,id_area order by description) as rep3 using(description,area_name)")
-	#row=myRecordSet.fetchone()
+	rows=myRecordSet.fetchall()
 	#selected_tab=row['selected_tab']
 	#selected_div=row['selected_div']
 
 	tab_list=[]
 	curr_list={}
 	curr_tab=''
-	for row in myRecordSet:
+	for row in rows:
 		if row["description"] != curr_tab:
 			if curr_tab!='':tab_list.append(curr_list)
 			curr_list={'domain':row["description"],'name1':row['name1'],'name2':row['name2'],'name3':row['name3'],'values':[]}
