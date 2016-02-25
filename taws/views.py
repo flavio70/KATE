@@ -1328,17 +1328,14 @@ def getDomains(recordSet,request):
 	return domainAry
 
 def getArea(recordSet,request):
-  product = request.POST.get('selectedProduct','')
-  release = request.POST.get('selectedRelease','')
-  domain = request.POST.get('selectedDomain','')
-  
-  print('calling getDomains funct for ' + str(product) + ' release ' + str(release) + ' domain ' + str(domain) + ' ...')
-  
-  
-  
-  recordSet.execute("SELECT id_area,area_name FROM T_AREA join T_DOMAIN  on (T_area_id_area = id_area) join T_SCOPE on (T_SCOPE_id_scope = id_scope) join T_PROD on (T_PROD_id_prod = id_prod) join T_SW_REL on ( T_SW_REL_id_sw_rel = id_sw_rel) where product = '" + str(product) + "' and sw_rel_name = '" + str(release) + "' and description = '" + str(domain) + "' group by id_area")
-  areaAry=[{'areaName':row["area_name"],'areaID':row["id_area"]} for row in recordSet]
-  return areaAry
+	product = request.POST.get('selectedProduct','')
+	release = request.POST.get('selectedRelease','')
+	domain = request.POST.get('selectedDomain','')
+
+	print('calling getDomains funct for ' + str(product) + ' release ' + str(release) + ' domain ' + str(domain) + ' ...')
+	recordSet.execute("SELECT id_area,area_name FROM T_AREA join T_DOMAIN  on (T_area_id_area = id_area) join T_SCOPE on (T_SCOPE_id_scope = id_scope) join T_PROD on (T_PROD_id_prod = id_prod) join T_SW_REL on ( T_SW_REL_id_sw_rel = id_sw_rel) where product = '" + str(product) + "' and sw_rel_name = '" + str(release) + "' and description = '" + str(domain) + "' group by id_area")
+	areaAry=[{'areaName':row["area_name"],'areaID':row["id_area"]} for row in recordSet]
+	return areaAry
 
 
 def createNewTest(request):
