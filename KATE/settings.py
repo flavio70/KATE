@@ -103,11 +103,12 @@ JOB_PROPS_TEMPLATE = TEMPLATES_DIR + '/taws/tempProperties.xml'
 JOB_TEMPLATE = TEMPLATES_DIR + '/taws/tempJenkins.xml'
 
 
-# = '/GITREPOS/KATETESTS'
+# GIT REPOS STUFF
 GIT_REPO_PATH='/GITREPOS'
 GIT_REPO_NAME='/KATETESTS'
 TAG_SPLIT = '@'
 TPS_SPLIT = '__'
+GIT_DEVBRANCH_SPLIT ='#'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

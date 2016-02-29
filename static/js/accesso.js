@@ -196,8 +196,20 @@ function doAccess(myAction){
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		//alert(sersverResponse_data['creationReport']);
-		showmodal(sersverResponse_data['creationReportTitle'],sersverResponse_data['creationReport'],sersverResponse_data['creationReportType']);
-   		 doAccess('localBrowsing');
+		console.log('CreateTest Ajax success')
+		console.log(sersverResponse_data)
+		console.log("User GIT Branch set to: "+sersverResponse_data['userBranch'])
+		console.log("User GIT Branch list: "+sersverResponse_data['userBranchList'])
+		
+			
+		for	(index = 0; index < sersverResponse_data['userBranchList'].length; index++) {
+			console.log(" Item: "+sersverResponse_data['userBranchList'][index]);
+		} 
+		
+		//document.getElementById('gituserbranch').innerHTML=sersverResponse_data['userBranch'];
+		showmodal(sersverResponse_data['creationReportTitle'],sersverResponse_data['creationReport'],sersverResponse_data['creationReportType'],sersverResponse_data['creationReportFooter']);
+		fillGitDropDown(sersverResponse_data['userBranch'],sersverResponse_data['userBranchList']) 
+		doAccess('localBrowsing');
 	};
 	var viewTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		tempRevision='';
@@ -473,7 +485,7 @@ function doAccess(myAction){
 	
 	
 	if(myAction=='createTest'){
-		alert(document.getElementById('formtopologyID').value);
+		
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
@@ -498,7 +510,7 @@ function doAccess(myAction){
 		});
 	}
 
-	if(myAction=='deleteTest'){
+	if(myAction=='deleteTest' && deleteList != ''){
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
@@ -603,3 +615,4 @@ function doAccess(myAction){
     results in "TypeError: e.handler.apply is not a function".
    */
 //});
+

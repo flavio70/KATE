@@ -43,7 +43,10 @@ var jsonProductAry, jsonTopoAry, jsonUserPreset, jsonSWAry, selectedProduct;
 var myProduct;
 var presetName = new Array();
 var presetID = new Array();
-
+var userbranch='{{ activebranch }}';
+var userbranchliststr='{{ branchlist|safe }}'
+var userbranchliststr = JSON.parse("[" + userbranchliststr + "]")+ '';
+var userbranchlist = userbranchliststr.split(",");
 
 function checkFields(){
     if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('Productbutton').innerHTML.match('Product')==null)&&(document.getElementById('releasebutton').innerHTML.match('SW Release')==null)&&(document.getElementById('Domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('Areabutton').innerHTML.match('Area')==null)){
@@ -53,7 +56,33 @@ function checkFields(){
     }
   }
 
-  
+function setGIT(branch){
+	
+	$.ajax({
+		url : "/gitapp/setDevGIT/", // the endpoint
+		type : "POST", // http method
+		data : { branch : branch,
+						csrfmiddlewaretoken: '{{ csrf_token }}',
+						}, // data sent with the post request
+		// handle a successful response
+		success : function(json) {
+				console.log("SetGIT Ajax success"); // another sanity check
+				console.log(json);
+				showmodal(json.creationReportTitle,json.creationReport,json.creationReportType,json.creationReportFooter)
+				fillGitDropDown(json.userBranch,json.userBranchList);
+				doAccess('localBrowsing');
+		},
+		// handle a non-successful response
+		error : function(xhr,errmsg,err) {
+			console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+		}
+	});
+	
+}  
+
+
+
+
 
 function fillPreset(myId){
 	
@@ -607,6 +636,15 @@ $(document).ready(function() {
 							<button type="button" data-toggle="popover" title="Delete Test" data-content="Delete selected tests from your Development Environment" onclick="deleteTest();" class="btn btn-default navbar-btn-xs btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Del</button>\
 						</div><!-- end btn_group-->\
 					</ul>\
+					<ul class="nav navbar-nav navbar-center">\
+						<a id class="navbar-brand" style="margin-left:10px;">Develp Branch:</a>\
+						<div style="margin-top:4px;"class="btn-group btn-group-xs">\
+							<button id = "GITbutton" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
+								Git <span class="caret"></span>\
+							</button>\
+							<ul class="dropdown-menu" id="GIT"></ul>\
+						</div>\
+					</ul>\
 					<ul class="nav navbar-nav navbar-right">\
 					<a class="navbar-brand">Job Builder</a>\
 						<div class="btn-group btn-group-xs" role="group">\
@@ -885,10 +923,19 @@ $(document).ready(function() {
    
     
   });
+	
+	fillGitDropDown(userbranch,userbranchlist);
+	
+} );
+	
+	
+	
+$(document).on('click', '#GIT li a', function () {
+	console.log("GIT Selected branch:"+$(this).text());
+	//calling set git ajax function with selected branch
+	setGIT($(this).text())
 
-
-	} );
-
+});
 	
 $(document).on('click', '#testRelease li a', function () {
 	console.log("Release Selected Option:"+$(this).text());
@@ -1226,14 +1273,15 @@ $(document).on('click', '#Area li a', function () {
 	<div class="modal-dialog">
 		<!-- Modal content-->
 		<div class="modal-content">
-			<div id="modal_placeholder-Header" class="modal-header alert-success">
+			<div id="modal_placeholder-Header" class="modal-header alert-success" style="border-radius:6px 6px 0px 0px;">
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
 				<h4 id="modal_placeholder-Title" class="modal-title">Modal Header</h4>
 			</div>
 			<div id="modal_placeholder-Body" class="modal-body">
 				<p>Some text in the modal.</p>
 			</div>
-			<div class="modal-footer">
+			<div  id="modal_placeholder-footer" style="text-align:center" class="modal-footer">
+				
 				<!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
 			</div>
 		</div>

@@ -24,25 +24,29 @@ def get_testinfo(testpath):
 	res=None
 	#testFullName = os.path.abspath(testpath).decode('ascii')
 	#testFullname = testpath
-	if not os.path.exists(testpath):return res
-	M = ast.parse(''.join(open(testpath)))
-	doc=ast.get_docstring(M)
-		
-	if doc is not None:
-		docre = re.findall(':field (.*)?',doc,re.MULTILINE)
-		docre=[i.split(':') for i in docre]
-		res={}
-		res['Description']=''
-		res['TPS']=''
-		for elem in docre:
-			if (elem[0] == "Description"):
-				#print('Description %s'%elem[1])
-				res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
-			elif (elem[0] == "TPS"):
-				res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '<br>'
-			else:
-				res[elem[0]]=re.sub('["\']+','',elem[1])
-				#print( '%s %s' %(elem[0],elem[1]))
+	try:
+		if not os.path.exists(testpath):return res
+		M = ast.parse(''.join(open(testpath)))
+		doc=ast.get_docstring(M)
+			
+		if doc is not None:
+			docre = re.findall(':field (.*)?',doc,re.MULTILINE)
+			docre=[i.split(':') for i in docre]
+			res={}
+			res['Description']=''
+			res['TPS']=''
+			for elem in docre:
+				if (elem[0] == "Description"):
+					#print('Description %s'%elem[1])
+					res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
+				elif (elem[0] == "TPS"):
+					res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '<br>'
+				else:
+					res[elem[0]]=re.sub('["\']+','',elem[1])
+					#print( '%s %s' %(elem[0],elem[1]))
+	except Exception as xxx:
+		print('ERROR on get_testinfo')
+		print(str(xxx))
 	return res
 
 
@@ -192,56 +196,20 @@ def test_development(request):
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}
 	import mysql.connector
+	import json
 
 	if 'login' not in request.session:
 		context_dict={'fromPage':'test_development'}
 		return render_to_response('taws/login.html',context_dict,context)
-
+	userBranches=getUserRepoBranch(request.session['login'])
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
 	myRecordSet.execute("SET group_concat_max_len = 200000")
 	dbConnection.commit()
-		#myRecordSet.execute("select product,CONVERT(group_concat(concat(areaConcat,'$',sw_rel_name) order by sw_rel_name desc separator '@') using utf8) as productConcat from (select product,sw_rel_name,group_concat(concat(area_name,'!',area_name) order by area_name separator '#') as areaConcat from T_DOMAIN join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name order by product asc,sw_rel_name desc) as tableArea group by product")
-		#myRecordSet.execute("select product,group_concat(release_scope_area separator '@') as productConcat from (select product,concat(sw_rel_name,'?',group_concat(scope_area separator '%')) as release_scope_area from (select product,sw_rel_name,concat(T_SCOPE.description,'#',group_concat(area_name order by area_name separator '|')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name,T_SCOPE.description order by product asc,sw_rel_name desc,T_SCOPE.description asc) as release_scope_area group by product,sw_rel_name order by product asc,sw_rel_name desc) as product_release_scope_area group by product order by product asc")
-		#productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
-
-		#userSuiteAry = ''
-		#sharedSuiteAry = ''
-
-		#myRecordSet.execute("SELECT * from T_SUITES where owner = '"+request.session['login']+"' order by name")
-		#userSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
-
-		#myRecordSet.execute("SELECT * from T_SUITES where owner = 'SHARED' order by name")
-		#sharedSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
-
-		#myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='VIRTUAL'")
-		#virtualTopoAry=[{'virtualTopoID':row["id_topology"],'virtualTopoName':row["title"]} for row in myRecordSet]
-
-		#myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='DATA'")
-		#dataTopoAry=[{'dataTopoID':row["id_topology"],'dataTopoName':row["title"]} for row in myRecordSet]
-
-		#myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='TDM'")
-		#tdmTopoAry=[{'tdmTopoID':row["id_topology"],'tdmTopoName':row["title"]} for row in myRecordSet]
-
-		#myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='WDM'")
-		#wdmTopoAry=[{'wdmTopoID':row["id_topology"],'wdmTopoName':row["title"]} for row in myRecordSet]
-
-		#myRecordSet.execute("SELECT distinct lab from T_TEST_REVS order by lab")
-		#labAry=[{'labName':row["lab"]} for row in myRecordSet]
-
-		#context_dict={'login':request.session['login'].upper(),
-		#	'permission':1,
-		#	'productAry': productAry,
-		#	'userSuiteAry': userSuiteAry,
-		#	'sharedSuiteAry': sharedSuiteAry,
-		#	'virtualTopoAry':virtualTopoAry,
-		#	'dataTopoAry':dataTopoAry,
-		#	'tdmTopoAry':tdmTopoAry,
-		#	'wdmTopoAry':wdmTopoAry,
-		#	'labAry':labAry}
-
 	context_dict={'login':request.session['login'].upper(),
-		'permission':1}
+		'permission':1,
+		'activebranch':userBranches['current'],
+		'branchlist':json.dumps(userBranches['list'])}
 
 	return render_to_response('taws/test_development.html',context_dict,context)
 
@@ -1344,10 +1312,10 @@ def createNewTest(request):
 	import json
 	
 	context = RequestContext(request)
-		if 'login' not in request.session:
-			fromPage = request.META.get('HTTP_REFERER')
-			context_dict={'fromPage':'createNewTest'}
-			return render_to_response('taws/login.html',context_dict,context)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'createNewTest'}
+		return render_to_response('taws/login.html',context_dict,context)
 		
 	test_name=request.GET.get('testName')
 	username=request.session['login']
@@ -1780,6 +1748,27 @@ def modify_job(request):
 	return render_to_response('taws/modify_job.html',context_dict,context)
 
 
+def getUserRepoBranch(userId):
+	from git import Repo
+	import re
+	currbranch = None
+	blist=[]
+	repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
+	try:
+		myRepo=Repo(repoPath)
+		currbranch=myRepo.active_branch.name.split(settings.GIT_DEVBRANCH_SPLIT)[0]
+		print('\n\nCurrent User GIT Repo checkout on branch: %s\n\n'%currbranch)
+		for itembr in myRepo.heads:
+			if re.match('.*'+settings.GIT_DEVBRANCH_SPLIT+userId+'_dev.*',itembr.name):
+				blist.append(itembr.name.split(settings.GIT_DEVBRANCH_SPLIT)[0])
+				
+		return {'current':currbranch,'list':blist}
+	except Exception as xxx:
+		print('ERROR on getUserRepoBranch')
+		print(str(xxx))
+		return {'current':currbranch,'list':blist}
+
+
 def setUserRepo(userId,branch):
 	from git import Repo, RemoteProgress
 	
@@ -1788,82 +1777,94 @@ def setUserRepo(userId,branch):
 			print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
 	# end
 	
-	#setting the development branch name i.e. '7.2_ippolf_dev' for main branch 7.2 and user ippolf
-	dev_branch = branch + "_" + userId + "_dev"
+	#setting the development branch name i.e. '7.2#ippolf_dev' for main branch 7.2 and user ippolf
+	dev_branch = branch + settings.GIT_DEVBRANCH_SPLIT + userId + "_dev"
 	
 	res = "Setting GIT Repository for " + userId + " on branch " + dev_branch + " ..."
 	print(res)
-	repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
-	myRepo=Repo(repoPath)
-	git=myRepo.git
+	try:
+		repoPath='/users/'+userId+ settings.GIT_REPO_PATH + settings.GIT_REPO_NAME
+		myRepo=Repo(repoPath)
+		git=myRepo.git
+		
+		#check if the user is already using the dev_branch branch
+		
+		if myRepo.active_branch.name == dev_branch:
+			#no more check, just exit in a right way
+			print("GIT Repository for " + userId + " Already SET on branch " + dev_branch)
+			res = "OK"
+			return res
+		
+		#check if repository is in a clean status
+		#if we have modified files we cannot checkout to master branch and we exit with git status message
+		#if myRepo.is_dirty(): return str(git.status()).replace('\n','<br>')
+		#print("checking out the GIT Repository " + repoPath + " to master branch ...")
+		
+		
+		# check if dev_branch already exists
+		bfound=False
+		
+		for myitem in myRepo.heads:
+			if myitem.name == dev_branch:
+				bfound=True
+				break
+				
+		if bfound:
+			print (dev_branch + " found")
+			#checkout the development branch
+			#myRepo.head.ref = myRepo.heads[dev_branch]
+			myRepo.heads[dev_branch].checkout()
+		else:
+			print (dev_branch + " NOT found")
+			#we have to checkout from release branch...
+			# check if release branch exists
+			bfound=False
+		
+			for myitem in myRepo.heads:
+				if myitem.name == branch:
+					bfound=True
+					break
+			
+			if not bfound:return " GIT release branch " + branch + " doesn't exist. Please align your local GIT Repository"
+
+			#here we come if the release branch exists an
+			
+			# checkout the master branch and pull the content_type
+			#
+		
+			#changing repo head to release branch
+			myRepo.head.ref = myRepo.heads[branch]
+			#getting origin reference
+			origin = myRepo.remotes.origin
+			if not origin.exists(): return "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"
+			# try to pull from origin
 	
-	#check if the user is already using the dev_branch branch
+			for pull_info in origin.pull(progress=MyProgressPrinter()):
+				print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
 	
-	if myRepo.active_branch.name == dev_branch:
-		#no more check, just exit in a right way
-		print("GIT Repository for " + userId + " Already SET on branch " + dev_branch)
+			# here the check  the pull result is missing, we are assuming no errors in pull operation
+			
+			
+			
+			#checkout the new develpment branch from branch release just updated
+			
+			myRepo.heads[branch].checkout(b=dev_branch)
+			
+			#myRepo.create_head(dev_branch)
+			#myRepo.head.ref = myRepo.heads[dev_branch]
+			#myRepo.heads[dev_branch].checkout()
+			
+		#At this point we are set the Rpository to the correct development branch
+		#we have to align/merge with main release branch?
+		
+		print("GIT Repository for " + userId + " SET on branch " + dev_branch)
 		res = "OK"
 		return res
-	
-	#check if repository is in a clean status
-	#if we have modified files we cannot checkout to master branch and we exit with git status message
-	if myRepo.is_dirty(): return str(git.status()).replace('\n','<br>')
-	print("checking out the GIT Repository " + repoPath + " to master branch ...")
-	# checkout the master branch and pull the content_type
-	myRepo.head.ref = myRepo.heads.master
-	origin = myRepo.remotes.origin
-	if not origin.exists(): return "remote origin not found for GIT repository " + repoPath + " Please check your GIT Repository configuration"
-	# try to pull the master branch from origin
-
-	for pull_info in origin.pull(progress=MyProgressPrinter()):
-		print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
-
-	# here the check  the pull result is missing, we are assuming no errors in pull operation
-	
-	
-	# check if release branch already exists
-	bfound=False
-	
-	for myitem in myRepo.heads:
-		if myitem.name == branch:
-			bfound=True
-			break
-	
-	
-	# now checkout the release branch
-	if bfound:
-		myRepo.head.ref = myRepo.heads[branch]
-	else:
-		return " GIT branch " + branch + " doesn't exist. Please align your local GIT Repository"
-	
-	# pull again (maybe not necessary)
-
-	for pull_info in origin.pull(progress=MyProgressPrinter()):
-		print("Updated %s to %s " % (pull_info.ref, pull_info.commit))
-	
-	# check if dev_branch already exists
-	bfound=False
-	
-	for myitem in myRepo.heads:
-		if myitem.name == dev_branch:
-			bfound=True
-			break
-			
-	if bfound:
-		print (dev_branch + " found")
-		myRepo.head.ref = myRepo.heads[dev_branch]
-	else:
-		print (dev_branch + " NOT found")
-		myRepo.create_head(dev_branch)
-		myRepo.head.ref = myRepo.heads[dev_branch]
+	except Exception as xxx:
+		print('ERROR on setUserRepo')
+		print(str(xxx))
+		return str(xxx).replace('\n','<br>')
 		
-	#At this point we are set the Rpository to the correct development branch
-	#we have to align/merge with main release branch?
-	
-	print("GIT Repository for " + userId + " SET on branch " + dev_branch)
-	res = "OK"
-	return res
-
 def accesso(request):
 	from taws.models import TTest,TTestRevs
 	from django.core import serializers
@@ -2632,8 +2633,8 @@ def accesso(request):
 		return  JsonResponse({'templatePreset':json.dumps(ast.literal_eval(myPreset), ensure_ascii=False, indent=4, separators=(',', ':'))}, safe=False)
 
 	if myAction=='createTest':
-   
-		import os 
+
+		import shutil,os
 
 		testName = request.POST.get('testName','')
 		presetBody = request.POST.get('presetBody','')
@@ -2644,7 +2645,7 @@ def accesso(request):
 		release=request.POST.get('release','')
 		username=request.session['login']
 		
-		#Trying to set the user GIT Repository to the correct deveopmen branch, based on the release used
+		#Trying to set the user GIT Repository to the correct development branch, based on the release used
 		gitRes =setUserRepo(username,release)
 		if (gitRes == "OK"):
 			#in this case the GIT Repository is correctly configured
@@ -2652,11 +2653,13 @@ def accesso(request):
 
 			localPath=settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/'+testName
 			remotePath='/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
+			testpath = '/TestCases/'+product+'/'+domain+'/'+area+'/'+testName
 			if os.path.isfile(remotePath):
 				#Test name already exists
 				creationReport='Warning !!, Test '+remotePath+'.py already present in your GIT Repository. Please choose a different TestName'
 				creationReportType='alert-warning'
 				creationReportTitle='Warning!!'
+				creationReportFooter=''
 			else:
 				#Test doesn'exist, we can proceed
 				
@@ -2698,30 +2701,40 @@ def accesso(request):
 
 				os.symlink(remotePath,localPath)
 				
-				creationReport='Test '+remotePath+'.py successfully created.\n'+\
-					'Preset '+localPath+'.py.prs successfully created.\n'+\
-					'Symbolic Link '+localPath+'.py successfully created.\n'
+				creationReport='Test: <font color="blue">'+testpath+' </font> successfully created in your GIT Repository.<br>'+\
+					'Preset: <font color="blue">'+testName+'.prs </font> successfully created in your Development Environment.<br>'+\
+					'Link: <font color="blue">'+testName+' </font> successfully created in your Development Environment.<br><br><br>'+\
+					'<font color="red">GIT repository Path:</font> /users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+' <br>'+\
+					'<font color="red">Development environment path:</font> '+settings.JENKINS['SUITEFOLDER']+request.session['login']+'_Development/workspace/<br>'
 				creationReportType='alert-success'
 				creationReportTitle='Create New Test Done!!'
+				
+				
+				userBranch=getUserRepoBranch(request.session['login'])
+				creationReportFooter='<h4>Your GIT Repository is set on <span class="label label-default">'+userBranch['current']+'</span> Release Branch.</h4>'+\
+				'<p>Your local test browsing is referred to selected branch content!</p>'
+				
 		else:
 			#failed to set the GIT Repository, just warning the user about that
 			creationReport=gitRes
 			creationReportType='alert-danger'
 			creationReportTitle='Your GIT TestCase Repository must be manually Updated!!'
+			creationReportFooter=''
+			userBranch=getUserRepoBranch(request.session['login'])
 			
-		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType}, safe=False)
+		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'creationReportFooter':creationReportFooter,'userBranch':userBranch['current'],'userBranchList':userBranch['list']}, safe=False)
 
 	if myAction=='deleteTest':
-   
+
 		import os 
 
 		testList = request.POST.get('deleteList','').split('#')
 
 		username=request.session['login']
 		creationReport=''
-   
+		creationReportFooter=''
+
 		for myTest in testList:
-   
 			if myTest.isdigit():
 				pass
 			else:
@@ -2731,9 +2744,15 @@ def accesso(request):
 					pass
 				os.remove(myTest)
 				os.remove(myTest + '.prs')
-				creationReport+='Test '+myTest+' successfully deleted\n'
+				creationReportType='alert-success'
+				creationReportTitle='Delete TestCase Done!!'
+				creationReport+='Test <font color="blue"> '+myTest+'</font> successfully deleted\n'
+				userBranch=getUserRepoBranch(request.session['login'])
+				
 
-		return  JsonResponse({'creationReport':creationReport}, safe=False)
+		#return  JsonResponse({'creationReport':creationReport}, safe=False)
+		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'creationReportFooter':creationReportFooter,'userBranch':userBranch['current'],'userBranchList':userBranch['list']}, safe=False)
+
 
 	if myAction=='viewTestCase':
 

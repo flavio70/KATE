@@ -1266,14 +1266,16 @@ function showalert(message,alerttype) {
     }, 5000);
   }
 
-function showmodal(title,message,modaltype) {
+function showmodal(title,message,modaltype,footer) {
 	
 	if ( $('#modal_placeholder-Header').hasClass('alert-success') ) {$('#modal_placeholder-Header').removeClass('alert-success')}
 	if ( $('#modal_placeholder-Header').hasClass('alert-warning') ) {$('#modal_placeholder-Header').removeClass('alert-warning')}
 	if ( $('#modal_placeholder-Header').hasClass('alert-danger') ) {$('#modal_placeholder-Header').removeClass('alert-danger')}
+	if ( $('#modal_placeholder-Header').hasClass('alert-info') ) {$('#modal_placeholder-Header').removeClass('alert-info')}
 	$('#modal_placeholder-Header').addClass(modaltype)
 	$('#modal_placeholder-Title').html(title);
 	$('#modal_placeholder-Body').html('<p>' + message + '</p>');
+	$('#modal_placeholder-footer').html(footer);
 	$('#modal_placeholder').modal('show')
 	
 }
@@ -1282,3 +1284,39 @@ function showgittag(message,alerttype) {
 	$('#alert_gittag_placeholder').html('<div id="gittagalertdiv" class="alert ' +  alerttype + '"><a id="gitalertbtn" class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>')
 	$("#alert_gittag_placeholder").fadeToggle("slow");
 }
+
+
+function fillGitDropDown(userbranch,userbranchlist){
+	console.log('fillGitDropDown function...')
+	document.getElementById('GITbutton').disabled=true;
+	document.getElementById('GITbutton').innerHTML= userbranch +' <span class="caret"></span>';
+	while(document.getElementById('GIT').hasChildNodes()){
+		document.getElementById('GIT').removeChild(document.getElementById('GIT').lastChild);
+	}
+	childCount = false;
+    for(i=0;i<userbranchlist.length;i++){
+    	
+    	var li = document.createElement("li");
+		var link = document.createElement("a");             
+		var text = document.createTextNode(userbranchlist[i]);
+
+		link.appendChild(text);
+		link.href = "#";
+		link.id =userbranchlist[i];
+		link.onclick = function() {document.getElementById('GITbutton').innerHTML= this.text + ' <span class="caret"></span>';};
+		//document.getElementById('formpresetID').value=this.id;
+		//doAccess('getPresetTemplate');};
+
+		li.appendChild(link);
+		document.getElementById('GIT').appendChild(li);
+		childCount = true;
+		console.log('adding '+userbranchlist[i])
+    	
+    }
+    if (childCount) {
+		document.getElementById('GITbutton').disabled=false;
+	}
+	
+	
+}
+
