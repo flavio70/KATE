@@ -1312,10 +1312,10 @@ def createNewTest(request):
 	import json
 	
 	context = RequestContext(request)
-		if 'login' not in request.session:
-			fromPage = request.META.get('HTTP_REFERER')
-			context_dict={'fromPage':'createNewTest'}
-			return render_to_response('taws/login.html',context_dict,context)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'createNewTest'}
+		return render_to_response('taws/login.html',context_dict,context)
 		
 	test_name=request.GET.get('testName')
 	username=request.session['login']
