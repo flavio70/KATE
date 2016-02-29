@@ -83,9 +83,9 @@ if __name__ == "__main__":
 
     #initializing all local variable and constants used by Test object
     NE1 = Eqpt1850TSS320('NE1', CTEST.kenvironment)
-	NE1_S1=NE1.get_preset("S1")
-	NE1_M1=NE1.get_preset("M1")
-	NE1_MS1=NE1.get_preset("MS1")
+    NE1_S1=NE1.get_preset("S1")
+    NE1_M1=NE1.get_preset("M1")
+    NE1_MS1=NE1.get_preset("MS1")
     CTEST.add_eqpt(NE1)
 
     # Run Test main flow

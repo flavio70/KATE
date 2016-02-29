@@ -44,7 +44,9 @@ var myProduct;
 var presetName = new Array();
 var presetID = new Array();
 var userbranch='{{ activebranch }}';
-
+var userbranchliststr='{{ branchlist|safe }}'
+var userbranchliststr = JSON.parse("[" + userbranchliststr + "]")+ '';
+var userbranchlist = userbranchliststr.split(",");
 
 function checkFields(){
     if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('Productbutton').innerHTML.match('Product')==null)&&(document.getElementById('releasebutton').innerHTML.match('SW Release')==null)&&(document.getElementById('Domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('Areabutton').innerHTML.match('Area')==null)){
@@ -54,7 +56,33 @@ function checkFields(){
     }
   }
 
-  
+function setGIT(branch){
+	
+	$.ajax({
+		url : "/gitapp/setDevGIT/", // the endpoint
+		type : "POST", // http method
+		data : { branch : branch,
+						csrfmiddlewaretoken: '{{ csrf_token }}',
+						}, // data sent with the post request
+		// handle a successful response
+		success : function(json) {
+				console.log("SetGIT Ajax success"); // another sanity check
+				console.log(json);
+				showmodal(json.creationReportTitle,json.creationReport,json.creationReportType,json.creationReportFooter)
+				fillGitDropDown(json.userBranch,json.userBranchList);
+				doAccess('localBrowsing');
+		},
+		// handle a non-successful response
+		error : function(xhr,errmsg,err) {
+			console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+		}
+	});
+	
+}  
+
+
+
+
 
 function fillPreset(myId){
 	
@@ -609,10 +637,13 @@ $(document).ready(function() {
 						</div><!-- end btn_group-->\
 					</ul>\
 					<ul class="nav navbar-nav navbar-center">\
-						<a id gitbranch class="navbar-brand" style="margin-left:10px;">Branch:</a>\
-						<div style="margin-top:5px;" class="btn-group btn-group-xs" data-toggle="tooltip" title="create New Test" role="group">\
-							<span id="gituserbranch" style="font-size:12px;"class="label label-primary navbar-btn-xs"></span>\
-						</div><!-- end btn_group-->\
+						<a id class="navbar-brand" style="margin-left:10px;">Branch:</a>\
+						<div style="margin-top:4px;"class="btn-group btn-group-xs">\
+							<button id = "GITbutton" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
+								Git <span class="caret"></span>\
+							</button>\
+							<ul class="dropdown-menu" id="GIT"></ul>\
+						</div>\
 					</ul>\
 					<ul class="nav navbar-nav navbar-right">\
 					<a class="navbar-brand">Job Builder</a>\
@@ -892,10 +923,19 @@ $(document).ready(function() {
    
     
   });
-	console.log("User GIT Branch set to: "+userbranch)
-	document.getElementById('gituserbranch').innerHTML=userbranch;
-	} );
+	
+	fillGitDropDown(userbranch,userbranchlist);
+	
+} );
+	
+	
+	
+$(document).on('click', '#GIT li a', function () {
+	console.log("GIT Selected branch:"+$(this).text());
+	//calling set git ajax function with selected branch
+	setGIT($(this).text())
 
+});
 	
 $(document).on('click', '#testRelease li a', function () {
 	console.log("Release Selected Option:"+$(this).text());
@@ -1240,9 +1280,8 @@ $(document).on('click', '#Area li a', function () {
 			<div id="modal_placeholder-Body" class="modal-body">
 				<p>Some text in the modal.</p>
 			</div>
-			<div  style="text-align:center" class="modal-footer">
-				<h4>Your GIT Repository is set on <span id="modal_placeholder-footer" class="label label-default">XXX</span> Release Branch.</h4>
-				<p>Your local test browsing is referred to selected branch content!</p>
+			<div  id="modal_placeholder-footer" style="text-align:center" class="modal-footer">
+				
 				<!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
 			</div>
 		</div>

@@ -29,25 +29,28 @@ def get_testinfo(testpath):
 	res=None
 	#testFullName = os.path.abspath(testpath).decode('ascii')
 	#print('TestFullPath: %s'% testpath)
-	
-	M = ast.parse(testpath)
-	doc=ast.get_docstring(M)
-		
-	if doc is not None:
-		docre = re.findall(':field (.*)?',doc,re.MULTILINE)
-		docre=[i.split(':') for i in docre]
-		res={}
-		res['Description']=''
-		res['TPS']=''
-		for elem in docre:
-			if (elem[0] == "Description"):
-				#print('Description %s'%elem[1])
-				res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
-			elif (elem[0] == "TPS"):
-				res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '*'
-			else:
-				res[elem[0]]=re.sub('["\']+','',elem[1])
-				#print( '%s %s' %(elem[0],elem[1]))
+	try:
+		M = ast.parse(testpath)
+		doc=ast.get_docstring(M)
+			
+		if doc is not None:
+			docre = re.findall(':field (.*)?',doc,re.MULTILINE)
+			docre=[i.split(':') for i in docre]
+			res={}
+			res['Description']=''
+			res['TPS']=''
+			for elem in docre:
+				if (elem[0] == "Description"):
+					#print('Description %s'%elem[1])
+					res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
+				elif (elem[0] == "TPS"):
+					res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '*'
+				else:
+					res[elem[0]]=re.sub('["\']+','',elem[1])
+					#print( '%s %s' %(elem[0],elem[1]))
+	except Exception as xxx:
+		print('ERROR on get_testinfo')
+		print(str(xxx))
 	
 	return res
 
@@ -387,6 +390,32 @@ def gitTagShow(request):
 	context_dict={'login':request.session['login'],
 		'treeView':mark_safe(treeView)}
 	return render(request,'GitApp/gitTagShow.html',context_dict)
+
+def setDevGIT(request):
+	from taws.views import getUserRepoBranch,setUserRepo
+	context = RequestContext(request)
+	context_dict={'nothing':'nothing'}
+	branch=request.POST.get('branch','')
+	if 'login' not in request.session:
+		context_dict={'fromPage':'test_development'}
+		return render_to_response('taws/login.html',context_dict,context)
+	username=request.session['login']
+	gitRes =setUserRepo(username,branch)
+	if (gitRes == "OK"):
+		creationReport='<h4>Your GIT Repository is set on <span class="label label-default">'+branch+'</span> Release Branch.</h4>'			
+		creationReportType='alert-success'
+		creationReportTitle='Set GIT Branch Done!!'
+		creationReportFooter='<p>Your local test browsing is referred to selected branch content!</p>'
+	else:
+		creationReport=gitRes
+		creationReportType='alert-danger'
+		creationReportTitle='Your GIT TestCase Repository must be manually Updated!!'
+		creationReportFooter=''
+		
+	userBranch=getUserRepoBranch(username)
+	
+	
+	return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'creationReportFooter':creationReportFooter,'userBranch':userBranch['current'],'userBranchList':userBranch['list']}, safe=False)
 
 
 

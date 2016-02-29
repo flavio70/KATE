@@ -7,4 +7,5 @@ urlpatterns = [
 	url(r'^getgittag/$', views.getgittag),
 	url(r'^setGitFlag/$',views.setGitFlag),
 	url(r'^gitTagShow/$',views.gitTagShow),
+	url(r'^setDevGIT/$',views.setDevGIT),
 ]
