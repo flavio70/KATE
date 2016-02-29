@@ -323,7 +323,8 @@ def selectEqpt(request):
 
 def tuningEngine(request):
 
-	import mysql.connector,shutil,ntpath
+	import mysql.connector,os,shutil,ntpath
+	from os.path import expanduser
 	from git import Repo
 	import json,ast
 
@@ -572,7 +573,7 @@ def viewJobDetails(request):
 					total+=1
 					#Response.Write(suites.text)
 					for stderr in suites.iter('stderr'):
-						stderr+=''
+						#stderr+=''
 						failed+=1
 						#Response.Write("	<td style='width:50px'>KO</td>")
 						break
@@ -623,6 +624,8 @@ def viewBuildDetails(request):
 
 	import mysql.connector
 	import xml.etree.ElementTree as ET
+	from os.path import basename
+	from datetime import timedelta, datetime
 	from jenkinsapi.jenkins import Jenkins
 
 	context = RequestContext(request)
@@ -715,10 +718,12 @@ def viewBuildDetails(request):
 					#tpsProd=myRecordSet.fetchone()['eType']
 					tpsBgcolor='info'
 					tpsFontcolor="black"
+					tpsTestStatus='Passed'
 					for stderr in tps.iter('stderr'):
-						stderr+=''
+						#stderr+=''
 						tpsBgcolor='danger'
 						tpsFontcolor="white"
+						tpsTestStatus='Failed'
 						break
 					tpsList.append({'nodeName':nodeName,'nodeType':nodeType,'nodeSWP':nodeSWP,'id_pack':id_pack,'tpsName':tpsName,'tpsArea':tpsArea,'tpsBgcolor':tpsBgcolor,'tpsFontcolor':tpsFontcolor})
 			buildMatrix.append({'bgcolor':bgcolor,
@@ -753,6 +758,8 @@ def collectReports(request):
 	import xml.etree.ElementTree as ET
 	from jenkinsapi.jenkins import Jenkins
 	from django.utils.safestring import mark_safe
+	from os.path import basename
+	from datetime import timedelta, datetime
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
@@ -1124,7 +1131,7 @@ def add_bench(request):
 		note=row['benchNote']
 		if row['serials'] != None:
 			serialAry=row['serials'].split('|')
-			for serial in enumerate(serialAry):
+			for myId,serial in enumerate(serialAry):
 				tempSerial=serial.split('#')
 				serials.append({'ip':tempSerial[0],
 					'port':tempSerial[1],
