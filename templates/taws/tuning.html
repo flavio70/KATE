@@ -27,7 +27,7 @@
 	var presetName='';
 	var presetSelection = '';
 	var localTesting = false;
-	
+	var choice = '{{ choice }}'
 function deletePreset(){
 	bootbox.confirm('Are you sure you want to delete '+presetName+'?', function(result) {
 	    if (result==false) {
@@ -56,7 +56,7 @@ function deletePreset(){
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand">Tuning</a>
+					<a class="navbar-brand">{% if choice == '' %}Tuning{% endif %}</a>
 				</div><!-- end navbar-header -->
 				<!-- Collect the nav links, forms, and other content for toggling -->
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -67,12 +67,15 @@ function deletePreset(){
 						</div><!-- end btn_group-->
 						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 					</ul>
+					{% if choice == '' %}
 					<ul class="nav navbar-btn navbar-left">
 						<div class="btn-group btn-group-sm" role="group">
 							<button type="button" data-toggle="modal" title="Bulid the selected Jenkins Project" data-target="#tuneModal" class="btn btn-info navbar-btn"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Let's Go Tune</button>
 						</div><!-- end btn_group-->
 						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 					</ul>
+					{% endif %}
+					{% if choice != 'viewer' %}
 					<ul class="nav navbar-btn navbar-right">
 						<div class="btn-group btn-group-sm" role="group">
 							<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="sharedPreset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -104,6 +107,7 @@ function deletePreset(){
 						</div><!-- end btn_group-->
 						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 					</ul>
+					{% endif %}
 				</div><!-- end navbar-collapse -->
 			</div><!-- end container-fluid -->
 		</nav><!-- end navbar -->
@@ -130,6 +134,7 @@ function deletePreset(){
 			<thead>
 				<tr>
 					<th>label</th>
+					<th>Description</th>
 					<th></th>
 					<th>Value</th>
 					<th></th>
@@ -200,6 +205,10 @@ function deletePreset(){
 			scrollCollapse:true,"columns": [
 				{
 					"data": "label", 
+					"className": "dt-center" 
+				},
+				{
+					"data": "description", 
 					"className": "dt-center" 
 				},
 				{
@@ -291,17 +300,20 @@ function showalert(message,alerttype) {
 			buttonText='...';
 			if(topologies[currentTopology][3][progressiveID]!=''){buttonText=topologies[currentTopology][3][progressiveID]}
 			valueID=progressiveID+'$'+eqptType+'$'+idEntity;
-			value='<button onclick="$(\'#showedTable tr td button\').removeClass(\'selected\');$(this).addClass(\'selected\');window.open(\'/taws/selectEqpt/?myVars=\'+valueTable.row($(this).closest(\'tr\')).data().valueID,\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+buttonText+'</button>';
+			choiceStr='';
+			if(choice=='viewer'){choiceStr='disabled';}
+			value='<button '+choiceStr+' onclick="$(\'#showedTable tr td button\').removeClass(\'selected\');$(this).addClass(\'selected\');window.open(\'/taws/selectEqpt/?myVars=\'+valueTable.row($(this).closest(\'tr\')).data().valueID,\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+buttonText+'</button>';
 		}else{
 			valueID=progressiveID;
 			if(topologies[currentTopology][3][progressiveID]!=''){myValue=topologies[currentTopology][3][progressiveID];}
 				else{myValue="";}
-			value='<input id="'+progressiveID+'" type="text" onchange="topologies[currentTopology][3][this.id]=this.value;" value="'+myValue+'">';
+			value='<input '+choiceStr+' id="'+progressiveID+'" type="text" onchange="topologies[currentTopology][3][this.id]=this.value;" value="'+myValue+'">';
 		}
 		//myCell = myRow.insertCell();
 		//myCell.appendChild(flagsInput);
 		valueTable.row.add({
-			"label" : '<span title="'+description+'">'+name+'</span>',
+			"label" : name,
+			"description" : description,
 			"labelID" : name,
 			"value" : value,
 			"valueID" : valueID
@@ -375,7 +387,7 @@ function showalert(message,alerttype) {
 		if(myValues){
 			overWrite=false;
 			saveText='';
-			tempSuite='newPreset';
+			tempPreset='newPreset';
 			if(presetName!=''){tempPreset=presetName;}
 			bootbox.prompt({
 			  title: "Insert Suite Name!",

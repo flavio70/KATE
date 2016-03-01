@@ -1177,10 +1177,12 @@ function updateStats(perspective){
 		totMetric=0;
 		totTPS=0;
 		for(k=0;k<testTable.rows('.info').data().length;k++){
-			totTime+=parseInt(testTable.row(testTable.rows('.info')[k]).data().time);
-			totMetric+=parseInt(testTable.row(testTable.rows('.info')[k]).data().metric);
-			tempTPS=testTable.row(testTable.rows('.info')[k]).data().tps
-			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1
+			totTime+=parseInt(testTable.row(testTable.rows('.info')[0][k]).data().time);
+			totMetric+=parseInt(testTable.row(testTable.rows('.info')[0][k]).data().metric);
+			tempTPS=testTable.row(testTable.rows('.info')[0][k]).data().tps
+			//totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1
+			//alert(tempTPS.split('<br>').length);
+			totTPS+=tempTPS.split('<br>').length;
 		}
 		document.getElementById('badge-sel-test').innerHTML=testTable.rows('.info').data().length;
 		document.getElementById('badge-sel-tps').innerHTML=totTPS;
@@ -1192,10 +1194,12 @@ function updateStats(perspective){
 		totMetric=0;
 		totTPS=0;
 		for(k=0;k<testBundleTable.rows().data().length;k++){
-			totTime+=parseInt(testBundleTable.row(testBundleTable.rows()[k]).data().time);
-			totMetric+=parseInt(testBundleTable.row(testBundleTable.rows()[k]).data().metric);
-			tempTPS=testBundleTable.row(testBundleTable.rows()[k]).data().tps;
-			totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1;
+			totTime+=parseInt(testBundleTable.row(testBundleTable.rows()[0][k]).data().time);
+			totMetric+=parseInt(testBundleTable.row(testBundleTable.rows()[0][k]).data().metric);
+			tempTPS=testBundleTable.row(testBundleTable.rows()[0][k]).data().tps;
+			totTPS+=tempTPS.split('<br>').length;
+			//alert(tempTPS.split('<br>').length);
+			//totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1;
 		}
 		document.getElementById('badge-cart-test').innerHTML=testBundleTable.rows().data().length;
 		document.getElementById('badge-cart-tps').innerHTML=totTPS;
