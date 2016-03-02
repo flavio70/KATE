@@ -360,21 +360,28 @@ function showalert(message,alerttype) {
 		tuningString='';
 		availableTopology='';
 		for(i=0;i<topologies.length;i++){
+			if(choice=='manager'){found=false;tempTuningString='';}
 			for(k=0;k<topologies[i][1].length;k++){
 				if(topologies[i][3][k]==''){
 					found=true;break;
 				}else{
-					//if(topologies[i][3][k].indexOf('$')>0){
-					//	temp=topologies[i][3][k].split('$');
-					//	topologies[i][3][k]=temp[0];
-					//}
-					if(tuningString!=''){tuningString+='?';}
-					tuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k];
+					if(choice==''){
+						if(tuningString!=''){tuningString+='?';}
+						tuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k];
+					}else{
+						tempTuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k];
+					}
 				}
 			}
-			if(found==false){availableTopology+='*'+topologies[i][0]+'*';}
+			if(found==false){
+				availableTopology+='*'+topologies[i][0]+'*';
+				if(choice=='manager'){
+					if(tuningString!=''){tuningString+='?';}
+					tuningString+=tempTuningString;
+				}
+			}
 		}
-		if(found==true){
+		if(found==true&&choice==''){
 			showalert("Unable to complete operation!   Some fields are missing...","alert-danger")
 			//alert('Some fields are missing...');
 			tuningString='';
