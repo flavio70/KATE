@@ -4,6 +4,10 @@
 
 <link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
 <link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/formValidation.min.css" %}" />
+<script type="text/javascript" src="{% static "js/formValidation.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/formvalidation.io.bootstrap.min.js" %}"></script>
+
 <script>
 	//addLoadEvent(function() {placeIt();});
 	owner='{{ login }}';
@@ -49,8 +53,12 @@ var userbranchliststr = JSON.parse("[" + userbranchliststr + "]")+ '';
 var userbranchlist = userbranchliststr.split(",");
 
 function checkFields(){
-    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('Productbutton').innerHTML.match('Product')==null)&&(document.getElementById('releasebutton').innerHTML.match('SW Release')==null)&&(document.getElementById('Domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('Areabutton').innerHTML.match('Area')==null)){
-      document.getElementById('createBTN').disabled=false;
+    if((document.getElementById('preview').value!='')&&(document.getElementById('testName').value!='')&&(document.getElementById('Productbutton').innerHTML.match('Product')==null)&&(document.getElementById('releasebutton').innerHTML.match('SW Release')==null)&&(document.getElementById('Domainbutton').innerHTML.match('Domain')==null)&&(document.getElementById('Areabutton').innerHTML.match('Area')==null)){   
+    	if($('#createTestForm').data('formValidation').isValidField('testName')){
+    		document.getElementById('createBTN').disabled=false;
+    	}else{
+    		document.getElementById('createBTN').disabled=true;
+    	}
     }else{
       document.getElementById('createBTN').disabled=true;
     }
@@ -174,6 +182,7 @@ function newTest(phase){
 		//newTestform.action='/taws/createNewTest/';
 		//newTestform.submit();
 		console.log("newTest function invocation") // sanity check
+		$('#createTestForm').data('formValidation').enableFieldValidators('testName', false)
 		
 		if (phase == 'product') {
 			document.getElementById('Productbutton').disabled=true;
@@ -233,6 +242,8 @@ function refreshTestModalBodyN(phase,json) {
 			// empty the TestName input text option
 			document.getElementById('testName').value="";
 			document.getElementById('preview').value="";
+			
+			
 		
 			// empty the product modal options
 			while(document.getElementById('Product').hasChildNodes()){
@@ -925,6 +936,73 @@ $(document).ready(function() {
   });
 	
 	fillGitDropDown(userbranch,userbranchlist);
+
+	
+	$('#createTestForm')
+    .formValidation({
+        framework: 'bootstrap',
+        icon: {
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields: {
+            testName: {
+            	enabled:false,
+                validators: {
+                    notEmpty: {
+                        message: 'Please insert the test name'
+                    },
+                    regexp: {
+                        //regexp: /^(?!(000|666|9))\d{3}(?!00)\d{2}(?!0000)\d{4}$/,
+                        regexp: /^\S*$/, // a string consisting only of non-whitespaces
+                        message: 'TestName format is invalid. Spaces are not allowed'
+                    }
+                }
+            },
+        }
+    })
+    .on('keyup', '[name="testName"]', function(e) {
+        var testName = $('#createTestForm').find('[name="testName"]').val(),
+            fv            = $('#createTestForm').data('formValidation');
+
+        switch ($(this).attr('name')) {
+            // User is focusing the testName field
+            case 'testName':
+                fv.enableFieldValidators('testName', testName === '').revalidateField('testName');
+
+                if (testName && fv.getOptions('testName', null, 'enabled') === false) {
+                    fv.enableFieldValidators('testName', true).revalidateField('testName');
+                } else if (testName === '' ) {
+                    fv.enableFieldValidators('testName', false).revalidateField('testName');
+                }
+                break;
+
+
+            default:
+                break;
+        }
+    });
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 } );
 	
@@ -1114,7 +1192,7 @@ $(document).on('click', '#Area li a', function () {
 
 <!-- Modal for New test Creation -->
 <div id="newTestModal" class="modal fade" role="dialog">
-	<form name="createTest" action="" method="post" target="_self">{% csrf_token %}
+	<form name="createTest" id="createTestForm" action="" method="post" target="_self">{% csrf_token %}
 		<input type="hidden" value="" name="azione">
 		<input type="hidden" value="" id="formpresetID">
 		<input type="hidden" value="" id="formtopologyID">
@@ -1140,7 +1218,7 @@ $(document).on('click', '#Area li a', function () {
 							<div class="form-group col-md-12">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Test Name</span>
-									<input type="text" class="form-control" placeholder="testName" aria-describedby="basic-addon1" id="testName" onchange="checkFields();">
+									<input type="text" class="form-control" placeholder="testName" aria-describedby="basic-addon1" id="testName" name="testName" onchange="checkFields();">
 								</div>
 							</div>
 							
