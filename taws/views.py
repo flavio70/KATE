@@ -2369,8 +2369,7 @@ def accesso(request):
 			
 
 			localSuite.close()
-		
-   
+		print('testString\n%s\nlocalString\n%s\n'%(testString,localString))
 		return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
 
 	if myAction=='job_browsing':
