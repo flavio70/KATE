@@ -66,6 +66,11 @@ function checkFields(){
 
 function setGIT(branch){
 	
+	
+	$("body").addClass("loading");
+	
+	
+	
 	$.ajax({
 		url : "/gitapp/setDevGIT/", // the endpoint
 		type : "POST", // http method
@@ -76,12 +81,14 @@ function setGIT(branch){
 		success : function(json) {
 				console.log("SetGIT Ajax success"); // another sanity check
 				console.log(json);
+				$("body").removeClass("loading");
 				showmodal(json.creationReportTitle,json.creationReport,json.creationReportType,json.creationReportFooter)
 				fillGitDropDown(json.userBranch,json.userBranchList);
 				doAccess('localBrowsing');
 		},
 		// handle a non-successful response
 		error : function(xhr,errmsg,err) {
+			$("body").removeClass("loading");
 			console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
 		}
 	});
@@ -1037,7 +1044,12 @@ $(document).on('click', '#Area li a', function () {
 	console.log("Area Selected Option:"+$(this).text());
 	$('#createTestAreaValue').val($(this).text());
 });
-	
+
+
+
+
+
+
 </script>
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
@@ -1366,8 +1378,8 @@ $(document).on('click', '#Area li a', function () {
 	</div>
 </div><!-- end modal -->
 
-
-
+<!-- used to show loading modal when ajax run -->
+<div class="modaload"><!-- Place at bottom of page --></div>
 
 {% endblock %}
 
