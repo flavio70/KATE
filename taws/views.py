@@ -223,7 +223,8 @@ def tuning(request):
 		context_dict={'fromPage':'tuning'}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	suiteID = request.POST['savingName']
+	presetChoice=request.GET.get('choice','')
+	suiteID = request.POST.get('savingName','')
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
@@ -235,10 +236,16 @@ def tuning(request):
 	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
 	sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"],'sharedPresetTitle':row["preset_title"]} for row in myRecordSet]
 
-	myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,name from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) where id_suite="+suiteID)
+	if presetChoice == '':
+		myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,name from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) where id_suite="+suiteID)
+		myRecord=myRecordSet.fetchone()
+		fileName=myRecord["name"]
+	else:
+		myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology order by topology separator '-') using utf8) as topologyNeeded from T_TEST_REVS")
+		myRecord=myRecordSet.fetchone()
+		fileName=''		
 	#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,suitename from jsuites join jsuiteBody using(jsuiteID) join  Jenkinslist using(JID,livraison) where jsuiteID='"+fileName+"'")
-	myRecord=myRecordSet.fetchone()
-	fileName=myRecord["name"]
+	
 	suiteOwner='SERVER'
 	myTopologies=myRecord["topologyNeeded"].split('-')
 	topoAry='';
@@ -273,6 +280,7 @@ def tuning(request):
 				topoAry+="location.href='suitecreator.asp';"
 	dbConnection.close()
 	context_dict={"login":request.session['login'],
+		"choice": presetChoice,
 		"userPreset": userPreset,
 		"sharedPreset":sharedPreset,
 		"topoAry":topoAry,
