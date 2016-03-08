@@ -42,7 +42,7 @@ def get_testinfo(testpath):
 				elif (elem[0] == "TPS"):
 					res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '<br>'
 				else:
-					res[elem[0]]=re.sub('["\']+','',elem[1])
+					res[elem[0]]=re.sub('["\']+','',elem[1].strip())
 					#print( '%s %s' %(elem[0],elem[1]))
 	except Exception as xxx:
 		print('ERROR on get_testinfo')

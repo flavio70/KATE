@@ -125,7 +125,7 @@ function deletePreset(){
  </form>
  
 	<div id="div_topology_browser" class="col-sm-6">		
-		<img id="topologyImage" class="PopBoxImageSmall" onclick="Pop(this,50,'PopBoxImageLarge');" width="450px" height="450px">
+		<img id="topologyImage" class="PopBoxImageSmall img-responsive" onclick="Pop(this,50,'PopBoxImageLarge');" width="450px" height="450px">
 	</div>
 	
 	<div id="div_topology_table" class="col-sm-6">
@@ -280,8 +280,8 @@ function showalert(message,alerttype) {
 		document.getElementById('nextBtn').onclick = function(){show(topoIndex+1);}
 		if(topoIndex==0){document.getElementById('prevBtn').onclick = function(){show(topologies.length-1);}}
 		if(topoIndex==topologies.length-1){document.getElementById('nextBtn').onclick = function(){show(0);}}
-		if(topoName.isNaN){document.getElementById('topologyImage').src='/static/images/' + topoName.substr(0,topoName.length-1) + '.jpg';}
-		else{document.getElementById('topologyImage').src='/static/images/' + topoName + '.jpg';}
+		if(topoName.isNaN){document.getElementById('topologyImage').src='/static/images/topologies/' + topoName.substr(0,topoName.length-1) + '.jpg';}
+		else{document.getElementById('topologyImage').src='/static/images/topologies/' + topoName + '.jpg';}
 		//colorTable('showedTable');
 	}
 
