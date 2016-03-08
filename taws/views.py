@@ -1566,6 +1566,60 @@ def statistics_sw_executed_details(request):
 
 	return render(request,'taws/statistics_sw_executed_details.html',context_dict)
 
+def the_doctor(request):
+	context = RequestContext(request)
+	context_dict={'nothing':'nothing'}
+	import mysql.connector
+
+	if 'login' not in request.session:
+		context_dict={'fromPage':'the_doctor'}
+		return render_to_response('taws/login.html',context_dict,context)
+	else:
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+		myRecordSet.execute("SET group_concat_max_len = 200000")
+		dbConnection.commit()
+		#myRecordSet.execute("select product,CONVERT(group_concat(concat(areaConcat,'$',sw_rel_name) order by sw_rel_name desc separator '@') using utf8) as productConcat from (select product,sw_rel_name,group_concat(concat(area_name,'!',area_name) order by area_name separator '#') as areaConcat from T_DOMAIN join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name order by product asc,sw_rel_name desc) as tableArea group by product")
+		myRecordSet.execute("select product,group_concat(release_scope_area separator '@') as productConcat from (select product,concat(sw_rel_name,'?',group_concat(scope_area separator '%')) as release_scope_area from (select product,sw_rel_name,concat(T_SCOPE.description,'#',group_concat(area_name order by area_name separator '|')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name,T_SCOPE.description order by product asc,sw_rel_name desc,T_SCOPE.description asc) as release_scope_area group by product,sw_rel_name order by product asc,sw_rel_name desc) as product_release_scope_area group by product order by product asc")
+		productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
+
+		userSuiteAry = ''
+		sharedSuiteAry = ''
+
+		myRecordSet.execute("SELECT * from T_SUITES where owner = '"+request.session['login']+"' order by name")
+		userSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT * from T_SUITES where owner = 'SHARED' order by name")
+		sharedSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='VIRTUAL'")
+		virtualTopoAry=[{'virtualTopoID':row["id_topology"],'virtualTopoName':row["title"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='DATA'")
+		dataTopoAry=[{'dataTopoID':row["id_topology"],'dataTopoName':row["title"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='TDM'")
+		tdmTopoAry=[{'tdmTopoID':row["id_topology"],'tdmTopoName':row["title"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='WDM'")
+		wdmTopoAry=[{'wdmTopoID':row["id_topology"],'wdmTopoName':row["title"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT distinct lab from T_TEST_REVS order by lab")
+		labAry=[{'labName':row["lab"]} for row in myRecordSet]
+
+		context_dict={'login':request.session['login'].upper(),
+			'permission':1,
+			'productAry': productAry,
+			'userSuiteAry': userSuiteAry,
+			'sharedSuiteAry': sharedSuiteAry,
+			'virtualTopoAry':virtualTopoAry,
+			'dataTopoAry':dataTopoAry,
+			'tdmTopoAry':tdmTopoAry,
+			'wdmTopoAry':wdmTopoAry,
+			'labAry':labAry,
+			'settings':settings.DATABASES['default']['USER']}
+		return render_to_response('taws/theDoctor.html',context_dict,context)
+
 
 def morgue(request):
 
@@ -2738,6 +2792,26 @@ def accesso(request):
 			userBranch=getUserRepoBranch(request.session['login'])
 			
 		return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'creationReportFooter':creationReportFooter,'userBranch':userBranch['current'],'userBranchList':userBranch['list']}, safe=False)
+
+	if myAction=='addSmartSuite':
+
+		queryProduct=request.POST.get('queryProduct','')
+		querySW=request.POST.get('querySWRelease','')
+		queryArea=request.POST.get('queryArea','')
+		benchList=request.POST.get('benchList','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
+		#myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc from (select area_name,if(id_preset is null,'','#')) as myTopology,test_name,product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null,0,tps) as tCURRtps,if(id_preset is null,0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='FM') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where owner='SMART') as presets on(id_entity=T_TPY_ENTITY_id_entity) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc,benches from (select area_name,group_concat(distinct elemName) as benches,concat(topology,if(id_preset is null,'','#')) as myTopology,test_name,T_PROD.product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null,0,tps) as tCURRtps,if(id_preset is null,0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where owner='SMART' "++") as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		row=myRecordSet.fetchone()
+		
+		context_dict={'login':request.session['login'],'benches':row['benches'],'area_name':row['area_name'],'topology':row['topology'],'product':row['product'],'sw_rel_name':row['sw_rel_name'],'TOTtps':row['TOTtps'],'TOTtc':row['TOTtc'],'CURRtps':row['CURRtps'],'CURRtc':row['CURRtc']}
+		
+		dbConnection.close()
+		
+		return  JsonResponse(context_dict, safe=False)
+
 
 	if myAction=='deleteTest':
 
