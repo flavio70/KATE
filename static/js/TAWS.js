@@ -1164,11 +1164,52 @@ function fillButtons(values,nextItem,selection,currButton){
 		else{document.getElementById(nextItem+'-dropdown').innerHTML=newDropDown;}
 }
 
+function fillButtonsSmart(values,nextItem,selection,currButton){
+	if(nextItem=='sw-release'){
+		document.getElementById('sw-release').innerHTML='SW Version <span class="caret"></span>';
+		document.getElementById('domain-dropdown').innerHTML='';
+		document.getElementById('domain').innerHTML='Domain <span class="caret"></span>';
+		document.getElementById('area-dropdown').innerHTML='';
+		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		nextSelection='domain';
+		document.getElementById('domain').disabled=true;
+		document.getElementById('area').disabled=true;
+	}
+	if(nextItem=='domain'){
+		document.getElementById('domain').innerHTML='Domain <span class="caret"></span>';
+		document.getElementById('area-dropdown').innerHTML='';
+		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		nextSelection='area';
+		document.getElementById('area').disabled=true;
+	}
+	if(nextItem=='area'){document.getElementById('area').innerHTML='Area <span class="caret"></span>';}
+	document.getElementById(currButton).innerHTML=selection+' <span class="caret"></span>';
+	document.getElementById(nextItem).disabled=false;
+	tempAry1=values.split('@');
+	newDropDown='';
+	for(i=0;i<tempAry1.length;i++){
+		tempAry2=tempAry1[i].split('?');
+		nextValues='';
+		if(tempAry2.length>1){nextValues=tempAry2[1].replace(/#/g,'?').replace(/%/g,'@').replace(/\|/g,'%')}
+		newDropDown+='<li><a onclick="fillButtonsSmart(\''+nextValues+'\',\''+nextSelection+'\',\''+tempAry2[0]+'\',\''+nextItem+'\');">'+tempAry2[0]+'</a></li>';
+	}
+	document.getElementById(nextItem+'-dropdown').innerHTML=newDropDown;
+}
+
 function queryDB(userName){
 	queryProduct=document.getElementById('product').innerHTML.replace(' <span class="caret"></span>','');
 	querySWRelease=document.getElementById('sw-release').innerHTML.replace(' <span class="caret"></span>','');
 	queryArea=document.getElementById('area').innerHTML.replace(' <span class="caret"></span>','');
 	doAccess('queryDB');
+}
+
+function addSmartSuite(){
+	queryProduct=document.getElementById('product').innerHTML.replace(' <span class="caret"></span>','');
+	querySWRelease=document.getElementById('sw-release').innerHTML.replace(' <span class="caret"></span>','');
+	queryArea=document.getElementById('area').innerHTML.replace(' <span class="caret"></span>','');
+	queryTopologies='';
+	
+	doAccess('addSmartSuite');
 }
 
 function updateStats(perspective){
