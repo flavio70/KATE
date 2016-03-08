@@ -193,6 +193,37 @@ function doAccess(myAction){
      checkFields();
 	};
 
+	var addSmartSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+		tempTopo=sersverResponse_data['topology'].split(',');
+		topoStr='';
+		for(i=0;i<tempTopo.length;i++){
+			checkStr='';
+			if(tempTopo[i].match('#')!=null){checkStr=' checked ';}
+			topoStr+=tempTopo[i].replace('#','')+"<input type='checkbox' "+checkStr+">";
+			if(i<tempTopo.length){topoStr+='<br>';}
+		}
+		tempBench=sersverResponse_data['benches'].split('#');
+		benchStr='';
+		for(i=1;i<tempBench.length;i++){
+			benchStr+="<input type='button' value="+tempBench[i].replace('#','')+">";
+			if(i<tempBench.length){benchStr+='<br>';}
+		}
+		testTable.row.add({
+			"control" : "<img src='/static/images/details_close.png'></img>",
+			"prod" : sersverResponse_data['product'],
+			"rel" : sersverResponse_data['sw_rel_name'],
+			"suite": sersverResponse_data['area_name'],
+			"topologies" : topoStr,
+			"options" : 'FU',
+			"tc": sersverResponse_data['CURRtc']+'/'+sersverResponse_data['TOTtc'],
+			"tps": sersverResponse_data['CURRtps']+'/'+sersverResponse_data['TOTtps'],
+			"duration": '0',
+			"benches": benchStr
+		}
+		).draw( false );
+	};
+
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		//alert(sersverResponse_data['creationReport']);
@@ -279,6 +310,26 @@ function doAccess(myAction){
 				}
 		});
 	}
+	if(myAction=='addSmartSuite'){
+	    //document.getElementById('serverPersonalSuite').disabled=false;
+	    //document.getElementById('serverSharedSuite').disabled=false;
+			$.ajax({
+				type: "POST",
+				dataType: 'json',
+				url: myURL,
+				data: {
+					action: myAction,
+					queryProduct:queryProduct,
+					querySWRelease:querySWRelease,
+					queryArea:queryArea,
+					benchList:benchList
+					},
+				success: addSmartSuite,
+				error: function(xhr, textStatus, errorThrown) {
+						alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+					}
+			});
+		}
 	if(myAction=='saveSuite'){
 		//alert(savingString);
 		$.ajax({
