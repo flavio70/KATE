@@ -12,19 +12,20 @@
 	SECT[0]="{% static 'images/sect0.gif' %}";
 	myProduct="";
 	myLab="";
-	myUserSuite="";
-	mySharedSuite="";
-	suiteID='';
-	suiteName='';
-	userSuiteID='';
-	sharedSuiteID='';
-</script>
-{% for myItem in userSuiteAry %}
-    <script>myUserSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
-{% endfor %}
+	presetStr='';
+	presetID='';
+	rowIndex='NEW';
+	presetDropDownPre='<div class="btn-group btn-group-sm" role="group">\
+						<button class="btn btn-default dropdown-toggle navbar-btn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
+							Preset <span class="caret"></span>\
+						</button>\
+						<ul class="dropdown-menu" id="sharedPresetDropdow">';
+	presetDropDownPost='</ul></div>';
 
-{% for myItem in sharedSuiteAry %}
-    <script>mySharedSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'sharedSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ;">{{ myItem.suiteName }}</a></li>';</script>
+</script>
+
+{% for myItem in sharedPreset %}
+	<script>presetStr+='<li><a id="{{ myItem.sharedPresetID }}" name="{{myItem.sharedPresetTitle}}" onclick="selectPresetDropDown($(this));">{{ myItem.sharedPresetName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in productAry %}
@@ -36,6 +37,13 @@
 {% endfor %}
 
 <script>
+
+function selectPresetDropDown(currObj){
+	presetID=currObj[0].id;
+	currObj.closest('div')[0].firstElementChild.innerHTML=currObj[0].name +' <span class=caret></span>';
+	rowIndex=currObj.closest('tr')[0]._DT_RowIndex;
+	addSmartSuite();
+}
 
 $('#testTable tbody').on('click', 'td.removeItem', function () {
 	var tr = $(this).closest('tr');
@@ -164,7 +172,7 @@ $(document).ready(function() {
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">\
 					<ul class="nav navbar-nav">\
 						<div class="btn-group btn-group-sm" role="group">\
-							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Add Chapter to Suite" onclick="addSmartSuite();" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Add Chapter to Suite" onclick="presetID=\'\';rowIndex=\'NEW\';addSmartSuite();" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>\
 						</div><!-- end btn_group-->\
 						<div class="btn-group btn-group-sm" role="group">\
 							<button type="button" data-toggle="popover-left" title="PROCESS BUTTON" data-content="Preview Smart Suite" onclick="insertAllBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Create</button>\
@@ -176,20 +184,11 @@ $(document).ready(function() {
 	');
 	
 
-	$('#testTable tbody').on('click', 'td.details-control', function () {
+	$('#testTable tbody').on('click', 'td.removeItem', function () {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
-	 
-		if ( row.child.isShown() ) {
-		    // This row is already open - close it
-		    row.child.hide();
-		    tr.removeClass('shown');
-		}
-		else {
-		    // Open this row
-		    row.child( format(row.data()) ).show();
-		    tr.addClass('shown');
-		}
+		$('#testTable').dataTable().fnDeleteRow(row);
+
 	    } );
 
 	    
