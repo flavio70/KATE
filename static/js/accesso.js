@@ -236,6 +236,7 @@ function doAccess(myAction){
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		//alert(sersverResponse_data['creationReport']);
+		$("body").removeClass("loading");
 		console.log('CreateTest Ajax success')
 		console.log(sersverResponse_data)
 		console.log("User GIT Branch set to: "+sersverResponse_data['userBranch'])
@@ -545,7 +546,7 @@ function doAccess(myAction){
 	
 	
 	if(myAction=='createTest'){
-		
+		$("body").addClass("loading");
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
@@ -565,6 +566,7 @@ function doAccess(myAction){
 				},
 			success: createTest,
 			error: function(xhr, textStatus, errorThrown) {
+					$("body").removeClass("loading");
 					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
 				}
 		});

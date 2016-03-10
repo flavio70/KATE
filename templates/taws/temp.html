@@ -17,8 +17,9 @@ var dataSetExample = [
     ];
 
 var testSetExample = [
-    ["", "1", "TPS1", "Test1", "Lab1", "rev1"],
-    ["", "2", "TPS2", "Test2", "Lab2", "rev2"]
+    ["1","", "1", "TPS1", "Test1", "Lab1", "rev1"],
+    ["2","", "2", "TPS2", "Test2", "Lab2", "rev2"],
+    ["3","", "3", "TPS3", "Test3", "Lab3", "rev3"]
       ];
 
 
@@ -55,10 +56,13 @@ $(document).ready(function() {
 		rowReorder: {
             selector: 'tr'
         },
-		order: [[ 2, "desc" ]],
+        columnDefs: [
+                     { targets: 0, visible: false }
+                 ],
 		scrollY:'380px',
 		scrollCollapse:true,
 		columns: [
+            { title:"posHidden"},
             { title: "Name",
 							className: "details-control"
 						},
