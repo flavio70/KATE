@@ -196,12 +196,16 @@ function doAccess(myAction){
 	var addSmartSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		tempTopo=sersverResponse_data['topology'].split(',');
+		excludedTopologies=sersverResponse_data['excludedTopologies'].split('#');
 		topoStr='';
 		for(i=0;i<tempTopo.length;i++){
 			checkStr='';
-			if(tempTopo[i].match('#')!=null){checkStr=' checked ';}
-			topoStr+=tempTopo[i].replace('#','')+"<input type='checkbox' "+checkStr+">";
-			if(i<tempTopo.length){topoStr+='<br>';}
+			excludeFound=false;
+			for(j=0;j<excludedTopologies.length;j++){if(excludedTopologies[j]==tempTopo[i].replace('#','')){excludeFound=true;}}
+			if(tempTopo[i].match('#')!=null&&excludeFound!=true){checkStr=' checked ';}
+			if(tempTopo[i].match('#')==null){checkStr=' disabled ';}
+			topoStr+=tempTopo[i].replace('#','')+"<input onclick='selectPresetDropDown($(this));' value='"+tempTopo[i].replace('#','')+"' type='checkbox' "+checkStr+">";
+			//if(i<tempTopo.length){topoStr+='<br>';}
 		}
 		/*tempBench=sersverResponse_data['benches'].split('#');
 		benchStr='';
@@ -222,7 +226,7 @@ function doAccess(myAction){
 				"tc": sersverResponse_data['CURRtc']+'/'+sersverResponse_data['TOTtc'],
 				"tps": sersverResponse_data['CURRtps']+'/'+sersverResponse_data['TOTtps'],
 				"duration": '0',
-				"benches": presetDropDown
+				"preset": presetDropDown
 			}
 			).draw( false );
 		}else{
@@ -231,6 +235,7 @@ function doAccess(myAction){
 			oTable.fnUpdate(sersverResponse_data['CURRtc']+'/'+sersverResponse_data['TOTtc'],rowIndex,6,false);
 			oTable.fnUpdate(sersverResponse_data['CURRtps']+'/'+sersverResponse_data['TOTtps'],rowIndex,7,false);
 		}
+		updateStats('smart');
 	};
 
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
@@ -331,7 +336,8 @@ function doAccess(myAction){
 					queryProduct:queryProduct,
 					querySWRelease:querySWRelease,
 					queryArea:queryArea,
-					presetID:presetID
+					presetID:presetID,
+					excludedTopologies:excludedTopologies.slice(0,-1)
 					},
 				success: addSmartSuite,
 				error: function(xhr, textStatus, errorThrown) {

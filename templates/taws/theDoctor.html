@@ -13,19 +13,24 @@
 	myProduct="";
 	myLab="";
 	presetStr='';
+	presetStr2='';
 	presetID='';
+	excludedTopologies='';
 	rowIndex='NEW';
-	presetDropDownPre='<div class="btn-group btn-group-sm" role="group">\
+	presetDropDownPre2='<div class="btn-group btn-group-sm" role="group">\
 						<button class="btn btn-default dropdown-toggle navbar-btn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
 							Preset <span class="caret"></span>\
 						</button>\
 						<ul class="dropdown-menu" id="sharedPresetDropdow">';
-	presetDropDownPost='</ul></div>';
+	presetDropDownPost2='</ul></div>';
+	presetDropDownPre="<select onchange='selectPresetDropDown($(this));'><option value=''>Preset</option>";
+	presetDropDownPost='</select>';
 
 </script>
 
 {% for myItem in sharedPreset %}
-	<script>presetStr+='<li><a id="{{ myItem.sharedPresetID }}" name="{{myItem.sharedPresetTitle}}" onclick="selectPresetDropDown($(this));">{{ myItem.sharedPresetName }}</a></li>';</script>
+	<script>presetStr2+='<li><a id="{{ myItem.sharedPresetID }}" name="{{myItem.sharedPresetTitle}}" onclick="selectPresetDropDown($(this));">{{ myItem.sharedPresetName }}</a></li>';</script>
+	<script>presetStr+="<option id='{{ myItem.sharedPresetID }}'>{{ myItem.sharedPresetName }}</option>";</script>
 {% endfor %}
 
 {% for myItem in productAry %}
@@ -39,9 +44,17 @@
 <script>
 
 function selectPresetDropDown(currObj){
-	presetID=currObj[0].id;
-	currObj.closest('div')[0].firstElementChild.innerHTML=currObj[0].name +' <span class=caret></span>';
+	presetID=currObj.closest('tr')[0].childNodes[9].firstChild.selectedOptions[0].id;
+	//currObj.closest('div')[0].firstElementChild.innerHTML=currObj[0].name +' <span class=caret></span>';
 	rowIndex=currObj.closest('tr')[0]._DT_RowIndex;
+	excludedTopologies='';
+	for(i=0;i<currObj.closest('tr')[0].childNodes[4].childNodes.length;i++){
+		if(currObj.closest('tr')[0].childNodes[4].childNodes[i].type=='checkbox'){
+			if(currObj.closest('tr')[0].childNodes[4].childNodes[i].disabled==false&&currObj.closest('tr')[0].childNodes[4].childNodes[i].checked==false){
+				excludedTopologies+=currObj.closest('tr')[0].childNodes[4].childNodes[i-1].data+'#';
+			}
+		}
+	}
 	addSmartSuite();
 }
 
@@ -68,7 +81,6 @@ $(document).ready(function() {
 				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
 				<"row"<"col-sm-12"tr>>',
 		"order": [[ 2, "desc" ]],
-		scrollY:'380px',
 		scrollCollapse:true,"columns": [
 		{
 			"data":           "control",
@@ -103,7 +115,7 @@ $(document).ready(function() {
 			"className": "dt-center"
 		 },
 		{
-			"data": "benches",
+			"data": "preset",
 			"className": "dt-center"
 		 }
 		 
@@ -188,6 +200,7 @@ $(document).ready(function() {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
 		$('#testTable').dataTable().fnDeleteRow(row);
+		updateStats('smart');
 
 	    } );
 
@@ -273,7 +286,7 @@ $(document).keyup(function (e) {
 				<th>TC</th>
 				<th>TPS</th>
 				<th>Duration</th>
-				<th>Benches</th>
+				<th>Preset</th>
 			</tr>     
 		</thead>
 		<tfoot>       
@@ -287,7 +300,7 @@ $(document).keyup(function (e) {
 				<th>TC</th>
 				<th>TPS</th>
 				<th>Duration</th>
-				<th>Benches</th>
+				<th>Preset</th>
 			</tr>
 		</tfoot>
 		
