@@ -331,9 +331,8 @@ def selectEqpt(request):
 
 def tuningEngine(request):
 
-	import mysql.connector,os,shutil,ntpath
+	import mysql.connector,os,shutil
 	from os.path import expanduser
-	from git import Repo
 	import json,ast
 
 	context = RequestContext(request)
@@ -386,15 +385,6 @@ def tuningEngine(request):
 
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
-	myRecordSet.execute("SET group_concat_max_len = 200000")
-	dbConnection.commit()
-	#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,run_sectionconcat('{',myTuple,'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
-	#SELECT entityName,if(elemName like '%#%',concat('"TYPE":"',replace(elemName,'#',''),'","ID":"',T_EQUIPMENT_id_equipment,'"'),concat('"',elemName,'":"',pstValue,'"')) from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62
-	#SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,group_concat(if(elemName like '%#%',concat('\'TYPE\':\'',replace(elemName,'#',''),'\',\'ID\':\'',T_EQUIPMENT_id_equipment,'\''),concat('\'',elemName,'\':\'',pstValue,'\'')) order by elemName) as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62 group by entityName
-	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
-	rows = myRecordSet.fetchall()
-	#tuningPath=TAWS_path+"Test Case ATM\\TUNED\\"+suiteName+"-TUNED-"+tuningName
-
 	from jenkinsapi.jenkins import Jenkins
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
@@ -443,18 +433,49 @@ def tuningEngine(request):
 		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
 		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
 		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+
+
 	myIDX=1
+	tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)
+	tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
+	
+	context_dict={'login':request.session['login'],'tuningReport':tempStr.replace('\n','\\n')}
+
+	return render_to_response('taws/tuningEngine.html',context_dict)
+	#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
+
+def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX):
+	
+	import mysql.connector,ntpath,shutil,json,ast
+	from git import Repo
+	
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
+	#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,run_sectionconcat('{',myTuple,'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
+	#SELECT entityName,if(elemName like '%#%',concat('"TYPE":"',replace(elemName,'#',''),'","ID":"',T_EQUIPMENT_id_equipment,'"'),concat('"',elemName,'":"',pstValue,'"')) from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62
+	#SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,group_concat(if(elemName like '%#%',concat('\'TYPE\':\'',replace(elemName,'#',''),'\',\'ID\':\'',T_EQUIPMENT_id_equipment,'\''),concat('\'',elemName,'\':\'',pstValue,'\'')) order by elemName) as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62 group by entityName
+	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
+	rows = myRecordSet.fetchall()
+	#tuningPath=TAWS_path+"Test Case ATM\\TUNED\\"+suiteName+"-TUNED-"+tuningName
+	tempStr=''
 	test_plan=''
+	myIDX=currIDX
 	myRepo=Repo(settings.BASE_DIR + settings.GIT_REPO_PATH + settings.GIT_REPO_NAME)
 	git=myRepo.git
 	for row in rows:
 		test_name=str(myIDX).zfill(6)+'_'+str(row['id_TestRev'])+'_'+ntpath.basename(row['test_name'])
 		if localTesting == 'off':
 			tempStr+='GETTING '+test_name+'...'
-			out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,"w")
-			out_file.write(git.show(row['revision']+':'+row['test_name']))
-			out_file.close()
-			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,511)
+			if preview=='off':
+				out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,"w")
+				out_file.write(git.show(row['revision']+':'+row['test_name']))
+				out_file.close()
+				os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,511)
 		else:
 			tempStr+='CREATING LINK FOR '+test_name+'...'
 			if os.path.exists(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name):
@@ -462,14 +483,15 @@ def tuningEngine(request):
 				shutil.rmtree(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name)
 				tempStr+='DONE!\n'
 			localPath=suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name
-			remotePath='/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/'+row['test_name']
+			remotePath='/users/'+username+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/'+row['test_name']
 			os.symlink(remotePath,localPath)
-		with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
-			#tempStr+=row["presets"]
-			json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
-			#json.dump(row["presets"],out_file,ensure_ascii=False,indent=4,separators=(',',':'))
-		out_file.close()
-		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',511)
+		if preview=='off':
+			with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
+				#tempStr+=row["presets"]
+				json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
+				#json.dump(row["presets"],out_file,ensure_ascii=False,indent=4,separators=(',',':'))
+			out_file.close()
+			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',511)
 		myIDX+=1
 		runSection=row["run_section"]
 		runSectonStr=''
@@ -483,24 +505,23 @@ def tuningEngine(request):
 		tempStr+='DONE!\n'
 	if localTesting == 'off':
 		tempStr+='\nCreating Test plan...'
-		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w")
-		out_file.write(test_plan)
-		out_file.close()
-		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
+		if preview=='off':
+			out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w")
+			out_file.write(test_plan)
+			out_file.close()
+			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
 		tempStr+='DONE!\n'
 	tempStr+='\nCreating Node List...'
 	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%'")
 	nodeList=myRecordSet.fetchone()['nodeList']
-	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
-	out_file.write(nodeList)
-	out_file.close()
+	if preview=='off':
+		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
+		out_file.write(nodeList)
+		out_file.close()
 	tempStr+='DONE!\n'
 
-	tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
-	context_dict={'login':request.session['login'],'tuningReport':tempStr.replace('\n','\\n')}
+	return tempStr
 
-	return render_to_response('taws/tuningEngine.html',context_dict)
-	#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
 
 def runJenkins(request):
 
@@ -2892,6 +2913,121 @@ def accesso(request):
 #
 #		return  JsonResponse({'creationReport':creationReport}, safe=False)
 
+	if myAction=='tuneSuite':
+	
+		import mysql.connector,os,shutil
+		from os.path import expanduser
+		import json,ast
+	
+		context = RequestContext(request)
+		context_dict={'nothing':'nothing'}
+		suiteID=request.POST.get('tuningBundle')
+		savingString = request.POST.get('changeValues','')
+		description = request.POST.get('description','')
+		sharedJob = request.POST.get('sharedJob','off')
+		localTesting = request.POST.get('localTesting','off')
+		tuningLabel = request.POST.get('tuningLabel','').replace(' ','_')
+	
+		if 'login' not in request.session:
+			context_dict={'fromPage':'tuningEngine'}
+			return render_to_response('taws/login.html',context_dict,context)
+	
+	
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet = dbConnection.cursor(dictionary=True)
+	
+		myRecordSet.execute("SELECT count(preset_title) as myCount from T_PRESETS WHERE preset_title='"+request.session['login']+"' and owner='HIDDEN'")
+		row=myRecordSet.fetchone()
+		if row['myCount']==0:
+			myRecordSet.execute("INSERT INTO T_PRESETS (preset_title,owner,preset_description) VALUES('"+request.session['login']+"','HIDDEN','')")
+			dbConnection.commit()
+		myRecordSet.execute("SELECT id_preset from T_PRESETS where preset_title='"+request.session['login']+"' and owner='HIDDEN'")
+		row=myRecordSet.fetchone()
+		presetID = row['id_preset']
+	
+		myRecordSet.execute("DELETE from T_PST_ENTITY where T_PRESETS_id_preset="+str(presetID))
+		dbConnection.commit()
+	
+		nibble = savingString.split("?")
+		for myVar in nibble:
+			tempNibble = myVar.split("|")
+			myRecordSet.execute("INSERT into T_PST_ENTITY (T_PRESETS_id_preset,T_TPY_ENTITY_id_entity,pstvalue,T_EQUIPMENT_id_equipment) VALUES ('"+str(presetID)+"','"+tempNibble[0]+"','"+tempNibble[1]+"','"+tempNibble[2]+"')")
+			dbConnection.commit()
+	
+		tempStr=''
+		#tempStr+="PresetID :"+str(presetID)+"\n"
+		#tempStr+="SuiteID :"+str(suiteID)+"\n"
+		tempStr+="Tuning Test Cases for Jenkins...\n\n"
+		global TAWS_path,os
+		myRecordSet.execute("select name from T_SUITES where id_suite="+str(suiteID))
+		myRecord=myRecordSet.fetchone()
+	
+		if localTesting == 'off':
+			suiteName=request.session['login']+'_'+myRecord['name']+'-'+tuningLabel
+		else:
+			suiteName=request.session['login']+'_Development'
+	
+		suiteFolder=settings.JENKINS['SUITEFOLDER']
+	
+		from jenkinsapi.jenkins import Jenkins
+		server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
+		#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
+		
+		tempStr+='Working folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'\n\n'
+		
+		if localTesting == 'off':
+			tempStr+='Creating workspace structure...\n'
+			tempStr+='Check Job '+suiteName+' not present...\n'
+			if os.path.exists(suiteFolder+suiteName):
+				tempStr+='Job '+suiteName+' already present,deleting workspace...'
+				shutil.rmtree(suiteFolder+suiteName)
+				tempStr+='DONE!\n'
+			if not (server.has_job(suiteName)):
+				tempStr+='Job '+suiteName+' creating...'
+				tempProperties=''
+				if sharedJob == 'off':
+					out_file = open(settings.JOB_PROPS_TEMPLATE,"rb")
+					tempProperties=out_file.read().decode('UTF-8').replace('[TAWSUSER]',request.session['login'])
+					out_file.close()
+				out_file = open(settings.JOB_TEMPLATE,"rb")
+				templateXML=out_file.read()
+				templateXML=templateXML.decode('UTF-8').replace('[PROPERTIES]',tempProperties)
+				templateXML=templateXML.replace('[JOBDESCRIPTION]',description)
+				out_file.close()
+				#job_instance.update_config(templateXML)
+				#job_instance.update_config(job_instance.get_config())
+				server.create_job(suiteName,templateXML)
+				tempStr+='DONE!\n'
+				#job_instance = server.get_job(suiteName)
+				#tempStr+='Disabling Jenkins Job : '+suiteName+' ...'
+				#job_instance.disable()
+				#tempStr+='DONE!\n'
+				#tempStr+= 'Name:%s,Is Job Disabled ?:%s' %(suiteName,job_instance.is_enabled())
+				#tempStr+='Enabling Jenkins Job : '+suiteName+' ...'
+				#job_instance.enable()
+				#tempStr+='DONE!\n'
+				#tempStr+= 'Name:%s,Is Job Enabled ?:%s' %(suiteName,job_instance.is_enabled())
+	
+			#server.build_job(suiteName)
+			#server.stop(suiteName)
+			#os.chmod(suiteFolder+suiteName,511)
+			os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
+			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
+			#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
+			#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
+			os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
+			os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+	
+	
+		myIDX=1
+		tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)
+		tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
+		
+		context_dict={'login':request.session['login'],'tuningReport':tempStr}
+	
+		return  JsonResponse(context_dict, safe=False)
+		#return render_to_response('taws/tuningEngine.html',context_dict)
+		#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
 
 
 def temp(request):
