@@ -216,7 +216,7 @@ function doAccess(myAction){
 		}*/
 		presetDropDown=presetDropDownPre+presetStr+presetDropDownPost;
 		if(rowIndex=='NEW'){
-			testTable.row.add({
+			myRow=testTable.row.add({
 				"control" : "<img src='/static/images/details_close.png'></img>",
 				"prod" : sersverResponse_data['product'],
 				"rel" : sersverResponse_data['sw_rel_name'],

@@ -520,8 +520,64 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 		out_file.close()
 	tempStr+='DONE!\n'
 
-	return tempStr
+	return {'tuningReport':tempStr,'myIDX':myIDX}
 
+def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,description):
+	import shutil
+	from jenkinsapi.jenkins import Jenkins
+	server = Jenkins(settings.JENKINS['HOST'],username=username,password=password)
+	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
+	
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
+	
+	tempStr=''
+	
+	tempStr+='Working folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'\n\n'
+	
+	if localTesting == 'off':
+		tempStr+='Creating workspace structure...\n'
+		tempStr+='Check Job '+suiteName+' not present...\n'
+		if os.path.exists(suiteFolder+suiteName):
+			tempStr+='Job '+suiteName+' already present,deleting workspace...'
+			shutil.rmtree(suiteFolder+suiteName)
+			tempStr+='DONE!\n'
+		if not (server.has_job(suiteName)):
+			tempStr+='Job '+suiteName+' creating...'
+			tempProperties=''
+			if sharedJob == 'off':
+				out_file = open(settings.JOB_PROPS_TEMPLATE,"rb")
+				tempProperties=out_file.read().decode('UTF-8').replace('[TAWSUSER]',username)
+				out_file.close()
+			out_file = open(settings.JOB_TEMPLATE,"rb")
+			templateXML=out_file.read()
+			templateXML=templateXML.decode('UTF-8').replace('[PROPERTIES]',tempProperties)
+			templateXML=templateXML.replace('[JOBDESCRIPTION]',description)
+			out_file.close()
+			#job_instance.update_config(templateXML)
+			#job_instance.update_config(job_instance.get_config())
+			server.create_job(suiteName,templateXML)
+			tempStr+='DONE!\n'
+			#job_instance = server.get_job(suiteName)
+			#tempStr+='Disabling Jenkins Job : '+suiteName+' ...'
+			#job_instance.disable()
+			#tempStr+='DONE!\n'
+			#tempStr+= 'Name:%s,Is Job Disabled ?:%s' %(suiteName,job_instance.is_enabled())
+			#tempStr+='Enabling Jenkins Job : '+suiteName+' ...'
+			#job_instance.enable()
+			#tempStr+='DONE!\n'
+			#tempStr+= 'Name:%s,Is Job Enabled ?:%s' %(suiteName,job_instance.is_enabled())
+
+		#server.build_job(suiteName)
+		#server.stop(suiteName)
+		#os.chmod(suiteFolder+suiteName,511)
+		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
+		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
+		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
+		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
+		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+	
+	return tempStr
 
 def runJenkins(request):
 
@@ -2915,7 +2971,7 @@ def accesso(request):
 
 	if myAction=='tuneSuite':
 	
-		import mysql.connector,os,shutil
+		import mysql.connector,os
 		from os.path import expanduser
 		import json,ast
 	
@@ -2967,60 +3023,11 @@ def accesso(request):
 		else:
 			suiteName=request.session['login']+'_Development'
 	
-		suiteFolder=settings.JENKINS['SUITEFOLDER']
-	
-		from jenkinsapi.jenkins import Jenkins
-		server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
-		#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
-		
-		tempStr+='Working folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'\n\n'
-		
-		if localTesting == 'off':
-			tempStr+='Creating workspace structure...\n'
-			tempStr+='Check Job '+suiteName+' not present...\n'
-			if os.path.exists(suiteFolder+suiteName):
-				tempStr+='Job '+suiteName+' already present,deleting workspace...'
-				shutil.rmtree(suiteFolder+suiteName)
-				tempStr+='DONE!\n'
-			if not (server.has_job(suiteName)):
-				tempStr+='Job '+suiteName+' creating...'
-				tempProperties=''
-				if sharedJob == 'off':
-					out_file = open(settings.JOB_PROPS_TEMPLATE,"rb")
-					tempProperties=out_file.read().decode('UTF-8').replace('[TAWSUSER]',request.session['login'])
-					out_file.close()
-				out_file = open(settings.JOB_TEMPLATE,"rb")
-				templateXML=out_file.read()
-				templateXML=templateXML.decode('UTF-8').replace('[PROPERTIES]',tempProperties)
-				templateXML=templateXML.replace('[JOBDESCRIPTION]',description)
-				out_file.close()
-				#job_instance.update_config(templateXML)
-				#job_instance.update_config(job_instance.get_config())
-				server.create_job(suiteName,templateXML)
-				tempStr+='DONE!\n'
-				#job_instance = server.get_job(suiteName)
-				#tempStr+='Disabling Jenkins Job : '+suiteName+' ...'
-				#job_instance.disable()
-				#tempStr+='DONE!\n'
-				#tempStr+= 'Name:%s,Is Job Disabled ?:%s' %(suiteName,job_instance.is_enabled())
-				#tempStr+='Enabling Jenkins Job : '+suiteName+' ...'
-				#job_instance.enable()
-				#tempStr+='DONE!\n'
-				#tempStr+= 'Name:%s,Is Job Enabled ?:%s' %(suiteName,job_instance.is_enabled())
-	
-			#server.build_job(suiteName)
-			#server.stop(suiteName)
-			#os.chmod(suiteFolder+suiteName,511)
-			os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
-			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
-			#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
-			#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
-			os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
-			os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
-	
+
+		tempStr+=createJenkinsENV(suiteName,request.session['login'],request.session['password'],localTesting,sharedJob,description)
 	
 		myIDX=1
-		tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)
+		tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)['tuningReport']
 		tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
 		
 		context_dict={'login':request.session['login'],'tuningReport':tempStr}
@@ -3029,7 +3036,74 @@ def accesso(request):
 		#return render_to_response('taws/tuningEngine.html',context_dict)
 		#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
 
+	if myAction=='smartTune':
+		
+		import mysql.connector,os
+		from os.path import expanduser
+		import json,ast
+	
+		context = RequestContext(request)
 
+		presetID=request.POST.get('presetID')
+		tuningLabel=request.POST.get('tuningLabel')
+		product=request.POST.get('product')
+		sw_rel = request.POST.get('sw_rel','')
+		description = request.POST.get('description','')
+		area = request.POST.get('area','')
+		excludedTopologies = request.POST.get('excludedTopologies','')
+		myIDX = int(request.POST.get('myIDX',''))
+		owner=request.POST.get('owner')
+		preview=request.POST.get('preview','on')
+
+		tempStr="Smart Suite Creation Started...\n\n"
+		
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
+		#myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc from (select area_name,if(id_preset is null,'','#')) as myTopology,test_name,product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null,0,tps) as tCURRtps,if(id_preset is null,0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='FM') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where owner='SMART') as presets on(id_entity=T_TPY_ENTITY_id_entity) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		#myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc,benches from (select area_name,group_concat(distinct elemName) as benches,concat(topology,if(id_preset is null,'','#')) as myTopology,test_name,T_PROD.product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null "+topologyStr+",0,tps) as tCURRtps,if(id_preset is null "+topologyStr+",0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where id_preset='"+presetID+"') as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		#row=myRecordSet.fetchone()
+
+		id_suite=0
+		
+		if preview == 'off':
+			myRecordSet.execute("SELECT id_suite from T_SUITES where name='"+owner+"_SMART' and owner='"+owner+"'")
+			if myRecordSet.rowcount!=0:
+				id_suite=myRecordSet.fetchone()['id_suite']
+				tempStr+="User Smart Suite found="+str(id_suite)+"...\n"
+				myRecordSet.execute("DELETE FROM T_SUITE_BODY WHERE T_SUITES_id_suite='"+str(id_suite)+"'")
+				dbConnection.commit()
+			else:
+				tempStr+="User Smart Suite creation..."
+				myRecordSet.execute("INSERT INTO T_SUITES (name,owner,description) VALUES('"+owner+"_SMART','"+owner+"','')")
+				dbConnection.commit()
+				tempStr+="DONE\n"
+				myRecordSet.execute("SELECT id_suite from T_SUITES where name='"+owner+"_SMART' and owner='"+owner+"'")
+				id_suite=myRecordSet.fetchone()['id_suite']
+				tempStr+="User Smart Suite found="+str(id_suite)+"...\n"
+		
+		if preview == 'on':
+			tempStr+="Load preset ID="+str(presetID)+"...\n"
+			myRecordSet.execute("select test_name,null,"+str(id_suite)+",id_TestRev,0,run_section from T_TEST join (select T_TEST_test_id,id_TestRev,run_section,topology from T_TEST_REVS order by T_TEST_test_id,id_TestRev desc) as T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+area+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where id_preset='"+presetID+"') as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+product+"' and sw_rel_name='"+sw_rel+"' and area_name='"+area+"'  and id_preset is not null group by test_id order by test_id,id_TestRev desc")
+			for row in myRecordSet:
+				tempStr+=str(myIDX)+' Revision '+str(row["id_TestRev"])+' '+row["test_name"]+'\n'
+				myIDX=myIDX+1
+			
+		#dbConnection.commit()
+		tempStr+="\n\n"
+		#myRecordSet.execute("INSERT INTO T_SUITES (name,owner,description) VALUES('"+saveID+"','"+owner+"','')")
+		#dbConnection.commit()
+		#myRecordSet.execute("SELECT MAX(id_suite) as id_suite from T_SUITES")
+		#row=myRecordSet.fetchone()
+		#suiteID = str(row['id_suite'])
+		
+		#tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)['tuningReport']
+		
+		#suiteName=request.session['login']+'_'+tuningLabel+'-SMART'
+		
+		context_dict={'login':request.session['login'],'tuningReport':tempStr,'tuningLabel':tuningLabel,'product':product,'sw_rel':sw_rel,'description':description,'area':area,'excludedTopologies':excludedTopologies,'myIDX':myIDX}
+	
+		return  JsonResponse(context_dict, safe=False)
+		
 def temp(request):
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}

@@ -209,6 +209,7 @@ function deletePreset(){
 	</div>
 </div><!-- end modal -->
 
+<div class="modaload"><!-- Place at bottom of page --></div>
 
 <script>
 	
@@ -347,6 +348,7 @@ function showalert(message,alerttype) {
 
 	function jsendTuning(){
 		//alert(document.getElementById('localTesting').value);
+		$("body").addClass("loading");
 		changeScript.action='/taws/tuningEngine/';
 		changeScript.target='_blank';
 		tuningFields = getTuningValues();
@@ -399,6 +401,7 @@ function showalert(message,alerttype) {
 
 	var fillReportModal = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['presetAry']);
+		$("body").removeClass("loading");
 		$('#tuneReportModal').modal('show');
 		document.getElementById('tuningLog').value=sersverResponse_data['tuningReport'];
 	};
