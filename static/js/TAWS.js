@@ -1208,6 +1208,7 @@ function addSmartSuite(){
 	querySWRelease=document.getElementById('sw-release').innerHTML.replace(' <span class="caret"></span>','');
 	queryArea=document.getElementById('area').innerHTML.replace(' <span class="caret"></span>','');
 	queryTopologies='';
+	document.getElementById('processBtn').disabled=true;
 	
 	doAccess('addSmartSuite');
 }
