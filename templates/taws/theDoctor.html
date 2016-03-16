@@ -18,6 +18,9 @@
 	excludedTopologies='';
 	rowIndex='NEW';
 	var myIDX;
+	var tuningLabelPrompt;
+	var descriptionPrompt;
+
 	presetDropDownPre2='<div class="btn-group btn-group-sm" role="group">\
 						<button class="btn btn-default dropdown-toggle navbar-btn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
 							Preset <span class="caret"></span>\
@@ -73,6 +76,7 @@ function removeSmartItem(myRow){
 	var row = myRow.closest('tr');
 	var nRow = row[0];
 	$('.testTable').dataTable().fnDeleteRow(nRow);
+	checkSmartPreset();
 }
 
 $(document).ready(function() {
@@ -276,11 +280,15 @@ function checkSmartPreset(){
 }
 
 function smartTuning(preview){
-	tuningLabelPrompt = prompt('Insert Tuning Label...','myTuning');
-	descriptionPrompt = prompt('Insert Job Description...','');
+	if(preview=='on'){
+		tuningLabelPrompt = prompt('Insert Tuning Label...','myTuning');
+		descriptionPrompt = prompt('Insert Job Description...','');
+		$('#tuneReportModal').modal('show');
+		document.getElementById('createBtn').innerHTML='Create';
+		document.getElementById('createBtn').onclick=function(){myIDX=1;smartTuning('off');};
+	}
 	document.getElementById('tuningLog').value='';
 	myIDX=1;
-	$('#tuneReportModal').modal('show');
 	if((tuningLabelPrompt != null)&&(descriptionPrompt!=null)){
 		tuningLabel=tuningLabelPrompt.replace(/'/g,"");
 		description=descriptionPrompt.replace(/'/g,"");
@@ -322,7 +330,7 @@ function smartTuning(preview){
 					product:product,
 					sw_rel:sw_rel,
 					area:area,
-					excludedTopologies:excludedTopologies,
+					excludedTopologies:excludedTopologies.slice(0,-1),
 					myIDX:myIDX,
 					preview:preview
 					},
@@ -332,6 +340,11 @@ function smartTuning(preview){
 					}
 			});
 			//alert(presetID+rowIndex+product+sw_rel+area+excludedTopologies);
+		}
+		if(preview=='off'){
+			document.getElementById('tuningLog').value=document.getElementById('tuningLog').value+'\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n';
+			document.getElementById('createBtn').innerHTML='Close';
+			document.getElementById('createBtn').onclick=function(){$('#tuneReportModal').modal('hide');};
 		}
 	}else{
 		showalert("Label Missing!","alert-danger")
@@ -343,6 +356,7 @@ var fillReportModal = function(sersverResponse_data, textStatus_ignored,jqXHR_ig
 	//prompt('',sersverResponse_data['presetAry']);
 	document.getElementById('tuningLog').value=document.getElementById('tuningLog').value+sersverResponse_data['tuningReport'];
 	myIDX=sersverResponse_data['myIDX'];
+	//alert(sersverResponse_data['topologyStr']);
 	console.log("IDX: "+myIDX);
 };
 	
@@ -404,7 +418,7 @@ var fillReportModal = function(sersverResponse_data, textStatus_ignored,jqXHR_ig
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">Create</button>
+				<button type="button" class="btn btn-default btn-primary" id="createBtn" onclick="myIDX=1;smartTuning('off');">Create</button>
 			</div>
 		</div>
 	</div>
