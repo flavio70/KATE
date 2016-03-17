@@ -62,7 +62,7 @@ def addTestListToDB(testList):
 	liststatus = True
 	try:
 		for myTest in testList:
-			if myTest['diff']=='A':
+			if myTest['diff']=='A'or myTest['diff']=='M':
 				res=addTestToDB(myTest)
 				listReport+=res['data']
 				if not res['status']:liststatus = False
