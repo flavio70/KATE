@@ -18,6 +18,7 @@
 	suiteName='';
 	userSuiteID='';
 	sharedSuiteID='';
+	var lineNumber;
 </script>
 {% for myItem in userSuiteAry %}
     <script>myUserSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
