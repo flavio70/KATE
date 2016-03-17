@@ -964,7 +964,7 @@ function addRecordToTable(testString,tableName,lineNumber){
 	if(tempField[18]!='NA'){
 		tempRev=tempField[18].split('!');
 	 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
-	 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
+	 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).closest(\'tr\')[0]._DT_RowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
 		for(j=0;j<tempRev.length;j++){
 			selected='';
 			myRev=tempRev[j].split('|');
