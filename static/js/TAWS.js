@@ -147,7 +147,10 @@ function checkOverWrite(dialogResult,suiteType){
 
 function saveFileBody(suiteType){
 	for(k=0;k<testBundleTable.rows().data().length;k++){
-		savingString+=testBundleTable.row(k).data().testId+'#';
+		//getting datatable elements in reordered way: $('#testBundleTable').dataTable()._('tr')[k].testId+'#';
+		//testBundleTable.row(k).data() gets data from cache, non reordered
+		savingString+=$('#testBundleTable').dataTable()._('tr')[k].testId+'#';
+		//savingString+=testBundleTable.row(k).data().testId+'#';
 		sect1=0;
 		sect2=0;
 		sect3=0;
@@ -1003,6 +1006,7 @@ function addRecordToTable(testString,tableName,lineNumber){
 		if(tempField[17][4]=='0'){sect5='<input type="checkbox" disabled'+sectFunct+'>';}
 	}else{sect5='<img src="'+SECT[tempField[17][4]]+'"/>';}
 	myTable.row.add({
+		"DT_RowId": myNum,
 		"control" : '',
 		"num" : myNum,
 		"tps" : tempField[5],

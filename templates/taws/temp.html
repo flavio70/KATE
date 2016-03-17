@@ -16,11 +16,22 @@ var dataSetExample = [
     [ "Ashton Cox", "Junior Technical Author", "San Francisco", "1562", "2009/01/12", "$86,000" ]
     ];
 
+//var testSetExample = [
+//    ["1","", "1", "TPS1", "Test1", "Lab1", "rev1"],
+//    ["2","", "2", "TPS2", "Test2", "Lab2", "rev2"],
+//    ["3","", "3", "TPS3", "Test3", "Lab3", "rev3"]
+//      ];
+
+
 var testSetExample = [
-    ["1","", "1", "TPS1", "Test1", "Lab1", "rev1"],
-    ["2","", "2", "TPS2", "Test2", "Lab2", "rev2"],
-    ["3","", "3", "TPS3", "Test3", "Lab3", "rev3"]
-      ];
+                      ["1","", "TPS1", "test1", "lab1", "rev1", "t1","top1","<input type=\"checkbox\" checked>","s2","s3","s4","s5","id1","dep1","metr1","","user1","descr1","","upd1","str1"],
+                      ["2","", "TPS2", "test2", "lab2", "rev2", "t2","top2","s1","<input type=\"checkbox\" checked>","s3","s4","s5","id2","dep2","metr2","","user2","descr2","","upd2","str2"],
+                      ["3","", "TPS3", "test3", "lab3", "rev3", "t3","top3","s1","s2","<input type=\"checkbox\" checked>","s4","s5","id3","dep3","metr3","","user3","descr3","","upd3","str3"]
+
+                      ];
+
+
+
 
 
 $(document).ready(function() {
@@ -29,7 +40,7 @@ $(document).ready(function() {
             selector: 'tr'
         },
         columnDefs: [
-            { targets: 0, visible: false }
+            { targets: 0, visible: true }
         ],
         data: dataSetExample,
         columns: [
@@ -52,112 +63,43 @@ $(document).ready(function() {
 		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
 		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
 		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
-		data: testSetExample,
 		rowReorder: {
             selector: 'tr'
         },
         columnDefs: [
                      { targets: 0, visible: false }
                  ],
+        data: testSetExample,
 		scrollY:'380px',
 		scrollCollapse:true,
 		columns: [
-            { title:"posHidden"},
-            { title: "Name",
-							className: "details-control"
-						},
-            { title: "Position" },
-            { title: "Office" },
-            { title: "Extn." },
-            { title: "Start date" },
-            { title: "Salary" }
-        ]
-		/*columns: [
-			{
-				//"className":      'details-control',
-				//"orderable":      false,
-				"data":           "control",
-				//"defaultContent": 'aaa'
-			},
-		{
-			"data": "num", 
-			//"orderable":      false,
-			"className": "dt-center" 
-		},
-		{
-			"data": "tps", 
-		},
-		{ "data": "test" },
-		{
-			"data": "lab", 
-			"className": "dt-center"
-		},
-		{ "data": "rev" },
-		{
-			"data": "time", 
-			"className": "dt-center"
-		},
-		{
-			"data": "topo",
-			 "className": "dt-center"
-		},
-		{
-			"data": "sect1",
-			"className": "dt-center"
-		 },
-		{
-			"data": "sect2",
-			"className": "dt-center"
-		 },
-		{
-			"data": "sect3",
-			"className": "dt-center"
-		 },
-		{
-			"data": "sect4",
-			"className": "dt-center"
-		 },
-		{
-			"data": "sect5",
-			"className": "dt-center"
-		 },
-		{ 
-			"data": "testId",
-			"visible": true
-		},
-		{ 
-			"data": "dependency",
-			"visible": true 
-		},
-		{ 
-			"data": "metric",
-			"visible": true 
-		},
-		{ 
-			"data": "assignment",
-			"visible": true 
-		},
-		{ 
-			"data": "author",
-			"visible": true 
-		},
-		{ 
-			"data": "description",
-			"visible": true 
-		},
-		{ 
-			"data": "relDate",
-			"visible": true 
-		},
-		{ 
-			"data": "lastUpdate",
-			"visible": true 
-		},
-		{ 
-			"data": "testString",
-			"visible": true 
-		}
-]*/
+		{title: "Pos" },
+		{title:"",
+				"className":      'details-control',
+				"orderable":      false,
+				"defaultContent": 'aaa'
+		},	
+		{title: "TPS", className: "dt-center"},
+		{title: "Test", className: "dt-center"},
+		{title: "Lab",className: "dt-center"},
+		{title: "Rev",className: "dt-center"},
+		{title: "Time",className: "dt-center"},
+		{title: "Tpgy",className: "dt-center"},
+		{title: "DUT Setup",className: "dt-center"},
+		{title: "Test Setup",className: "dt-center"},
+		{title: "Test Body",className: "dt-center"},
+		{title: "Test CleanUp",className: "dt-center"},
+		{title: "DUT CleanUp",className: "dt-center"},
+		{title: "testId","visible": false },
+		{title: "dependency","visible": false },
+		{title: "metric","visible": false },
+		{title: "assignment","visible": false },
+		{title: "author","visible": false },
+		{title: "description","visible": false },
+		{title: "relDate","visible": false },
+		{title: "lastUpdate","visible": false },
+		{title: "testString","visible": false }
+]
 	});
 
     
@@ -174,12 +116,12 @@ table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:
 
 
 <div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
-	<table id="example" class="display table table-striped table-hover table-condensed" cellspacing="0" width="100%"></table>
+	<!--<table id="example" class="display table table-striped table-hover table-condensed" cellspacing="0" width="100%"></table>-->
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable1" style="width:100%">
-		<!--<thead>       
+		<thead>       
 			<tr>     
-				<th style="width:20px" rowspan="2"></th>        
-				<th style="width:20px" rowspan="2">Pos</th>
+				<th style="width:20px" rowspan="2">Pos</th>        
+				<th style="width:20px" rowspan="2"></th>
 				<th style="width:115px" rowspan="2">TPS</th>
 				<th rowspan="2">Test</th>
 				<th style="width:33px" rowspan="2">Lab</th>
@@ -216,8 +158,8 @@ table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:
 		</thead>     
 		<tfoot>       
 			<tr>
-				<th style="width:20px"></th>         
-				<th style="width:20px" title="Pos">Pos</th>
+				<th style="width:20px">Pos</th>         
+				<th style="width:20px" title="Pos"></th>
 				<th style="width:115px" title="TPS">TPS</th>
 				<th title="Test">Test</th>
 				<th style="width:33px" title="Lab">Lab</th>
@@ -235,8 +177,8 @@ table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:
 				<th></th>
 				<th></th>
 			</tr>
-		</tfoot>
-		<tbody>
+		</tfoot>-->
+		<!--<tbody>
 			<tr>
 				<td>1</td>
 				<td>2</td>
@@ -262,7 +204,7 @@ table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:
 				<td>22</td>
 			</tr>
 			<tr>
-				<td>a1</td>
+				<td>2</td>
 				<td>a2</td>
 				<td>a3</td>
 				<td>a4</td>

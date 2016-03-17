@@ -370,4 +370,23 @@ class TTpyEntity(models.Model):
         managed = False
         db_table = 'T_TPY_ENTITY'
 
+class TEqptCredType(models.Model):
+    idt_eqpt_cred_type = models.IntegerField(db_column='idT_EQPT_CRED_TYPE', primary_key=True)  # Field name made lowercase.
+    cr_type = models.CharField(max_length=45)
 
+    class Meta:
+        managed = False
+        db_table = 'T_EQPT_CRED_TYPE'
+
+
+
+class TEqptCred(models.Model):
+    cred_id = models.IntegerField(primary_key=True)
+    t_eqpt_cred_type_id_cred_type = models.ForeignKey('TEqptCredType', db_column='T_EQPT_CRED_TYPE_id_cred_type')  # Field name made lowercase.
+    t_equipment_id_equipment = models.ForeignKey('TEquipment', db_column='T_EQUIPMENT_id_equipment', blank=True, null=True)  # Field name made lowercase.
+    usr = models.CharField(max_length=45, blank=True, null=True)
+    pwd = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'T_EQPT_CRED'
