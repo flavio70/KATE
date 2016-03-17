@@ -331,9 +331,8 @@ def selectEqpt(request):
 
 def tuningEngine(request):
 
-	import mysql.connector,os,shutil,ntpath
+	import mysql.connector,os,shutil
 	from os.path import expanduser
-	from git import Repo
 	import json,ast
 
 	context = RequestContext(request)
@@ -386,15 +385,6 @@ def tuningEngine(request):
 
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
-	myRecordSet.execute("SET group_concat_max_len = 200000")
-	dbConnection.commit()
-	#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,run_sectionconcat('{',myTuple,'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
-	#SELECT entityName,if(elemName like '%#%',concat('"TYPE":"',replace(elemName,'#',''),'","ID":"',T_EQUIPMENT_id_equipment,'"'),concat('"',elemName,'":"',pstValue,'"')) from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62
-	#SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,group_concat(if(elemName like '%#%',concat('\'TYPE\':\'',replace(elemName,'#',''),'\',\'ID\':\'',T_EQUIPMENT_id_equipment,'\''),concat('\'',elemName,'\':\'',pstValue,'\'')) order by elemName) as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62 group by entityName
-	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
-	rows = myRecordSet.fetchall()
-	#tuningPath=TAWS_path+"Test Case ATM\\TUNED\\"+suiteName+"-TUNED-"+tuningName
-
 	from jenkinsapi.jenkins import Jenkins
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
@@ -443,18 +433,50 @@ def tuningEngine(request):
 		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
 		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
 		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+
+
 	myIDX=1
+	tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)
+	tempStr+=create_node_list(presetID,suiteFolder,suiteName)
+	tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
+	
+	context_dict={'login':request.session['login'],'tuningReport':tempStr.replace('\n','\\n')}
+
+	return render_to_response('taws/tuningEngine.html',context_dict)
+	#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
+
+def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX):
+	
+	import mysql.connector,ntpath,shutil,json,ast
+	from git import Repo
+	
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
+	#myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,run_sectionconcat('{',myTuple,'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_PRESETS_id_preset,T_TOPOLOGY_id_topology,group_concat(if(elemName like '%#%',concat(char(39),entityName,char(39),':',char(39),T_EQUIPMENT_id_equipment,char(39)),concat(char(39),entityName,'_',elemName,char(39),':',char(39),pstValue,char(39)))) as myTuple FROM T_PST_ENTITY join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder")
+	#SELECT entityName,if(elemName like '%#%',concat('"TYPE":"',replace(elemName,'#',''),'","ID":"',T_EQUIPMENT_id_equipment,'"'),concat('"',elemName,'":"',pstValue,'"')) from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62
+	#SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,group_concat(if(elemName like '%#%',concat('\'TYPE\':\'',replace(elemName,'#',''),'\',\'ID\':\'',T_EQUIPMENT_id_equipment,'\''),concat('\'',elemName,'\':\'',pstValue,'\'')) order by elemName) as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_TOPOLOGY_id_topology=1 and T_PRESETS_id_preset=62 group by entityName
+	myRecordSet.execute("select test_id,id_TestRev,test_name,revision,topology,T_SUITES_BODY.run_section,concat('{',group_concat(myTuple),'}') as presets from T_TEST join T_TEST_REVS on(test_id=T_TEST_test_id) join T_SUITES_BODY on(id_TestRev=T_TEST_REVS_id_TestRev) left join (SELECT entityName,T_TOPOLOGY_id_topology,T_PRESETS_id_preset,concat(char(39),entityName,char(39),':[',group_concat(if(elemName like '%#%',concat('[',char(39),'TYPE',char(39),',',char(39),replace(elemName,'#',''),char(39),'],[',char(39),'ID',char(39),',',char(39),T_EQUIPMENT_id_equipment,char(39),']'),concat('[',char(39),elemName,char(39),',',char(39),pstValue,char(39),']')) order by elemName),']') as myTuple from T_TPY_ENTITY join T_PST_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) where T_PRESETS_id_preset="+str(presetID)+" group by T_TOPOLOGY_id_topology,entityName) as presets on(topology=T_TOPOLOGY_id_topology) where T_SUITES_id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
+	rows = myRecordSet.fetchall()
+	#tuningPath=TAWS_path+"Test Case ATM\\TUNED\\"+suiteName+"-TUNED-"+tuningName
+	tempStr=''
 	test_plan=''
+	myIDX=currIDX
 	myRepo=Repo(settings.BASE_DIR + settings.GIT_REPO_PATH + settings.GIT_REPO_NAME)
 	git=myRepo.git
 	for row in rows:
 		test_name=str(myIDX).zfill(6)+'_'+str(row['id_TestRev'])+'_'+ntpath.basename(row['test_name'])
 		if localTesting == 'off':
 			tempStr+='GETTING '+test_name+'...'
-			out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,"w")
-			out_file.write(git.show(row['revision']+':'+row['test_name']))
-			out_file.close()
-			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,511)
+			if preview=='off':
+				out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,"w")
+				out_file.write(git.show(row['revision']+':'+row['test_name']))
+				out_file.close()
+				os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,511)
 		else:
 			tempStr+='CREATING LINK FOR '+test_name+'...'
 			if os.path.exists(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name):
@@ -462,14 +484,15 @@ def tuningEngine(request):
 				shutil.rmtree(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name)
 				tempStr+='DONE!\n'
 			localPath=suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name
-			remotePath='/users/'+request.session['login']+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/'+row['test_name']
+			remotePath='/users/'+username+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/'+row['test_name']
 			os.symlink(remotePath,localPath)
-		with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
-			#tempStr+=row["presets"]
-			json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
-			#json.dump(row["presets"],out_file,ensure_ascii=False,indent=4,separators=(',',':'))
-		out_file.close()
-		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',511)
+		if preview=='off':
+			with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
+				#tempStr+=row["presets"]
+				json.dump(ast.literal_eval(row["presets"]),out_file,ensure_ascii=False,indent=4,separators=(',',':'))
+				#json.dump(row["presets"],out_file,ensure_ascii=False,indent=4,separators=(',',':'))
+			out_file.close()
+			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',511)
 		myIDX+=1
 		runSection=row["run_section"]
 		runSectonStr=''
@@ -482,25 +505,96 @@ def tuningEngine(request):
 		#test_plan+=suiteFolder+suiteName+'/workspace/suite/'+test_name+' --pattern '+row["run_section"]+'\n'
 		tempStr+='DONE!\n'
 	if localTesting == 'off':
-		tempStr+='\nCreating Test plan...'
-		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w")
+		tempStr+='Adding Test Cases to Test plan...'
+		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"a")
 		out_file.write(test_plan)
 		out_file.close()
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
-		tempStr+='DONE!\n'
+		tempStr+='DONE!\n\n'
+
+	return {'tuningReport':tempStr,'myIDX':myIDX}
+
+def create_node_list(presetID,preview,suiteFolder,suiteName):
+
+	import mysql.connector
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	
+	tempStr=''
 	tempStr+='\nCreating Node List...'
 	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%'")
 	nodeList=myRecordSet.fetchone()['nodeList']
-	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
-	out_file.write(nodeList)
-	out_file.close()
+	if preview=='off':
+		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
+		out_file.write(nodeList)
+		out_file.close()
 	tempStr+='DONE!\n'
+	
+	return tempStr
 
-	tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
-	context_dict={'login':request.session['login'],'tuningReport':tempStr.replace('\n','\\n')}
+def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,description):
+	import shutil
+	from jenkinsapi.jenkins import Jenkins
+	server = Jenkins(settings.JENKINS['HOST'],username=username,password=password)
+	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
+	
+	suiteFolder=settings.JENKINS['SUITEFOLDER']
+	
+	tempStr=''
+	
+	tempStr+='Working folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'\n\n'
+	
+	if localTesting == 'off':
+		tempStr+='Creating workspace structure...\n'
+		tempStr+='Check Job '+suiteName+' presence...\n'
+		if os.path.exists(suiteFolder+suiteName):
+			tempStr+='Job '+suiteName+' already present,deleting workspace...'
+			shutil.rmtree(suiteFolder+suiteName)
+			tempStr+='DONE!\n'
+		if not (server.has_job(suiteName)):
+			tempStr+='Job '+suiteName+' creating...'
+			tempProperties=''
+			if sharedJob == 'off':
+				out_file = open(settings.JOB_PROPS_TEMPLATE,"rb")
+				tempProperties=out_file.read().decode('UTF-8').replace('[TAWSUSER]',username)
+				out_file.close()
+			out_file = open(settings.JOB_TEMPLATE,"rb")
+			templateXML=out_file.read()
+			templateXML=templateXML.decode('UTF-8').replace('[PROPERTIES]',tempProperties)
+			templateXML=templateXML.replace('[JOBDESCRIPTION]',description)
+			out_file.close()
+			#job_instance.update_config(templateXML)
+			#job_instance.update_config(job_instance.get_config())
+			server.create_job(suiteName,templateXML)
+			tempStr+='DONE!\n'
+			#job_instance = server.get_job(suiteName)
+			#tempStr+='Disabling Jenkins Job : '+suiteName+' ...'
+			#job_instance.disable()
+			#tempStr+='DONE!\n'
+			#tempStr+= 'Name:%s,Is Job Disabled ?:%s' %(suiteName,job_instance.is_enabled())
+			#tempStr+='Enabling Jenkins Job : '+suiteName+' ...'
+			#job_instance.enable()
+			#tempStr+='DONE!\n'
+			#tempStr+= 'Name:%s,Is Job Enabled ?:%s' %(suiteName,job_instance.is_enabled())
 
-	return render_to_response('taws/tuningEngine.html',context_dict)
-	#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
+		#server.build_job(suiteName)
+		#server.stop(suiteName)
+		#os.chmod(suiteFolder+suiteName,511)
+		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
+		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
+		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
+		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
+		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+		tempStr+='Creating Test plan...'
+		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w+")
+		out_file.write('')
+		out_file.close()
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
+		tempStr+='DONE!\n\n'
+	
+	return tempStr
 
 def runJenkins(request):
 
@@ -1494,6 +1588,9 @@ def statistics_sw_executed(request):
 	#myRecordSet.execute("select concat('<li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',product,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(myPackages separator ''),'</ul></li>') from (SELECT T_PROD_id_prod,concat('<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">',sw_rel_name,'<span class="caret"></span></a><ul class="dropdown-menu">',group_concat(concat('<li><a href="#">',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product
 	#myRecordSet.execute("select concat('<li class=',char(39),'dropdown',char(39),'><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',product,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(39),'#',char(39),' class=',char(39),'dropdown-toggle',char(39),' data-toggle=',char(39),'dropdown',char(39),' role=',char(39),'button',char(39),' aria-haspopup=',char(39),'true',char(39),' aria-expanded=',char(39),'false',char(39),'>',sw_rel_name,' <span class=',char(39),'caret',char(39),'></span></a><ul class=',char(39),'dropdown-menu',char(39),'>',group_concat(concat('<li><a onclick=',char(39),'document.getElementById(\\\'[dropdown-selection]\\\')=',id_pack,char(39),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 	#myRecordSet.execute("select concat('<li class=',char(34),'dropdown',char(34),'><a href=',char(34),'#',char(34),' class=',char(34),'dropdown-toggle',char(34),' data-toggle=',char(34),'dropdown',char(34),' role=',char(34),'button',char(34),' aria-haspopup=',char(34),'true',char(34),' aria-expanded=',char(34),'false',char(34),'>',product,' <span class=',char(34),'caret',char(34),'></span></a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li><a href=',char(34),'#',char(34),' class=',char(34),'dropdown-toggle',char(34),' data-toggle=',char(34),'dropdown',char(34),' role=',char(34),'button',char(34),' aria-haspopup=',char(34),'true',char(34),' aria-expanded=',char(34),'false',char(34),'>',sw_rel_name,' <span class=',char(34),'caret',char(34),'></span></a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.[dropdown-selection]_val.value=',char(39),T_PACKAGES.label_ref,char(39),';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
+
 	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
@@ -1583,26 +1680,8 @@ def the_doctor(request):
 		myRecordSet.execute("select product,group_concat(release_scope_area separator '@') as productConcat from (select product,concat(sw_rel_name,'?',group_concat(scope_area separator '%')) as release_scope_area from (select product,sw_rel_name,concat(T_SCOPE.description,'#',group_concat(area_name order by area_name separator '|')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name,T_SCOPE.description order by product asc,sw_rel_name desc,T_SCOPE.description asc) as release_scope_area group by product,sw_rel_name order by product asc,sw_rel_name desc) as product_release_scope_area group by product order by product asc")
 		productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
 
-		userSuiteAry = ''
-		sharedSuiteAry = ''
-
-		myRecordSet.execute("SELECT * from T_SUITES where owner = '"+request.session['login']+"' order by name")
-		userSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
-
-		myRecordSet.execute("SELECT * from T_SUITES where owner = 'SHARED' order by name")
-		sharedSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
-
-		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='VIRTUAL'")
-		virtualTopoAry=[{'virtualTopoID':row["id_topology"],'virtualTopoName':row["title"]} for row in myRecordSet]
-
-		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='DATA'")
-		dataTopoAry=[{'dataTopoID':row["id_topology"],'dataTopoName':row["title"]} for row in myRecordSet]
-
-		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='TDM'")
-		tdmTopoAry=[{'tdmTopoID':row["id_topology"],'tdmTopoName':row["title"]} for row in myRecordSet]
-
-		myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) where T_SCOPE.description='WDM'")
-		wdmTopoAry=[{'wdmTopoID':row["id_topology"],'wdmTopoName':row["title"]} for row in myRecordSet]
+		myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) group by id_preset")
+		sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"],'sharedPresetTitle':row["preset_title"]} for row in myRecordSet]
 
 		myRecordSet.execute("SELECT distinct lab from T_TEST_REVS order by lab")
 		labAry=[{'labName':row["lab"]} for row in myRecordSet]
@@ -1610,13 +1689,8 @@ def the_doctor(request):
 		context_dict={'login':request.session['login'].upper(),
 			'permission':1,
 			'productAry': productAry,
-			'userSuiteAry': userSuiteAry,
-			'sharedSuiteAry': sharedSuiteAry,
-			'virtualTopoAry':virtualTopoAry,
-			'dataTopoAry':dataTopoAry,
-			'tdmTopoAry':tdmTopoAry,
-			'wdmTopoAry':wdmTopoAry,
 			'labAry':labAry,
+			'sharedPreset':sharedPreset,
 			'settings':settings.DATABASES['default']['USER']}
 		return render_to_response('taws/theDoctor.html',context_dict,context)
 
@@ -2001,7 +2075,7 @@ def accesso(request):
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,area_name,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
-		myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
+		myRecordSet.execute("select *,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		myStr="select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' order by test_id,id_TestRev desc) as myTable group by test_id"
 		rows=myRecordSet.fetchall()
 		testString=''
@@ -2797,15 +2871,25 @@ def accesso(request):
 		queryProduct=request.POST.get('queryProduct','')
 		querySW=request.POST.get('querySWRelease','')
 		queryArea=request.POST.get('queryArea','')
-		benchList=request.POST.get('benchList','')
-
+		presetID=request.POST.get('presetID','')
+		excludedTopologies=request.POST.get('excludedTopologies','')
+		
+		presetStr=" AND id_preset='"+presetID+"'"
+		topologyStr=""
+		if excludedTopologies.rfind('#')>=0:
+			for myTopology in excludedTopologies.split('#'):
+				topologyStr+=" or topology="+myTopology
+		else:
+			if excludedTopologies != '':
+				topologyStr+=" or topology="+excludedTopologies
+		
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 		myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
 		#myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc from (select area_name,if(id_preset is null,'','#')) as myTopology,test_name,product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null,0,tps) as tCURRtps,if(id_preset is null,0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='FM') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where owner='SMART') as presets on(id_entity=T_TPY_ENTITY_id_entity) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
-		myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc,benches from (select area_name,group_concat(distinct elemName) as benches,concat(topology,if(id_preset is null,'','#')) as myTopology,test_name,T_PROD.product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null,0,tps) as tCURRtps,if(id_preset is null,0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where owner='SMART' "++") as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc,benches from (select area_name,group_concat(distinct elemName) as benches,concat(topology,if(id_preset is null,'','#')) as myTopology,test_name,T_PROD.product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null "+topologyStr+",0,tps) as tCURRtps,if(id_preset is null "+topologyStr+",0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where id_preset='"+presetID+"') as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
 		row=myRecordSet.fetchone()
 		
-		context_dict={'login':request.session['login'],'benches':row['benches'],'area_name':row['area_name'],'topology':row['topology'],'product':row['product'],'sw_rel_name':row['sw_rel_name'],'TOTtps':row['TOTtps'],'TOTtc':row['TOTtc'],'CURRtps':row['CURRtps'],'CURRtc':row['CURRtc']}
+		context_dict={'login':request.session['login'],'excludedTopologies':excludedTopologies,'benches':row['benches'],'area_name':row['area_name'],'topology':row['topology'],'product':row['product'],'sw_rel_name':row['sw_rel_name'],'TOTtps':row['TOTtps'],'TOTtc':row['TOTtc'],'CURRtps':row['CURRtps'],'CURRtc':row['CURRtc']}
 		
 		dbConnection.close()
 		
@@ -2905,8 +2989,167 @@ def accesso(request):
 #
 #		return  JsonResponse({'creationReport':creationReport}, safe=False)
 
+	if myAction=='tuneSuite':
+	
+		import mysql.connector,os
+		from os.path import expanduser
+		import json,ast
+	
+		context = RequestContext(request)
+		context_dict={'nothing':'nothing'}
+		suiteID=request.POST.get('tuningBundle')
+		savingString = request.POST.get('changeValues','')
+		description = request.POST.get('description','')
+		sharedJob = request.POST.get('sharedJob','off')
+		localTesting = request.POST.get('localTesting','off')
+		tuningLabel = request.POST.get('tuningLabel','').replace(' ','_')
+	
+		if 'login' not in request.session:
+			context_dict={'fromPage':'tuningEngine'}
+			return render_to_response('taws/login.html',context_dict,context)
+	
+	
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet = dbConnection.cursor(dictionary=True)
+	
+		myRecordSet.execute("SELECT count(preset_title) as myCount from T_PRESETS WHERE preset_title='"+request.session['login']+"' and owner='HIDDEN'")
+		row=myRecordSet.fetchone()
+		if row['myCount']==0:
+			myRecordSet.execute("INSERT INTO T_PRESETS (preset_title,owner,preset_description) VALUES('"+request.session['login']+"','HIDDEN','')")
+			dbConnection.commit()
+		myRecordSet.execute("SELECT id_preset from T_PRESETS where preset_title='"+request.session['login']+"' and owner='HIDDEN'")
+		row=myRecordSet.fetchone()
+		presetID = row['id_preset']
+	
+		myRecordSet.execute("DELETE from T_PST_ENTITY where T_PRESETS_id_preset="+str(presetID))
+		dbConnection.commit()
+	
+		nibble = savingString.split("?")
+		for myVar in nibble:
+			tempNibble = myVar.split("|")
+			myRecordSet.execute("INSERT into T_PST_ENTITY (T_PRESETS_id_preset,T_TPY_ENTITY_id_entity,pstvalue,T_EQUIPMENT_id_equipment) VALUES ('"+str(presetID)+"','"+tempNibble[0]+"','"+tempNibble[1]+"','"+tempNibble[2]+"')")
+			dbConnection.commit()
+	
+		tempStr=''
+		#tempStr+="PresetID :"+str(presetID)+"\n"
+		#tempStr+="SuiteID :"+str(suiteID)+"\n"
+		tempStr+="Tuning Test Cases for Jenkins...\n\n"
+		global TAWS_path,os
+		myRecordSet.execute("select name from T_SUITES where id_suite="+str(suiteID))
+		myRecord=myRecordSet.fetchone()
+	
+		if localTesting == 'off':
+			suiteName=request.session['login']+'_'+myRecord['name']+'-'+tuningLabel
+		else:
+			suiteName=request.session['login']+'_Development'
+	
 
+		tempStr+=createJenkinsENV(suiteName,request.session['login'],request.session['password'],localTesting,sharedJob,description)
+	
+		myIDX=1
+		tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)['tuningReport']
+		tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
+		
+		context_dict={'login':request.session['login'],'tuningReport':tempStr}
+	
+		return  JsonResponse(context_dict, safe=False)
+		#return render_to_response('taws/tuningEngine.html',context_dict)
+		#return render_to_response('taws/tuningEngine.html',context_dict,context_instance=RequestContext(request))
 
+	if myAction=='smartTune':
+		
+		import mysql.connector,os
+		from os.path import expanduser
+		import json,ast
+	
+		context = RequestContext(request)
+
+		presetID=request.POST.get('presetID')
+		tuningLabel=request.POST.get('tuningLabel')
+		product=request.POST.get('product')
+		sw_rel = request.POST.get('sw_rel','')
+		description = request.POST.get('description','')
+		area = request.POST.get('area','')
+		excludedTopologies = request.POST.get('excludedTopologies','')
+		myIDX = int(request.POST.get('myIDX',''))
+		owner=request.POST.get('owner')
+		preview=request.POST.get('preview','on')
+		localTesting='off'
+		sharedJob='off'
+
+		tempStr=""
+
+		topologyStr=""
+		if excludedTopologies.rfind('#')>=0:
+			for myTopology in excludedTopologies.split('#'):
+				topologyStr+=" and topology<>"+myTopology
+		else:
+			if excludedTopologies != '':
+				topologyStr+=" and topology<>"+excludedTopologies
+		
+		if myIDX==1 and preview=='off':
+			tempStr="Smart Suite Creation Started...\n\n"
+			tempStr+=createJenkinsENV(request.session['login']+'_'+tuningLabel+'_SMART',request.session['login'],request.session['password'],localTesting,sharedJob,description)
+		
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
+		#myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc from (select area_name,if(id_preset is null,'','#')) as myTopology,test_name,product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null,0,tps) as tCURRtps,if(id_preset is null,0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='FM') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where owner='SMART') as presets on(id_entity=T_TPY_ENTITY_id_entity) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		#myRecordSet.execute("select *,group_concat(distinct myTopology) as topology,sum(tTOTtps) as TOTtps,sum(tTOTtc) as TOTtc,sum(tCURRtps) as CURRtps,sum(tCURRtc) as CURRtc,benches from (select area_name,group_concat(distinct elemName) as benches,concat(topology,if(id_preset is null,'','#')) as myTopology,test_name,T_PROD.product,sw_rel_name,tps,id_preset_entity,tps as tTOTtps,count(distinct test_id) as tTOTtc,if(id_preset is null "+topologyStr+",0,tps) as tCURRtps,if(id_preset is null "+topologyStr+",0,count(distinct test_id)) as tCURRtc from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where id_preset='"+presetID+"') as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' group by test_id order by test_id,id_TestRev desc) as myTable")
+		#row=myRecordSet.fetchone()
+
+		id_suite=0
+		
+		if preview == 'off':
+			myRecordSet.execute("SELECT id_suite from T_SUITES where name='"+owner+"_SMART' and owner='"+owner+"'")
+			if myRecordSet.rowcount!=0:
+				id_suite=myRecordSet.fetchone()['id_suite']
+				tempStr+="User Smart Suite found="+str(id_suite)+"...\n"
+				myRecordSet.execute("DELETE FROM T_SUITES_BODY WHERE T_SUITES_id_suite='"+str(id_suite)+"'")
+				dbConnection.commit()
+			else:
+				tempStr+="User Smart Suite creation..."
+				myRecordSet.execute("INSERT INTO T_SUITES (name,owner,description) VALUES('"+owner+"_SMART','"+owner+"','')")
+				dbConnection.commit()
+				tempStr+="DONE\n"
+				myRecordSet.execute("SELECT id_suite from T_SUITES where name='"+owner+"_SMART' and owner='"+owner+"'")
+				id_suite=myRecordSet.fetchone()['id_suite']
+				tempStr+="User Smart Suite found="+str(id_suite)+"...\n"
+		
+		if preview == 'on':
+			tempStr+="Load preset ID="+str(presetID)+"...\n"
+			myRecordSet.execute("select test_name,null,"+str(id_suite)+",id_TestRev,0,run_section from T_TEST join (select T_TEST_test_id,id_TestRev,run_section,topology from T_TEST_REVS order by T_TEST_test_id,id_TestRev desc) as T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+area+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where id_preset='"+presetID+"') as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+product+"' and sw_rel_name='"+sw_rel+"' and area_name='"+area+"' "+topologyStr+" and id_preset is not null group by test_id order by test_id,id_TestRev desc")
+			for row in myRecordSet:
+				tempStr+=str(myIDX)+' Revision '+str(row["id_TestRev"])+' '+row["test_name"]+'\n'
+				myIDX=myIDX+1
+
+		if preview == 'off':
+			tempStr+="Check preset ID="+str(presetID)+"...\n"
+			tempStr+="Adding Smart Suite Chapter for "+product+" "+sw_rel+" "+area+"..."
+			myRecordSet.execute("insert into T_SUITES_BODY (select null,"+str(id_suite)+",id_TestRev,0,run_section from T_TEST join (select T_TEST_test_id,id_TestRev,run_section,topology from T_TEST_REVS order by T_TEST_test_id,id_TestRev desc) as T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,count(tps_reference) as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+area+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TPY_ENTITY on(id_topology=T_TOPOLOGY_id_topology) join T_PROD as myProd on(replace(elemName,'#','')=myProd.product) left join (select * from T_PST_ENTITY left join T_PRESETS on(id_preset=T_PRESETS_id_preset) where id_preset='"+presetID+"') as presets on(id_entity=T_TPY_ENTITY_id_entity) where T_PROD.product='"+product+"' and sw_rel_name='"+sw_rel+"' and area_name='"+area+"' "+topologyStr+" and id_preset is not null group by test_id order by test_id,id_TestRev desc)")
+			dbConnection.commit()
+			tempStr+="DONE\n"
+			#myRecordSet.execute("SELECT COUNT(*) as totTest from T_SUITES_BODY where T_SUITES_id_suite="+str(id_suite))
+			#addIDX=myRecordSet.fetchone()['totTest']
+			#tempStr+="Added "+str(addIDX)+" Test Cases\n"
+		
+			myTuning=tune_suite(presetID,id_suite,localTesting,request.session['login']+'_'+tuningLabel+'_SMART',request.session['login'],'off',myIDX)
+			tempStr+=myTuning['tuningReport']
+			myIDX+=myTuning['myIDX']
+		#dbConnection.commit()
+		#myRecordSet.execute("INSERT INTO T_SUITES (name,owner,description) VALUES('"+saveID+"','"+owner+"','')")
+		#dbConnection.commit()
+		#myRecordSet.execute("SELECT MAX(id_suite) as id_suite from T_SUITES")
+		#row=myRecordSet.fetchone()
+		#suiteID = str(row['id_suite'])
+		
+		#tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)['tuningReport']
+		
+		#suiteName=request.session['login']+'_'+tuningLabel+'-SMART'
+		
+		context_dict={'login':request.session['login'],'tuningReport':tempStr,'tuningLabel':tuningLabel,'product':product,'sw_rel':sw_rel,'description':description,'area':area,'excludedTopologies':excludedTopologies,'myIDX':myIDX}
+	
+		return  JsonResponse(context_dict, safe=False)
+		
 def temp(request):
 	context = RequestContext(request)
 	context_dict={'nothing':'nothing'}

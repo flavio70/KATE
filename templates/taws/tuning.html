@@ -191,7 +191,25 @@ function deletePreset(){
 	</div>
 </div><!-- end modal -->
 
+<div id="tuneReportModal" class="modal fade" role="dialog">
+	<div class="modal-dialog modal-lg">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h3 class="modal-title">Tuning Report</h3>
+			</div>
+			<div class="modal-body">
+				<textarea class="form-control" id="tuningLog" style="height:600px"></textarea>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end modal -->
 
+<div class="modaload"><!-- Place at bottom of page --></div>
 
 <script>
 	
@@ -330,6 +348,7 @@ function showalert(message,alerttype) {
 
 	function jsendTuning(){
 		//alert(document.getElementById('localTesting').value);
+		$("body").addClass("loading");
 		changeScript.action='/taws/tuningEngine/';
 		changeScript.target='_blank';
 		tuningFields = getTuningValues();
@@ -344,7 +363,32 @@ function showalert(message,alerttype) {
 				if((tuningLabelPrompt != null)&&(descriptionPrompt!=null)){
 					document.changeScript.tuningLabel.value=tuningLabelPrompt.replace(/'/g,"");
 					document.changeScript.description.value=descriptionPrompt.replace(/'/g,"");
-					document.changeScript.submit();
+					//document.changeScript.submit();
+					var csrftoken = getCookie('csrftoken');
+					$.ajaxSetup({
+					    beforeSend: function(xhr, settings) {
+						if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+						}
+					    }
+					});
+					$.ajax({
+						type: "POST",
+						dataType: 'json',
+						url: myURL,
+						data: {
+							action: 'tuneSuite',
+							owner: owner,
+							changeValues: tuningFields,
+							tuningLabel:document.changeScript.tuningLabel.value,
+							description:document.changeScript.description.value,
+							tuningBundle:document.changeScript.tuningBundle.value
+							},
+						success: fillReportModal,
+						error: function(xhr, textStatus, errorThrown) {
+								alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+							}
+					});
 				}else{
 					showalert("Label Missing!","alert-danger")
 					//alert('Label Missing!');
@@ -355,6 +399,15 @@ function showalert(message,alerttype) {
 		}
 	}
 
+	var fillReportModal = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		//prompt('',sersverResponse_data['presetAry']);
+		$("body").removeClass("loading");
+		$('#tuneReportModal').modal('show');
+		document.getElementById('tuningLog').value=sersverResponse_data['tuningReport'];
+	};
+		
+		
+		
 	function getTuningValues(){
 		found=false;
 		tuningString='';

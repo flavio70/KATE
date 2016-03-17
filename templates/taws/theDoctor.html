@@ -12,19 +12,29 @@
 	SECT[0]="{% static 'images/sect0.gif' %}";
 	myProduct="";
 	myLab="";
-	myUserSuite="";
-	mySharedSuite="";
-	suiteID='';
-	suiteName='';
-	userSuiteID='';
-	sharedSuiteID='';
-</script>
-{% for myItem in userSuiteAry %}
-    <script>myUserSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'userSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ">{{ myItem.suiteName }}</a></li>';</script>
-{% endfor %}
+	presetStr='';
+	presetStr2='';
+	presetID='';
+	excludedTopologies='';
+	rowIndex='NEW';
+	var myIDX;
+	var tuningLabelPrompt;
+	var descriptionPrompt;
 
-{% for myItem in sharedSuiteAry %}
-    <script>mySharedSuite+='<li><a name="{{ myItem.suiteName }}" id="{{ myItem.suiteID }}" onclick="suiteID={{ myItem.suiteID }};suiteName=\'{{ myItem.suiteName }}\';document.getElementById(\'sharedSuites\').innerHTML=\'{{ myItem.suiteName }} <span class=caret></span>\' ;">{{ myItem.suiteName }}</a></li>';</script>
+	presetDropDownPre2='<div class="btn-group btn-group-sm" role="group">\
+						<button class="btn btn-default dropdown-toggle navbar-btn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">\
+							Preset <span class="caret"></span>\
+						</button>\
+						<ul class="dropdown-menu" id="sharedPresetDropdow">';
+	presetDropDownPost2='</ul></div>';
+	presetDropDownPre="<select onchange='selectPresetDropDown($(this));'><option value=''>Preset</option>";
+	presetDropDownPost='</select>';
+
+</script>
+
+{% for myItem in sharedPreset %}
+	<script>presetStr2+='<li><a id="{{ myItem.sharedPresetID }}" name="{{myItem.sharedPresetTitle}}" onclick="selectPresetDropDown($(this));">{{ myItem.sharedPresetName }}</a></li>';</script>
+	<script>presetStr+="<option id='{{ myItem.sharedPresetID }}'>{{ myItem.sharedPresetName }}</option>";</script>
 {% endfor %}
 
 {% for myItem in productAry %}
@@ -36,6 +46,22 @@
 {% endfor %}
 
 <script>
+
+function selectPresetDropDown(currObj){
+	presetID=currObj.closest('tr')[0].childNodes[9].firstChild.selectedOptions[0].id;
+	//currObj.closest('div')[0].firstElementChild.innerHTML=currObj[0].name +' <span class=caret></span>';
+	rowIndex=currObj.closest('tr')[0]._DT_RowIndex;
+	excludedTopologies='';
+	for(i=0;i<currObj.closest('tr')[0].childNodes[4].childNodes.length;i++){
+		if(currObj.closest('tr')[0].childNodes[4].childNodes[i].type=='checkbox'){
+			if(currObj.closest('tr')[0].childNodes[4].childNodes[i].disabled==false&&currObj.closest('tr')[0].childNodes[4].childNodes[i].checked==false){
+				excludedTopologies+=currObj.closest('tr')[0].childNodes[4].childNodes[i-1].data+'#';
+			}
+		}
+	}
+	addSmartSuite();
+	checkSmartPreset();
+}
 
 $('#testTable tbody').on('click', 'td.removeItem', function () {
 	var tr = $(this).closest('tr');
@@ -50,6 +76,7 @@ function removeSmartItem(myRow){
 	var row = myRow.closest('tr');
 	var nRow = row[0];
 	$('.testTable').dataTable().fnDeleteRow(nRow);
+	checkSmartPreset();
 }
 
 $(document).ready(function() {
@@ -60,7 +87,6 @@ $(document).ready(function() {
 				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
 				<"row"<"col-sm-12"tr>>',
 		"order": [[ 2, "desc" ]],
-		scrollY:'380px',
 		scrollCollapse:true,"columns": [
 		{
 			"data":           "control",
@@ -95,7 +121,7 @@ $(document).ready(function() {
 			"className": "dt-center"
 		 },
 		{
-			"data": "benches",
+			"data": "preset",
 			"className": "dt-center"
 		 }
 		 
@@ -164,10 +190,10 @@ $(document).ready(function() {
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">\
 					<ul class="nav navbar-nav">\
 						<div class="btn-group btn-group-sm" role="group">\
-							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Add Chapter to Suite" onclick="addSmartSuite();" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>\
+							<button type="button" data-toggle="popover-left" title="ADD BUTTON" data-content="Add Chapter to Suite" onclick="presetID=\'\';rowIndex=\'NEW\';addSmartSuite();" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>\
 						</div><!-- end btn_group-->\
 						<div class="btn-group btn-group-sm" role="group">\
-							<button type="button" data-toggle="popover-left" title="PROCESS BUTTON" data-content="Preview Smart Suite" onclick="insertAllBundleList(1,\'\');" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Create</button>\
+							<button type="button" data-toggle="popover-left" title="PROCESS BUTTON" data-content="Preview Smart Suite" onclick="smartTuning(\'on\');" id="processBtn" class="btn btn-default navbar-btn" disabled><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Process</button>\
 						</div><!-- end btn_group-->\
 					</ul>\
 				</div><!-- end navbar-collapse -->\
@@ -176,20 +202,12 @@ $(document).ready(function() {
 	');
 	
 
-	$('#testTable tbody').on('click', 'td.details-control', function () {
+	$('#testTable tbody').on('click', 'td.removeItem', function () {
 		var tr = $(this).closest('tr');
 		var row = testTable.row( tr );
-	 
-		if ( row.child.isShown() ) {
-		    // This row is already open - close it
-		    row.child.hide();
-		    tr.removeClass('shown');
-		}
-		else {
-		    // Open this row
-		    row.child( format(row.data()) ).show();
-		    tr.addClass('shown');
-		}
+		$('#testTable').dataTable().fnDeleteRow(row);
+		updateStats('smart');
+
 	    } );
 
 	    
@@ -250,7 +268,98 @@ $(document).keyup(function (e) {
 
 });
 
+function checkSmartPreset(){
+	foundMissing=false
+	for(i=1;i<$('#testTable').dataTable()[0].rows.length-1;i++){
+		if($('#testTable').dataTable()[0].rows[i].childNodes[9].firstChild.selectedOptions[0].id==''){
+			foundMissing=true;
+			break;
+		}
+	}
+	document.getElementById('processBtn').disabled=foundMissing;
+}
 
+function smartTuning(preview){
+	if(preview=='on'){
+		tuningLabelPrompt = prompt('Insert Tuning Label...','myTuning');
+		descriptionPrompt = prompt('Insert Job Description...','');
+		$('#tuneReportModal').modal('show');
+		document.getElementById('createBtn').innerHTML='Create';
+		document.getElementById('createBtn').onclick=function(){myIDX=1;smartTuning('off');};
+	}
+	document.getElementById('tuningLog').value='';
+	myIDX=1;
+	if((tuningLabelPrompt != null)&&(descriptionPrompt!=null)){
+		tuningLabel=tuningLabelPrompt.replace(/'/g,"");
+		description=descriptionPrompt.replace(/'/g,"");
+		rowNum=testTable.rows().data().length;
+		for(i=1;i<$('#testTable').dataTable()[0].rows.length-1;i++){
+			presetID=$('#testTable').dataTable()[0].rows[i].childNodes[9].firstChild.selectedOptions[0].id;
+			rowIndex=$('#testTable').dataTable()[0].rows[i]._DT_RowIndex;
+			product=$('#testTable').dataTable()[0].rows[i].childNodes[1].firstChild.data;
+			sw_rel=$('#testTable').dataTable()[0].rows[i].childNodes[2].firstChild.data;
+			area=$('#testTable').dataTable()[0].rows[i].childNodes[3].firstChild.data;
+			excludedTopologies='';
+			for(j=0;j<$('#testTable').dataTable()[0].rows[i].childNodes[4].childNodes.length;j++){
+				if($('#testTable').dataTable()[0].rows[i].childNodes[4].childNodes[j].type=='checkbox'){
+					if($('#testTable').dataTable()[0].rows[i].childNodes[4].childNodes[j].disabled==false&&$('#testTable').dataTable()[0].rows[i].childNodes[4].childNodes[j].checked==false){
+						excludedTopologies+=$('#testTable').dataTable()[0].rows[i].childNodes[4].childNodes[j-1].data+'#';
+					}
+				}
+			}
+			var csrftoken = getCookie('csrftoken');
+			$.ajaxSetup({
+			    beforeSend: function(xhr, settings) {
+				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+				    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+				}
+
+			    }
+			});
+			$.ajax({
+				type: "POST",
+				dataType: 'json',
+				url: myURL,
+				async: false,
+				data: {
+					action: 'smartTune',
+					owner: owner,
+					tuningLabel:tuningLabel,
+					description:description,
+					presetID:presetID,
+					product:product,
+					sw_rel:sw_rel,
+					area:area,
+					excludedTopologies:excludedTopologies.slice(0,-1),
+					myIDX:myIDX,
+					preview:preview
+					},
+				success: fillReportModal,
+				error: function(xhr, textStatus, errorThrown) {
+						alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+					}
+			});
+			//alert(presetID+rowIndex+product+sw_rel+area+excludedTopologies);
+		}
+		if(preview=='off'){
+			document.getElementById('tuningLog').value=document.getElementById('tuningLog').value+'\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n';
+			document.getElementById('createBtn').innerHTML='Close';
+			document.getElementById('createBtn').onclick=function(){$('#tuneReportModal').modal('hide');};
+		}
+	}else{
+		showalert("Label Missing!","alert-danger")
+		//alert('Label Missing!');
+	}
+}
+
+var fillReportModal = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['presetAry']);
+	document.getElementById('tuningLog').value=document.getElementById('tuningLog').value+sersverResponse_data['tuningReport'];
+	myIDX=sersverResponse_data['myIDX'];
+	//alert(sersverResponse_data['topologyStr']);
+	console.log("IDX: "+myIDX);
+};
+	
 </script>
 
 <form name="selectTest" action="" method="post" >{% csrf_token %}
@@ -274,7 +383,7 @@ $(document).keyup(function (e) {
 				<th>TC</th>
 				<th>TPS</th>
 				<th>Duration</th>
-				<th>Benches</th>
+				<th>Preset</th>
 			</tr>     
 		</thead>
 		<tfoot>       
@@ -288,7 +397,7 @@ $(document).keyup(function (e) {
 				<th>TC</th>
 				<th>TPS</th>
 				<th>Duration</th>
-				<th>Benches</th>
+				<th>Preset</th>
 			</tr>
 		</tfoot>
 		
@@ -296,5 +405,25 @@ $(document).keyup(function (e) {
 	
 </div>
 
+<div id="tuneReportModal" class="modal fade" role="dialog">
+	<div class="modal-dialog modal-lg">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h3 class="modal-title">Tuning Report</h3>
+			</div>
+			<div class="modal-body">
+				<textarea class="form-control" id="tuningLog" style="height:600px"></textarea>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-default btn-primary" id="createBtn" onclick="myIDX=1;smartTuning('off');">Create</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end modal -->
+
+<div class="modaload"><!-- Place at bottom of page --></div>
 {% endblock %}
 

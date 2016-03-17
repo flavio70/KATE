@@ -967,7 +967,7 @@ function addRecordToTable(testString,tableName,lineNumber){
 	if(tempField[18]!='NA'){
 		tempRev=tempField[18].split('!');
 	 	//revStr='<select onchange="iteration=this.value;lineNumber=this.parentElement.parentElement.rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
-	 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).rowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
+	 	revStr='<select onchange="iteration=this.value;lineNumber=$(this).closest(\'tr\')[0]._DT_RowIndex;currentTable=\''+tableName+'\';doAccess(\'queryIteration\');">';
 		for(j=0;j<tempRev.length;j++){
 			selected='';
 			myRev=tempRev[j].split('|');
@@ -1212,6 +1212,7 @@ function addSmartSuite(){
 	querySWRelease=document.getElementById('sw-release').innerHTML.replace(' <span class="caret"></span>','');
 	queryArea=document.getElementById('area').innerHTML.replace(' <span class="caret"></span>','');
 	queryTopologies='';
+	document.getElementById('processBtn').disabled=true;
 	
 	doAccess('addSmartSuite');
 }
@@ -1255,28 +1256,31 @@ function updateStats(perspective){
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total TPS:"+totTPS+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Metric:"+totMetric,"alert-success")
 	}
-	/*var myTable = document.getElementById(totalTable);
-	tot1 = 0
-	tot2 = 0
-	tot3 = 0
-	tot4 = 0
-	for(i=1;i<myTable.rows.length;i++){
-		tempAry=myTable.rows[i].name.split('#');
-		tempTPS=tempAry[5].split(',');
-		if(((totalTable=='testTable')&&(myTable.rows[i].style.background.indexOf('red')>=0))||(totalTable=='testBundleTable')){
-			tot1=tot1+1;
-			tot2=tot2+parseInt(tempTPS.length);
-			tot3=tot3+parseInt(tempAry[7]);
-			tot4=tot4+parseInt(tempAry[8]);
+	if(perspective=='smart'){
+		totTime=0;
+		totMetric=0;
+		totTPS=0;
+		totTC=0;
+		for(k=0;k<testTable.rows().data().length;k++){
+			totTime+=parseInt(testTable.row(testTable.rows()[0][k]).data().duration);
+			//totTime+=parseInt(testBundleTable.row(testBundleTable.rows()[0][k]).data().time);
+			//totMetric+=parseInt(testBundleTable.row(testBundleTable.rows()[0][k]).data().metric);
+			//tempTPS=testBundleTable.row(testBundleTable.rows()[0][k]).data().tps;
+			totTPS+=parseInt(testTable.row(testTable.rows()[0][k]).data().tps.split('/')[0]);
+			totTC+=parseInt(testTable.row(testTable.rows()[0][k]).data().tc.split('/')[0]);
+			//alert(tempTPS.split('<br>').length);
+			//totTPS+=(tempTPS.length-tempTPS.replace('<br>','').length)/4+1;
 		}
+		document.getElementById('badge-sel-test').innerHTML=totTC;
+		document.getElementById('badge-sel-tps').innerHTML=totTPS;
+		document.getElementById('badge-sel-time').innerHTML=String(totTime).toHHMMSS();
+		document.getElementById('badge-sel-metric').innerHTML=totMetric;
+		showalert("Test Cases Adde Succesfully.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Test:"+totTC+"\
+							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tot Time:"+String(totTime).toHHMMSS()+"\
+							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total TPS:"+totTPS+"\
+							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Metric:"+totMetric,"alert-success")
 	}
-	if(totalTable=='testTable'){tableName='selected';}
-	if(totalTable=='testBundleTable'){tableName='bundle';}
-	tot3=seconds2Time(tot3);
-	document.getElementById(tableName + "Number").innerHTML  = tot1;
-	document.getElementById(tableName + "TPS").innerHTML  = tot2;
-	document.getElementById(tableName + "Time").innerHTML  = tot3;
-	document.getElementById(tableName + "Metric").innerHTML  = tot4;*/
+
 }
 
 String.prototype.toHHMMSS = function () {

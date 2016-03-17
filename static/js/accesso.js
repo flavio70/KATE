@@ -196,32 +196,46 @@ function doAccess(myAction){
 	var addSmartSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 		tempTopo=sersverResponse_data['topology'].split(',');
+		excludedTopologies=sersverResponse_data['excludedTopologies'].split('#');
 		topoStr='';
 		for(i=0;i<tempTopo.length;i++){
 			checkStr='';
-			if(tempTopo[i].match('#')!=null){checkStr=' checked ';}
-			topoStr+=tempTopo[i].replace('#','')+"<input type='checkbox' "+checkStr+">";
-			if(i<tempTopo.length){topoStr+='<br>';}
+			excludeFound=false;
+			for(j=0;j<excludedTopologies.length;j++){if(excludedTopologies[j]==tempTopo[i].replace('#','')){excludeFound=true;}}
+			if(tempTopo[i].match('#')!=null&&excludeFound!=true){checkStr=' checked ';}
+			if(tempTopo[i].match('#')==null){checkStr=' disabled ';}
+			topoStr+=tempTopo[i].replace('#','')+"<input onclick='selectPresetDropDown($(this));' value='"+tempTopo[i].replace('#','')+"' type='checkbox' "+checkStr+">";
+			//if(i<tempTopo.length){topoStr+='<br>';}
 		}
-		tempBench=sersverResponse_data['benches'].split('#');
+		/*tempBench=sersverResponse_data['benches'].split('#');
 		benchStr='';
 		for(i=1;i<tempBench.length;i++){
-			benchStr+="<input type='button' value="+tempBench[i].replace('#','')+">";
+			benchStr+='<button id="'+tempBench[i].replace('#','')+'" onclick="$(\'#testTable tr td button\').removeClass(\'selected\');$(this).addClass(\'selected\');window.open(\'/taws/selectEqpt/?myVars=$\'+this.id+\'$\',\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+tempBench[i].replace('#','')+'</button>';
+			//benchStr+="<input type='button' value="+tempBench[i].replace('#','')+">";
 			if(i<tempBench.length){benchStr+='<br>';}
+		}*/
+		presetDropDown=presetDropDownPre+presetStr+presetDropDownPost;
+		if(rowIndex=='NEW'){
+			myRow=testTable.row.add({
+				"control" : "<img src='/static/images/details_close.png'></img>",
+				"prod" : sersverResponse_data['product'],
+				"rel" : sersverResponse_data['sw_rel_name'],
+				"suite": sersverResponse_data['area_name'],
+				"topologies" : topoStr,
+				"options" : 'FU',
+				"tc": sersverResponse_data['CURRtc']+'/'+sersverResponse_data['TOTtc'],
+				"tps": sersverResponse_data['CURRtps']+'/'+sersverResponse_data['TOTtps'],
+				"duration": '0',
+				"preset": presetDropDown
+			}
+			).draw( false );
+		}else{
+			var oTable = $('#testTable').dataTable();
+			oTable.fnUpdate(topoStr,rowIndex,4,false);
+			oTable.fnUpdate(sersverResponse_data['CURRtc']+'/'+sersverResponse_data['TOTtc'],rowIndex,6,false);
+			oTable.fnUpdate(sersverResponse_data['CURRtps']+'/'+sersverResponse_data['TOTtps'],rowIndex,7,false);
 		}
-		testTable.row.add({
-			"control" : "<img src='/static/images/details_close.png'></img>",
-			"prod" : sersverResponse_data['product'],
-			"rel" : sersverResponse_data['sw_rel_name'],
-			"suite": sersverResponse_data['area_name'],
-			"topologies" : topoStr,
-			"options" : 'FU',
-			"tc": sersverResponse_data['CURRtc']+'/'+sersverResponse_data['TOTtc'],
-			"tps": sersverResponse_data['CURRtps']+'/'+sersverResponse_data['TOTtps'],
-			"duration": '0',
-			"benches": benchStr
-		}
-		).draw( false );
+		updateStats('smart');
 	};
 
 	var createTest = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
@@ -322,7 +336,8 @@ function doAccess(myAction){
 					queryProduct:queryProduct,
 					querySWRelease:querySWRelease,
 					queryArea:queryArea,
-					benchList:benchList
+					presetID:presetID,
+					excludedTopologies:excludedTopologies.slice(0,-1)
 					},
 				success: addSmartSuite,
 				error: function(xhr, textStatus, errorThrown) {
