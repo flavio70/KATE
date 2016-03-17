@@ -1,8 +1,15 @@
 {% extends "taws/jenkins_template.html" %}
 {% block body %}
 {% load static %}
+<style>
+tr.dt-rowReorder-moving{outline:2px solid #888;outline-offset:-2px}
+
+</style>
+
+
 
 <link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<script type="text/javascript" src="{% static "js/dataTables.rowReorder.min.js" %}"></script>
 <script>
 	//addLoadEvent(function() {placeIt();});
 	owner='{{ login }}';
@@ -221,7 +228,7 @@ $(document).ready(function() {
 			"data": "testString",
 			"visible": false 
 		}
-]
+],rowId:'num'
 	});
 
 	new $.fn.dataTable.Buttons( testTable, {'buttons': [
@@ -410,20 +417,23 @@ $(document).ready(function() {
 		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
 		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
 		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
-		"order": [[ 1, "asc" ]],
-		"bSort" : false,
+		rowReorder: {
+			dataSrc: 'num',
+			selector: 'tr'
+        },
 		scrollY:'380px',
-		scrollCollapse:true,"columns": [
-            {
-                "className":      'details-control',
-                "orderable":      false,
-                "data":           "control",
-                "defaultContent": ''
-            },
+		scrollCollapse:true,
+		"columns": [
 						{
 							"data": "num", 
 							"className": "dt-center" 
 						},
+						{
+			                "className":      'details-control',
+			                //"orderable":      false,
+			                "data":           "control",
+			                "defaultContent": ''
+			            },
 						{
 							"data": "tps", 
 							"className": "dt-center" 
@@ -498,8 +508,17 @@ $(document).ready(function() {
 							"data": "testString",
 							"visible": false 
 						}
-				]
+				],
+			//rowId:'num',
+			//"createdRow": function( row, data, dataIndex ) {
+			//	$(row).attr('id', data[1]);
+			//}
+			
+			
 	});
+	
+	
+	
 	
 	
 	$("div.suiteAction").html('\
@@ -629,6 +648,11 @@ $(document).ready(function() {
 		    tr.addClass('shown');
 		}
 	    } );
+	
+	
+
+	
+	
 	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'right','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 	$('[data-toggle="popover-left"]').popover({'trigger':'hover','placement':'left','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
 	$('[data-toggle="popover-top"]').popover({'trigger':'hover','placement':'top','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
@@ -702,7 +726,7 @@ $(document).keyup(function (e) {
 		<thead>       
 			<tr>     
 				<th style="width:20px" rowspan="2"></th>        
-				<th style="width:20px" rowspan="2">Pos</th>
+				<th style="width:20px" rowspan="2">Num</th>
 				<th style="width:115px" rowspan="2">TPS</th>
 				<th rowspan="2">Test</th>
 				<th style="width:33px" rowspan="2">Lab</th>
@@ -740,7 +764,7 @@ $(document).keyup(function (e) {
 		<tfoot>       
 			<tr>
 				<th style="width:20px"></th>         
-				<th style="width:20px" title="Pos">Pos</th>
+				<th style="width:20px" title="Pos">Num</th>
 				<th style="width:115px" title="TPS">TPS</th>
 				<th title="Test">Test</th>
 				<th style="width:33px" title="Lab">Lab</th>
@@ -767,8 +791,8 @@ $(document).keyup(function (e) {
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testBundleTable" style="width:100%" >
 		<thead>       
 				<tr>     
-					<th style="width:20px" rowspan="2"></th>        
-					<th style="width:20px" rowspan="2">Pos</th>
+					<th style="width:20px" rowspan="2">Pos</th>        
+					<th style="width:20px" rowspan="2"></th>
 					<th style="width:115px" rowspan="2">TPS</th>
 					<th rowspan="2">Test</th>
 					<th style="width:33px" rowspan="2">Lab</th>
@@ -805,8 +829,8 @@ $(document).keyup(function (e) {
 		</thead>     
 		<tfoot>       
 				<tr>
-					<th style="width:20px"></th>         
-					<th style="width:20px">Pos</th>
+					<th style="width:20px">Pos</th>         
+					<th style="width:20px"></th>
 					<th style="width:115px">TPS</th>
 					<th>Test</th>
 					<th style="width:33px">Lab</th>
