@@ -1089,7 +1089,7 @@ def add_bench(request):
 		return render_to_response('taws/login.html',context_dict,context)
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-	myRecordSet = dbConnection.cursor(dictionary=True)
+	myRecordSet = dbConnection.cursor(dictionary=True,buffered=True)
 
 	bench=request.GET.get('bench','NONE')
 	action=request.GET.get('action','')
