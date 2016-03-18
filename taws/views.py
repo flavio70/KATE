@@ -437,6 +437,7 @@ def tuningEngine(request):
 
 	myIDX=1
 	tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)
+	tempStr+='*************'
 	tempStr+=create_node_list(presetID,suiteFolder,suiteName)
 	tempStr+='\n\nTUNING COMPLETE!\nHAVE A NICE DAY!\n'
 	
@@ -511,10 +512,11 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 		out_file.close()
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
 		tempStr+='DONE!\n\n'
+	tempStr+=create_node_list(presetID,suiteFolder,suiteName)
 
 	return {'tuningReport':tempStr,'myIDX':myIDX}
 
-def create_node_list(presetID,preview,suiteFolder,suiteName):
+def create_node_list(presetID,suiteFolder,suiteName):
 
 	import mysql.connector
 	
@@ -523,12 +525,13 @@ def create_node_list(presetID,preview,suiteFolder,suiteName):
 	
 	tempStr=''
 	tempStr+='\nCreating Node List...'
-	myRecordSet.execute("SELECT group_concat(T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%'")
+	myRecordSet.execute("SELECT group_concat(distinct T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%' group by T_EQUIPMENT_id_equipment")
 	nodeList=myRecordSet.fetchone()['nodeList']
-	if preview=='off':
-		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
-		out_file.write(nodeList)
-		out_file.close()
+
+	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
+	out_file.write(nodeList)
+	out_file.close()
+
 	tempStr+='DONE!\n'
 	
 	return tempStr
@@ -581,12 +584,16 @@ def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,descript
 		#server.build_job(suiteName)
 		#server.stop(suiteName)
 		#os.chmod(suiteFolder+suiteName,511)
+		tempStr+='Setting Permission to folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'...'
 		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
+		tempStr+='DONE!\n'
 		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
 		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
-		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
-		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
+		tempStr+='Setting Permission to folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'test-reports...'
+		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'test-reports')
+		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'test-reports',511)
+		tempStr+='DONE!\n'
 		tempStr+='Creating Test plan...'
 		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w+")
 		out_file.write('')

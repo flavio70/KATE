@@ -435,6 +435,7 @@ function showalert(message,alerttype) {
 			}
 		}
 		if(found==true&&choice==''){
+			$("body").removeClass("loading");
 			showalert("Unable to complete operation!   Some fields are missing...","alert-danger")
 			//alert('Some fields are missing...');
 			tuningString='';
