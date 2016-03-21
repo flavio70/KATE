@@ -156,16 +156,16 @@ function saveFileBody(suiteType){
 		sect3=0;
 		sect4=0;
 		sect5=0;
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
-		if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
-		if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
+		if(!($('#testBundleTable').dataTable()._('tr')[k].sect1.match('disabled'))){sect1+=1;}
+		if(!($('#testBundleTable').dataTable()._('tr')[k].sect2.match('disabled'))){sect2+=1;}
+		if(!($('#testBundleTable').dataTable()._('tr')[k].sect3.match('disabled'))){sect3+=1;}
+		if(!($('#testBundleTable').dataTable()._('tr')[k].sect4.match('disabled'))){sect4+=1;}
+		if(!($('#testBundleTable').dataTable()._('tr')[k].sect5.match('disabled'))){sect5+=1;}
+		if($('#testBundleTable').dataTable()._('tr')[k].sect1.match('checked')){sect1+=1;}
+		if($('#testBundleTable').dataTable()._('tr')[k].sect2.match('checked')){sect2+=1;}
+		if($('#testBundleTable').dataTable()._('tr')[k].sect3.match('checked')){sect3+=1;}
+		if($('#testBundleTable').dataTable()._('tr')[k].sect4.match('checked')){sect4+=1;}
+		if($('#testBundleTable').dataTable()._('tr')[k].sect5.match('checked')){sect5+=1;}
 		savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 	}
 	if((saveID!=''&&saveID!='null')&&(savingString!='')){
@@ -1251,7 +1251,7 @@ function updateStats(perspective){
 		document.getElementById('badge-cart-tps').innerHTML=totTPS;
 		document.getElementById('badge-cart-time').innerHTML=String(totTime).toHHMMSS();
 		document.getElementById('badge-cart-metric').innerHTML=totMetric;
-		showalert("Test Cases Adde Succesfully.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Test:"+testBundleTable.rows().data().length+"\
+		showalert("Test Cases Processed Succesfully.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Test:"+testBundleTable.rows().data().length+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tot Time:"+String(totTime).toHHMMSS()+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total TPS:"+totTPS+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Metric:"+totMetric,"alert-success")
@@ -1275,7 +1275,7 @@ function updateStats(perspective){
 		document.getElementById('badge-sel-tps').innerHTML=totTPS;
 		document.getElementById('badge-sel-time').innerHTML=String(totTime).toHHMMSS();
 		document.getElementById('badge-sel-metric').innerHTML=totMetric;
-		showalert("Test Cases Adde Succesfully.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Test:"+totTC+"\
+		showalert("Test Cases Added Succesfully.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Test:"+totTC+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tot Time:"+String(totTime).toHHMMSS()+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total TPS:"+totTPS+"\
 							  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total Metric:"+totMetric,"alert-success")
