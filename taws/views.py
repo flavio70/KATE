@@ -308,7 +308,7 @@ def selectEqpt(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) left join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"'")
+	myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) left join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"' group by id_equipment")
 	eqptAry=[{'myVars':myVars,
 		'eqptID':row["id_equipment"],
 		'eqptName':row["name"],
