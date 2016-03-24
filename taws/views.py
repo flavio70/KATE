@@ -1007,6 +1007,7 @@ def createRunJenkins(request):
 	from jenkinsapi.jenkins import Jenkins
 	import mysql.connector
 	import json
+	import os
 	import shutil
 	from django.http import HttpResponseRedirect
 
