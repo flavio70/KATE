@@ -1007,7 +1007,7 @@ def createRunJenkins(request):
 	from jenkinsapi.jenkins import Jenkins
 	import mysql.connector
 	import json
-	import os
+	import os,glob
 	import shutil
 	from django.http import HttpResponseRedirect
 
@@ -1073,7 +1073,9 @@ def createRunJenkins(request):
 		server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 		if (server.has_job(job_name)):
 			job_instance = server.get_job(job_name)
-			if os.path.exists(reportPath):shutil.rmtree(reportPath)
+			if os.path.exists(reportPath):
+				files = glob.glob(reportPath + '*.XML')
+				for f in files: os.remove(f)
 			job_instance.invoke(securitytoken='tl-token',build_params={'KateRunId':runID})
 		
 		return HttpResponseRedirect('/taws/runJenkins/')
@@ -1908,10 +1910,13 @@ def checkTestStatus(testpath,testfile):
 	testname = ntpath.splitext(testfile)[0]
 	reportfile = reportPath + testname + '._main.XML'
 	if os.path.isfile(reportfile):
-		if os.stat(reportfile).st_size > 0:
-			return "Done"
-		else:
+		if os.stat(reportfile).st_size == 0:
+			print('Running:%i'%os.stat(reportfile).st_size)
 			return "Running"
+		else:
+			print('Done:%i'%os.stat(reportfile).st_size)
+			return "Done"
+			
 	else:
 		return "Ready to Run"
 
