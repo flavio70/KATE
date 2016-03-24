@@ -265,6 +265,9 @@ function runCurrentJob() {
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="CONFIGURE JOB" data-content="Set JOB running parameters and EDIT test cases suite." role="group">
 								<button type="button" onclick="runTest.action='/taws/modify_job/?jobName='+$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-primary"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></button>
 							</div>
+							<div class="btn-group btn-group-xs" data-toggle="popover" title="CURRENT JOB BUILD" data-content="Get Current JOB results." role="group">
+								<button type="button" onclick="runTest.action='/taws/getCurrentBuild/';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-warning"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+							</div>
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="JOB RESULTS" data-content="Get JOB Build History" role="group">
 								<button type="button" onclick="runTest.action='/taws/viewJobDetails/?jobName='+$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-info"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></button>
 							</div>
