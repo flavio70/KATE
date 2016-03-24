@@ -29,6 +29,8 @@ urlpatterns = [
 	url(r'^morgue/$', views.morgue),
 	url(r'^topology/$', views.topology),
 	url(r'^modify_job/$', views.modify_job),
+	url(r'^getCurrentBuild/$', views.getCurrentBuild),
+	url(r'^updateJobStatus/$', views.updateJobStatus),
 	url(r'^theDoctor/$', views.the_doctor),
 	url(r'^temp/$', views.temp)
 ]

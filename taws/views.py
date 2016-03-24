@@ -1007,6 +1007,7 @@ def createRunJenkins(request):
 	from jenkinsapi.jenkins import Jenkins
 	import mysql.connector
 	import json
+	import shutil
 	from django.http import HttpResponseRedirect
 
 	context = RequestContext(request)
@@ -1019,6 +1020,7 @@ def createRunJenkins(request):
 	target=request.POST.get('target','')
 	swRelMatrix=[]
 	runID=''
+	reportPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']+'test-reports/'
 	
 	
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
@@ -1056,6 +1058,7 @@ def createRunJenkins(request):
 			'id_equipment':row['id_equipment']})
 
 	if action == 'runTest':
+		
 		tempTarget=target.split('$')
 		myRecordSet.execute("SELECT if(MAX(id_run) is null,0,MAX(id_run)) as maxId from T_RUNTIME")
 		runID=myRecordSet.fetchone()['maxId']+1
@@ -1069,6 +1072,7 @@ def createRunJenkins(request):
 		server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 		if (server.has_job(job_name)):
 			job_instance = server.get_job(job_name)
+			if os.path.exists(reportPath):shutil.rmtree(reportPath)
 			job_instance.invoke(securitytoken='tl-token',build_params={'KateRunId':runID})
 		
 		return HttpResponseRedirect('/taws/runJenkins/')
@@ -1896,6 +1900,107 @@ def modify_job(request):
 	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':testString,'debug':''}
 
 	return render_to_response('taws/modify_job.html',context_dict,context)
+
+def checkTestStatus(testpath,testfile):
+	import os,ntpath
+	reportPath = testpath + 'test-reports/'
+	testname = ntpath.splitext(testfile)[0]
+	reportfile = reportPath + testname + '._main.XML'
+	if os.path.isfile(reportfile):
+		if os.stat(reportfile).st_size > 0:
+			return "Done"
+		else:
+			return "Running"
+	else:
+		return "Ready to Run"
+
+
+
+
+def updateJobStatus(request):
+	import mysql.connector
+	import glob,os,ntpath
+	job_name=request.POST.get('jobName','')
+	job_action=request.POST.get('jobAction','')
+	
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+	myRecordSet=dbConnection.cursor(dictionary=True)
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
+	
+	
+	
+	
+	testString=[]
+	localString=""
+	#localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
+	localPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']
+
+	print('jenkins job path: %s'%localPath)
+
+
+	if os.path.isfile(localPath+'suite.txt'):
+		localSuite = open(localPath+'suite.txt',"r")
+		suiteFile=localSuite.read()
+		localSuite.close() 
+
+  
+	for f in sorted(glob.glob(localPath+'*.py')):
+		if os.path.isfile(f+'.prs'):
+			iteration=ntpath.basename(f).split('_')[1]
+			myRecordSet.execute("select * from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_TestRev="+iteration+" group by id_TestRev")
+			row=myRecordSet.fetchone()
+
+			myDict={"ctrl":"",
+					"tps":row['tps'].replace('!','<br>'),
+					"test":ntpath.basename(f),
+					"rev":row['revision'],
+					"duration":str(row['duration']),
+					"tpgy":row['topology'],
+					"status":checkTestStatus(localPath, ntpath.basename(f)),
+					"testId":f,
+					"dependency":row['dependency'],
+					"metric":str(row['metric']),
+					"author":row['author'],
+					"description":row['description']
+					}
+			#testString.append(myDict)
+			testString.append(myDict)
+	print('called updateJobStatus...') 
+	return JsonResponse({"job_name":job_name,"data":testString}, safe=True)
+
+
+	#if job_action == "ajaxpoll":
+	#return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
+	#	return JsonResponse({"job_name":job_name,"test_list":testString}, safe=True)
+	#else:
+	#	return testString
+
+
+
+def getCurrentBuild(request):
+	
+	context = RequestContext(request)
+	context_dict={'nothing':'nothing'}
+	
+
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'test_development'}
+		return render_to_response('taws/login.html',context_dict,context)
+
+
+	job_name=request.POST.get('jobName','')
+
+	
+  
+	username=request.session['login']
+	password=request.session['password']
+	test_list=updateJobStatus(request)
+	
+	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':test_list,'debug':''}
+	return render_to_response('taws/getCurrentBuild.html',context_dict,context)
 
 
 def getUserRepoBranch(userId):
@@ -3045,7 +3150,7 @@ def accesso(request):
 		#tempStr+="PresetID :"+str(presetID)+"\n"
 		#tempStr+="SuiteID :"+str(suiteID)+"\n"
 		tempStr+="Tuning Test Cases for Jenkins...\n\n"
-		global TAWS_path,os
+		#global TAWS_path,os
 		myRecordSet.execute("select name from T_SUITES where id_suite="+str(suiteID))
 		myRecord=myRecordSet.fetchone()
 	
