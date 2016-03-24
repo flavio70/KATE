@@ -537,7 +537,7 @@ def create_node_list(presetID,suiteFolder,suiteName):
 	return tempStr
 
 def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,description):
-	import shutil
+	import shutil,os
 	from jenkinsapi.jenkins import Jenkins
 	server = Jenkins(settings.JENKINS['HOST'],username=username,password=password)
 	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
