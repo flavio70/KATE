@@ -1073,7 +1073,7 @@ def createRunJenkins(request):
 		server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 		if (server.has_job(job_name)):
 			job_instance = server.get_job(job_name)
-			if os.path.exists(reportPath):shutil.rmtree(reportPath)
+			if os.path.exists(reportPath):os.remove(reportPath + "*.XML")
 			job_instance.invoke(securitytoken='tl-token',build_params={'KateRunId':runID})
 		
 		return HttpResponseRedirect('/taws/runJenkins/')
