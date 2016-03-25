@@ -905,6 +905,7 @@ def collectReports(request):
 	counter=1
 	noteCounter=1
 	JIRAcsv=''
+	myReport=''
 	#for suites in root[0]:
 	for suites in root.findall(".suites/suite"):
 		if (suites.find('name').text.rfind('_main')>=0 or suites.find('name').text.rfind('_Main')>=0) and suites.find('name').text.rfind('EnvSettings')<0:
@@ -954,7 +955,8 @@ def collectReports(request):
 
 					if azione == "addResult":
 						#myRecordSet.execute("INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')")
-						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"','"+request.session['login']+"','' FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID+")")
+						myRecordSet.execute("INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg.replace('\\','\\\\').replace('\'','\\\'')+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"','"+request.session['login']+"',null FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID+")")
+						#myReport+="INSERT INTO T_REPORT (SELECT null,"+str(id_pack)+",id_tps,"+str(id_run)+",'"+errMsg.replace('\\','\\\\').replace('\'','\\\'')+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"','"+request.session['login']+"',null FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID+")<br>"
 						#nodeType="INSERT INTO T_REPORT (SELECT '',"+str(id_pack)+",(SELECT * FROM T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area ) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"'),'"+errMsg+"','"+tpsTestStatus+"','"+request.POST.get('note'+str(noteCounter),"NA")+"')"
 						#myRecordSet.execute("select *,if(T_EQUIPMENT_id_equipment is null,'NA',T_EQUIPMENT_id_equipment) as checkNode,T_EQUIPMENT.name as nodeName,T_EQUIP_TYPE.name as nodeType,T_PACKAGES.label_ref as nodeSWP,T_RUNTIME.owner as suiteOwner from T_RUNTIME left join T_RTM_BODY on(id_run=T_RUNTIME_id_run) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_PACKAGES on(id_pack=T_RTM_BODY.T_PACKAGES_id_pack)  where job_name='"+job_name+"' and job_iteration="+str(buildId))
 						dbConnection.commit()
@@ -998,7 +1000,8 @@ def collectReports(request):
 		'KateDB':KateDB,
 		'instance': str(buildId),
 		'JIRAcsv':mark_safe(JIRAcsv),
-		'buildMatrix':buildMatrix}
+		'buildMatrix':buildMatrix,
+		'myReport':myReport}
 	return render(request,'taws/collectReports.html',context_dict)
 
 
