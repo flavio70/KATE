@@ -1906,10 +1906,26 @@ def modify_job(request):
 
 def checkTestStatus(testpath,testfile):
 	import os,ntpath
+	import xml.etree.ElementTree as ET
 	reportPath = testpath + 'test-reports/'
 	testname = ntpath.splitext(testfile)[0]
 	reportfile = reportPath + testname + '._main.XML'
 	if os.path.isfile(reportfile):
+		try:
+			'''
+			trying to parse the xml test file
+			if no exception occours we assume the report completed and right formatted
+			'''
+			tree = ET.parse(reportfile)
+			return 'Done'
+		except:
+			return 'Running'
+			
+	else:
+		return 'Ready to Run'	
+		
+		
+	'''	
 		if os.stat(reportfile).st_size == 0:
 			print('Running:%i'%os.stat(reportfile).st_size)
 			return "Running"
@@ -1919,7 +1935,53 @@ def checkTestStatus(testpath,testfile):
 			
 	else:
 		return "Ready to Run"
+	'''
 
+def checkTPSStatus(testpath,testfile,tps):
+	import os,ntpath,glob,re
+	import xml.etree.ElementTree as ET
+	reportPath = testpath + 'test-reports/'
+	testname = ntpath.splitext(testfile)[0]
+	reportfile = reportPath + testname
+	#checking the XML tps report file presence
+	res=''
+	print('\n\nchecking XML for tps:%s'%tps)
+	for f in sorted(glob.glob(reportPath+'*.XML')):
+		cmatch = re.match(reportfile+'.*'+tps+'\.XML',f)
+		if cmatch: #found tps XMl file
+			rfile = cmatch.group(0)
+			if os.path.isfile(rfile):
+				print('found match: %s'%rfile)
+				try:
+					'''
+					trying to parse the xml test file
+					if no exception occours we assume the report completed and right formatted
+					'''
+					
+					tree = ET.parse(rfile)
+					root = tree.getroot()
+					print('XML Parsed!')
+					res='list-group-item-info'
+					for el in root.findall('testcase'):
+						elerror = el.find('system-err')
+						if not elerror is None:
+							res='list-group-item-danger'
+							break
+					
+					print(res)
+				except Exception as eee:
+		
+					'''
+					the XML parsing fails we assume the XML tps report file not completed yet.
+					We leave blank
+					'''
+					print('error parsing')
+					print(str(eee))
+					break
+				
+			break
+	
+	return res
 
 
 
@@ -1955,11 +2017,21 @@ def updateJobStatus(request):
 	for f in sorted(glob.glob(localPath+'*.py')):
 		if os.path.isfile(f+'.prs'):
 			iteration=ntpath.basename(f).split('_')[1]
-			myRecordSet.execute("select * from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_TestRev="+iteration+" group by id_TestRev")
+			myRecordSet.execute("select * from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'_',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_TestRev="+iteration+" group by id_TestRev")
 			row=myRecordSet.fetchone()
+			tpslist=row['tps'].split('!')
+			tpsreturnlist = '<ul class="list-group">'
+			
+			for tps in tpslist:
+				res=checkTPSStatus(localPath, ntpath.basename(f),tps)
+				tpsreturnlist = tpsreturnlist + '<li class="list-group-item '+res+'">'+tps+'</li>'
+				
+				
+			tpsreturnlist = tpsreturnlist + '</ul>'
+			#"tps":row['tps'].replace('!','<br>'),
 
 			myDict={"ctrl":"",
-					"tps":row['tps'].replace('!','<br>'),
+					"tps":tpsreturnlist,
 					"test":ntpath.basename(f),
 					"rev":row['revision'],
 					"duration":str(row['duration']),

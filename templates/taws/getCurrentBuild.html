@@ -2,6 +2,10 @@
 {% block body %}
 {% load static %}
 
+
+
+
+
 <link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
 <link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
 <script>
@@ -58,11 +62,10 @@ function format ( myRow ) {
 }
 
 $(document).ready(function() {
-	document.getElementById('mainTitle').innerHTML='Current Results for {{ job_name }}';	
+	document.getElementById('mainTitle').innerHTML='Current Build Results';	
 	var testTable = $('#testTable').dataTable( {
 		dom:'<"row"<"col-sm-3"l><"col-sm-6"><"col-sm-3"f>>\
 			<"row"<"col-sm-12"tr>>\
-			<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
 			<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
 			<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
 		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
@@ -84,32 +87,47 @@ $(document).ready(function() {
 		  "columns": [
 		              	{ "data": "ctrl","className":'details-control'},
 		              	{ "data": "tps" },
-		              	{ "data": "test" },
-		              	{ "data": "rev" },
-		      			{ "data": "duration", "className": "dt-center"},
-		      			{ "data": "tpgy","className": "dt-center"},
-		      			{ "data": "status","className": "dt-center"},
+		              	{ "data": "test","className":"dt-center dt-vert-align" },
+		              	{ "data": "rev","className":"dt-center dt-vert-align" },
+		      			{ "data": "duration", "className": "dt-center dt-vert-align"},
+		      			{ "data": "tpgy","className": "dt-center dt-vert-align"},
+		      			{ "data": "status","className": "dt-center dt-bold dt-vert-align"},
 		      			{ "data": "testId","visible": false },
 		      			{ "data": "dependency","visible": false },
 		      			{ "data": "metric","visible": false },
 		      			{ "data": "author","visible": false },
 		      			{ "data": "description","visible": false }
-		          ]
+		          ],    
+		          "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+		        	  //$('td', nRow).closest('tr').css('background', aData.status === "Done" ? 'red' : 'blue');
+		        	  switch(aData.status){
+		             	case 'Done':
+		                  //$(nRow).css('background-color', '#C2E4F5');
+		                  $(nRow).css('color', '#0000D5');
+		                  break;
+		              	case 'Running':
+		                  //$(nRow).css('background-color', '#FFFF80');
+		                  $(nRow).css('color', '#008042')
+		                  break;
+		          		}
+		        	  
+		        	  return nRow;
+		        	}
 		} );
 	
 	setInterval( function () {
 		testTable.api().ajax.reload();
 		console.log('calling table reload...')
-	}, 5000 );
+	}, 5000);
 	
 	
 	
 	
-	$("div.selections").html('<ul class="list-group"><li class="list-group-item">Selection counters</li></ul>');
-	$("div.totTests").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-test" class="badge">0</span>Total tests</li></ul>');
-	$("div.totTPS").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-tps" class="badge">0</span>Total TPS</li></ul>');
-	$("div.totTime").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-time" class="badge">00:00:00</span>Total Time</li></ul>');
-	$("div.totMetric").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-metric" class="badge">0</span>Total Metric</li></ul>');
+	//$("div.selections").html('<ul class="list-group"><li class="list-group-item">Selection counters</li></ul>');
+	//$("div.totTests").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-test" class="badge">0</span>Total tests</li></ul>');
+	//$("div.totTPS").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-tps" class="badge">0</span>Total TPS</li></ul>');
+	//$("div.totTime").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-time" class="badge">00:00:00</span>Total Time</li></ul>');
+	//$("div.totMetric").html('<ul class="list-group"><li class="list-group-item"><span id="badge-sel-metric" class="badge">0</span>Total Metric</li></ul>');
 
 	
 	
@@ -185,6 +203,9 @@ $(document).ready(function() {
 
 </script>
 
+
+
+
 <form name="selectTest" action="/taws/modify_job/?jobName={{ job_name }}" method="post" >{% csrf_token %}
 	<input type="hidden" value="" name="savingStr" id="savingStr">
 </form>
@@ -194,7 +215,15 @@ $(document).ready(function() {
 {{ debug }}
 
 <div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
-	
+
+<div>
+	<ol class="breadcrumb">
+		<li><a href="/taws/runJenkins/">Jobs</a></li>
+		<li class="active">{{ job_name }}</li>
+	</ol>
+</div>
+
+
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable" style="width:100%">
         <thead>
             <tr> 
@@ -203,7 +232,7 @@ $(document).ready(function() {
                 <th>Test</th>
                 <th>Rev</th>
                 <th>Duration</th>
-                <th>Tpgy</th>
+                <th>Topology</th>
                 <th>Status</th>
                 <th></th>
                 <th></th>
@@ -220,7 +249,7 @@ $(document).ready(function() {
                 <th>Test</th>
                 <th>Rev</th>
                 <th>Duration</th>
-                <th>Tpgy</th>
+                <th>Topology</th>
                 <th>Status</th>
                 <th></th>
                 <th></th>
@@ -234,76 +263,6 @@ $(document).ready(function() {
 	
 	
 	
-	<!--<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable" style="width:100%">
-		<thead>       
-			<tr>     
-				<th style="width:20px"></th>        
-				<th style="width:20px"></th>
-				<th style="width:115px">TPS</th>
-				<th style="width:300px">Test</th>
-				<th style="width:33px">Lab</th>
-				<th style="width:50px">Rev</th>
-				<th style="width:40px">Time</th>
-				<th style="width:30px">Tpgy</th>
-				<th style="width:20px">Status</th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-			</tr>     
-		</thead>     
-		<tfoot>       
-			<tr>     
-				<th style="width:20px"></th>        
-				<th style="width:20px"></th>
-				<th style="width:115px">TPS</th>
-				<th style="width:300px">Test</th>
-				<th style="width:33px">Lab</th>
-				<th style="width:50px">Rev</th>
-				<th style="width:40px">Time</th>
-				<th style="width:30px">Tpgy</th>
-				<th style="width:20px">Status</th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-			</tr>     
-		</tfoot>
-   <tbody id="testTableBody">
-				{% for myTest in test_list %}
-					<tr id="{{ myTest.idTestRev }}">  
-						<td></td>
-						<td></td>
-						<td>{{ myTest.tps }}</td>
-						<td>{{ myTest.test_name }}</td>
-						<td>{{ myTest.lab }}</td>
-						<td>{{ myTest.revision }}</td>
-						<td>{{ myTest.duration }}</td>
-						<td>{{ myTest.topology }}</td>
-		    				<td>{{ myTest.status }}</td>
-		    				<td>{{ myTest.idTestRev }}</td>
-		    				<td>{{ myTest.dependency }}</td>
-		    				<td>{{ myTest.assignment }}</td>
-		    				<td>{{ myTest.author }}</td>
-		    				<td>{{ myTest.description }}</td>
-		    				<td>{{ myTest.relDate }}</td>
-		    				<td>{{ myTest.last_update }}</td>
-		    				<td></td>
-		    				<td></td>
-					</tr>
-				{% endfor %}
-    </tbody>
-	</table>-->
 	
 </div>
 
