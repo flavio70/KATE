@@ -48,6 +48,14 @@ tfoot input {
 }
 
 
+.dt-bold {
+	font-weight: bold;
+}
+
+.dt-vert-align {
+	vertical-align: middle !important;
+}
+
 BODY {
 	font-size:12px;
 }
