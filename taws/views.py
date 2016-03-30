@@ -2007,7 +2007,7 @@ def updateJobStatus(request):
 	localString=""
 	#localPath=settings.JENKINS['SUITEFOLDER']+username+'_Development/workspace/'
 	localPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']
-
+	print('\n\ncalled updateJobStatus...')
 	print('jenkins job path: %s'%localPath)
 
 
@@ -2048,7 +2048,7 @@ def updateJobStatus(request):
 					}
 			#testString.append(myDict)
 			testString.append(myDict)
-	print('called updateJobStatus...') 
+	print('\n\n...updateJobStatus Done!!') 
 	return JsonResponse({"job_name":job_name,"data":testString}, safe=True)
 
 
