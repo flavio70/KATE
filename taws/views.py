@@ -944,7 +944,7 @@ def collectReports(request):
 					tpsBgcolor='info'
 					tpsFontcolor="black"
 					errMsg="NA"
-					Tstr=0
+					Tstr='0'
 					
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
@@ -967,11 +967,11 @@ def collectReports(request):
 						zq_comment = nodeSWP+" - "+nodeType+" - ("+tpsTestStatus+")"
 						myRecordSet.execute("SELECT story_reference FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) join T_JIRA_STORY using(T_DOMAIN_id_domain) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID)
 						row=myRecordSet.fetchone()
-						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action progressIssue --issue @issue@ --step \\\"Re Run\\\"\" --search \"project=PTNSW and issuetype=\\\"Test Case Sub-Task\\\" and issuefunction in subtasksOf(\\\"issueKey="+row['story_reference']+"\\\") and status!= \\\""+tpsTestStatus+"\\\" and summary ~ \\\""+tpsName+" \\\"\"\\n"
+						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action progressIssue --issue @issue@ --step \\\\\"Re Run\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and status!= \\\\\""+tpsTestStatus+"\\\\\" and summary ~ \\\\\""+tpsName.replace('-','.')+" \\\\\"\"\\n"
 						if tpsTestStatus == 'Failed':
-							JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action linkIssue --issue @issue@ --toIssue \\\""+Tstr+"\\\" --link \\\"Related\\\"\" --search \"project=PTNSW and issuetype=\\\"Test Case Sub-Task\\\" and issuefunction in subtasksOf(\\\"issueKey="+row['story_reference']+"\\\") and status!= \\\""+tpsTestStatus+"\\\" and summary ~ \\\""+tpsName+" \\\"\"\\n"
-						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action progressIssue --issue @issue@ --step \\\""+tpsTestStatus+"\\\"\" --search \"project=PTNSW and issuetype=\\\"Test Case Sub-Task\\\" and issuefunction in subtasksOf(\\\"issueKey="+row['story_reference']+"\\\") and status!= \\\""+tpsTestStatus+"\\\" and summary ~ \\\""+tpsName+" \\\"\"\\n"
-						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action addComment --issue @issue@ --comment \\\""+zq_comment+"\\\"\" --search \"project=PTNSW and issuetype=\\\"Test Case Sub-Task\\\" and issuefunction in subtasksOf(\\\"issueKey="+row['story_reference']+"\\\") and summary ~ \\\""+tpsTestStatus+" \\\"\"\\n"
+							JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action linkIssue --issue @issue@ --toIssue \\\\\""+Tstr+"\\\\\" --link \\\\\"Related\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and status!= \\\\\""+tpsTestStatus+"\\\\\" and summary ~ \\\\\""+tpsName.replace('-','.')+" \\\\\"\"\\n"
+						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action progressIssue --issue @issue@ --step \\\\\""+tpsTestStatus+"\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and status!= \\\\\""+tpsTestStatus+"\\\\\" and summary ~ \\\\\""+tpsName.replace('-','.')+" \\\\\"\"\\n"
+						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action addComment --issue @issue@ --comment \\\\\""+zq_comment+"\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and summary ~ \\\\\""+tpsTestStatus+" \\\\\"\"\\n"
 
 
 
@@ -1660,7 +1660,7 @@ def statistics_sw_executed_details(request):
 	description=request.POST.get('area','-').split('-')[0]
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-	myRecordSet = dbConnection.cursor(dictionary=True)
+	myRecordSet = dbConnection.cursor(dictionary=True, buffered=True)
 
 	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
@@ -1729,11 +1729,11 @@ def morgue(request):
 		context_dict={'fromPage':'morgue'}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	id_pack=request.POST.get('id_pack','1')
+	id_pack=request.POST.get('id_pack','54')
 	action=request.GET.get('action','')
 	
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-	myRecordSet = dbConnection.cursor(dictionary=True)
+	myRecordSet = dbConnection.cursor(dictionary=True, buffered=True)
 
 	if action == 'update':
 		for key in request.POST:
@@ -1745,7 +1745,7 @@ def morgue(request):
 	myRecordSet.execute("select concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',product,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(myPackages separator ''),'</ul></li>') as swp_dropdown from (SELECT T_PROD_id_prod,concat('<li class=',char(34),'dropdown-submenu',char(34),'><a href=',char(34),'#',char(34),' tabindex=',char(34),'-1',char(34),'>',sw_rel_name,'</a><ul class=',char(34),'dropdown-menu',char(34),'>',group_concat(concat('<li><a onclick=',char(34),'filtro.[dropdown-selection].value=',id_pack,';filtro.submit();',char(34),'>',T_PACKAGES.label_ref,'</a></li>') order by T_PACKAGES.label_ref separator ''),'</ul></li>') as myPackages FROM T_PACKAGES join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_pack<>0 group by T_SW_REL_id_sw_rel) as packages join T_PROD on(id_prod=T_PROD_id_prod) group by product")
 	swp_dropdown=myRecordSet.fetchone()['swp_dropdown']
 
-	myRecordSet.execute("select id_report,description,area_name,tps_reference,result,info,notes,concat(product,'-',T_PACKAGES.label_ref) as tpack from (select * from T_TPS group by T_DOMAIN_id_domain,tps_reference) as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack+" order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack+" and result='Failed' order by description,area_name,tps_reference")
+	myRecordSet.execute("select id_report,description,area_name,tps_reference,result,info,report1.notes,concat(product,'-',T_PACKAGES.label_ref) as tpack from T_TPS as tps1 join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_PACKAGES using(T_PROD_id_prod,T_SW_REL_id_sw_rel) join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(id_area=T_AREA_id_area) left join (select * from (select * from T_REPORT where T_PACKAGES_id_pack="+id_pack+" order by report_date desc) as tempReport1 group by T_TPS_id_tps) as report1 on(id_tps=report1.T_TPS_id_tps) join T_PROD on(id_prod=T_PROD_id_prod) where id_pack="+id_pack+" and result='Failed' order by description,area_name,tps_reference")
 	morgue_row=[{'id_report':row["id_report"],'tpack':row["tpack"],'description':row["description"],'area_name':row['area_name'],'tps_reference':row['tps_reference'],'info':row['info'],'notes':row['notes']} for row in myRecordSet]
 
 	context_dict={'swp_dropdown1':mark_safe(swp_dropdown.replace('[dropdown-selection]','id_pack')),
