@@ -47,7 +47,7 @@
 		{
 			text:'<i class="fa fa-database fa"></i>',
 			titleAttr: 'Export report to K@TE Database',
-			action:function(){sendDBReport.azione.value='addResult';sendDBReport.submit();},
+			action:function(){if('{{ KateDB }}'=='KO'){sendDBReport.azione.value='addResult';sendDBReport.submit();}else{showalert("Result already exported to KATE DB...","alert-danger")}},
 			className:'btn-custom'
 		},
 		{

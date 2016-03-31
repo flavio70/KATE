@@ -313,8 +313,9 @@ function loadReport(reportName,reportType){
 
 function exportReport(){
 	report.action='/taws/collectReports/';
-	if('{{ KateDB }}'=='KO'){report.submit();}
-		else{showalert("Result already exported to KATE DB...","alert-danger")}
+	report.submit();
+	//if('{{ KateDB }}'=='KO'){report.submit();}
+		//else{showalert("Result already exported to KATE DB...","alert-danger")}
 }
 
 </script>
