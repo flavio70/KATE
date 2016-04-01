@@ -644,7 +644,7 @@ def runJenkins(request):
 def viewJobDetails(request):
 
 	from jenkinsapi.jenkins import Jenkins
-	import os.path,time
+	import os.path,time,re
 	import xml.etree.ElementTree as ET
 
 	buildMatrix=[]
@@ -679,16 +679,17 @@ def viewJobDetails(request):
 				failed=0
 				passed=0
 				for suites in root[0]:
-					total+=1
-					#Response.Write(suites.text)
-					for stderr in suites.iter('stderr'):
-						#stderr+=''
-						failed+=1
-						#Response.Write("	<td style='width:50px'>KO</td>")
-						break
-					else:
-						passed+=1
-						#Response.Write("	<td style='width:50px'>OK</td>")
+					if not re.match('.*_main.*',suites[1].text):
+						total+=1
+						#Response.Write(suites.text)
+						for stderr in suites.iter('stderr'):
+							#stderr+=''
+							failed+=1
+							#Response.Write("	<td style='width:50px'>KO</td>")
+							break
+						else:
+							passed+=1
+							#Response.Write("	<td style='width:50px'>OK</td>")
 				onClickFunction=chr(34)+"window.open('viewBuildDetails.asp?job="+job_name+"&build='+this.id.replace(/&/g,\'%26\'),'BuildDetails','height=800,width=1000,resizable=no');"+chr(34)
 				#buildStatus=build_instance.get_status()
 				if failed == 0: buildStatus="SUCCESS"
