@@ -308,7 +308,8 @@ def selectEqpt(request):
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet=dbConnection.cursor(dictionary=True)
 
-	myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) left join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"' group by id_equipment")
+	#myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) left join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"' group by id_equipment")
+	myRecordSet.execute("SELECT id_equipment,T_EQUIPMENT.name,T_EQUIPMENT.owner,T_EQUIP_TYPE.description as equipDescription,site,room,row,rack,pos,IP,NM,GW,T_SCOPE.description as scopeDescription,runtime.status FROM T_EQUIPMENT join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) join T_SCOPE on(id_scope=T_SCOPE_id_scope) left join T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) left join (select * from T_RUNTIME join T_RTM_BODY on(id_run=T_RUNTIME_id_run)) as runtime on(id_equipment=runtime.T_EQUIPMENT_id_equipment) where T_EQUIP_TYPE.name='"+tempVars[1]+"' and (runtime.status<>'RUNNING' or runtime.status is null) group by id_equipment")
 	eqptAry=[{'myVars':myVars,
 		'eqptID':row["id_equipment"],
 		'eqptName':row["name"],
@@ -675,7 +676,7 @@ def viewJobDetails(request):
 				tempFile=''
 				tree = ET.parse(suiteFolder+job_name+'/builds/'+str(buildId)+'/junitResult.xml')
 				root = tree.getroot()
-				total=0
+				total=1
 				failed=0
 				passed=0
 				for suites in root[0]:
@@ -1142,6 +1143,7 @@ def add_bench(request):
 	if action == 'create': bench=''
 
 	debugInterface=request.POST.get('debugInterface','')
+	credList=request.POST.get('credList','').split('$')
 
 	name=''
 	ip=''
@@ -1156,6 +1158,7 @@ def add_bench(request):
 	rack=''
 	pos=''
 	serials=[]
+	credentials=[]
 	createReport=''
 	rowID=''
 	note=''
@@ -1223,14 +1226,23 @@ def add_bench(request):
 			if tempFields[3] == '':tempFields[3]='0'
 			myRecordSet.execute("INSERT INTO T_SERIAL (inUse, T_NET_id_ip, port, T_EQUIPMENT_id_equipment, slot, subslot, note) VALUES (1,'"+id_ip+"','"+tempFields[1]+"',"+str(id_equipment)+",'"+tempFields[2]+"','"+tempFields[3]+"','')")
 			dbConnection.commit()
+
+		myRecordSet.execute("DELETE from T_EQPT_CRED where T_EQUIPMENT_id_equipment="+str(id_equipment))
+		dbConnection.commit()
+		for myITF in credList:
+			tempFields=myITF.split('#')
+			#if tempFields[1] == '':tempFields[1]='0'
+			#if tempFields[2] == '':tempFields[2]='0'
+			myRecordSet.execute("INSERT INTO T_EQPT_CRED (T_EQPT_CRED_TYPE_id_cred_type, T_EQUIPMENT_id_equipment, usr, pwd) VALUES ("+str(tempFields[0])+", "+str(id_equipment)+", '"+str(tempFields[1])+"','"+str(tempFields[2])+"')")
+			dbConnection.commit()
+		
 		bench=id_equipment
-
-	
-
 
 
 	if bench != 'NONE' and bench != '':
 		SQL="SELECT *,T_NET.IP as benchIP,T_NET.NM as benchNM,T_NET.GW as benchGW,T_EQUIPMENT.description as benchDescription,T_EQUIPMENT.note as benchNote,group_concat(concat(ip1.ip,'#',port,'#',if(slot is null,'-',slot),'#',if(subslot is null,'-',subslot)) separator '|') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET on(T_NET.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) where id_equipment="+str(bench)+" group by id_equipment"
+		SQL="SELECT *,T_NET.IP as benchIP,T_NET.NM as benchNM,T_NET.GW as benchGW,serials,T_EQUIPMENT.description as benchDescription,T_EQUIPMENT.note as benchNote,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET on(T_NET.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN (select group_concat(concat(ip,'#',port,'#',if(slot is null,'-',slot),'#',if(subslot is null,'-',subslot)) separator '|') as serials,T_SERIAL.T_EQUIPMENT_id_equipment from T_SERIAL JOIN T_NET on(T_NET_id_ip=id_ip) where T_SERIAL.T_EQUIPMENT_id_equipment="+str(bench)+") as serials on(serials.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope)  left join T_EQPT_CRED on(T_EQPT_CRED.T_EQUIPMENT_id_equipment=id_equipment) left join T_EQPT_CRED_TYPE on(T_EQPT_CRED_TYPE_id_cred_type=idT_EQPT_CRED_TYPE) where id_equipment="+str(bench)
+		SQL="SELECT *,T_NET.IP as benchIP,T_NET.NM as benchNM,T_NET.GW as benchGW,serials,credentials,T_EQUIPMENT.description as benchDescription,T_EQUIPMENT.note as benchNote,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET on(T_NET.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN (select group_concat(concat(ip,'#',port,'#',if(slot is null,'-',slot),'#',if(subslot is null,'-',subslot)) separator '|') as serials,T_SERIAL.T_EQUIPMENT_id_equipment from T_SERIAL JOIN T_NET on(T_NET_id_ip=id_ip) where T_SERIAL.T_EQUIPMENT_id_equipment="+str(bench)+") as serials on(serials.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope)  left join (select T_EQUIPMENT_id_equipment,group_concat(concat(cr_type,'#',usr,'#',pwd) separator '|') as credentials from T_EQPT_CRED join T_EQPT_CRED_TYPE on(T_EQPT_CRED_TYPE_id_cred_type=idT_EQPT_CRED_TYPE) where T_EQPT_CRED.T_EQUIPMENT_id_equipment="+str(bench)+") as credentials on(credentials.T_EQUIPMENT_id_equipment=id_equipment) where id_equipment="+str(bench)
 		#SQL="SELECT * from T_EQUIPMENT join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where id_equipment="+str(bench)
 		myRecordSet.execute(SQL)
 		row=myRecordSet.fetchone()
@@ -1256,6 +1268,13 @@ def add_bench(request):
 					'port':tempSerial[1],
 					'slot':tempSerial[2],
 					'subslot':tempSerial[3]})
+		if row['credentials'] != None:
+			credAry=row['credentials'].split('|')
+			for myId,credential in enumerate(credAry):
+				tempCred=credential.split('#')
+				credentials.append({'cred_type':tempCred[0],
+					'user':tempCred[1],
+					'pwd':tempCred[2]})
 
 	ip = ip.split('.') if ip != '' else '...'.split('.')
 	nm = nm.split('.') if nm != '' else '...'.split('.')
@@ -1281,6 +1300,9 @@ def add_bench(request):
 
 	myRecordSet.execute("SELECT distinct(ip) as consoleServer FROM T_EQUIP_TYPE join T_EQUIPMENT on(id_type=T_EQUIP_TYPE_id_type) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where family='CONSOLE SERVER'")
 	consoleServers=[row["consoleServer"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT cr_type,idT_EQPT_CRED_TYPE FROM T_EQPT_CRED_TYPE")
+	cr_type=[{'cr_name':row["cr_type"],'cr_id':row["idT_EQPT_CRED_TYPE"]} for row in myRecordSet]
 
 	context_dict={'login':request.session['login'],
 		'bench':bench,
@@ -1313,10 +1335,12 @@ def add_bench(request):
 		'rack':rack,
 		'pos':pos,
 		'serials':serials,
+		'credentials':credentials,
 		'createReport':createReport,
 		'description':description,
 		'note':note,
-		'consoleServers':consoleServers
+		'consoleServers':consoleServers,
+		'cr_type':cr_type
 	}
 
 	return render(request,'taws/add_bench.html',context_dict)
@@ -1729,7 +1753,7 @@ def morgue(request):
 		context_dict={'fromPage':'morgue'}
 		return render_to_response('taws/login.html',context_dict,context)
 
-	id_pack=request.POST.get('id_pack','54')
+	id_pack=request.POST.get('id_pack','1')
 	action=request.GET.get('action','')
 	
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
