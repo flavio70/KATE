@@ -964,8 +964,8 @@ def collectReports(request):
 						dbConnection.commit()
 
 					if azione == "exportJIRA":
-						userJIRA='ptnswtaut'
-						pwdJIRA='ptnswtaut'
+						userJIRA='ptnsvtaut'
+						pwdJIRA='ptnsvtaut'
 						zq_comment = nodeSWP+" - "+nodeType+" - ("+tpsTestStatus+")"
 						myRecordSet.execute("SELECT story_reference FROM T_TPS join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(T_DOMAIN_id_domain=id_domain) join T_AREA on(id_area=T_AREA_id_area ) join T_PROD on(T_PROD_id_prod=id_prod) join T_JIRA_STORY using(T_DOMAIN_id_domain) where tps_reference='"+tpsName+"' and area_name='"+tpsArea+"' and id_TestRev="+testID)
 						row=myRecordSet.fetchone()
