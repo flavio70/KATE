@@ -946,7 +946,7 @@ def collectReports(request):
 					tpsBgcolor='info'
 					tpsFontcolor="black"
 					errMsg="NA"
-					Tstr='0'
+					Tstr='PTNSW-19209'
 					
 					for stderr in tps.iter('stderr'):
 						tpsTestStatus='Failed'
@@ -973,7 +973,7 @@ def collectReports(request):
 						if tpsTestStatus == 'Failed':
 							JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action linkIssue --issue @issue@ --toIssue \\\\\""+Tstr+"\\\\\" --link \\\\\"Related\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and status!= \\\\\""+tpsTestStatus+"\\\\\" and summary ~ \\\\\""+tpsName.replace('-','.')+" \\\\\"\"\\n"
 						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action progressIssue --issue @issue@ --step \\\\\""+tpsTestStatus+"\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and status!= \\\\\""+tpsTestStatus+"\\\\\" and summary ~ \\\\\""+tpsName.replace('-','.')+" \\\\\"\"\\n"
-						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action addComment --issue @issue@ --comment \\\\\""+zq_comment+"\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and summary ~ \\\\\""+tpsTestStatus+" \\\\\"\"\\n"
+						JIRAcsv+="call jira -s \"http://sts.app.alcatel-lucent.com\" -u \""+userJIRA+"\" -p \""+pwdJIRA+"\" -a runFromIssueList --common \"--action addComment --issue @issue@ --comment \\\\\""+zq_comment+"\\\\\"\" --search \"project=PTNSW and issuetype=\\\\\"Test Case Sub-Task\\\\\" and issuefunction in subtasksOf(\\\\\"issueKey="+row['story_reference']+"\\\\\") and summary ~ \\\\\""+tpsName.replace('-','.')+" \\\\\"\"\\n"
 
 
 
