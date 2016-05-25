@@ -1206,10 +1206,18 @@ def add_bench(request):
 			id_equipment=bench
 		myRecordSet.execute("DELETE FROM T_NET WHERE T_EQUIPMENT_id_equipment='"+str(id_equipment)+"'")
 		dbConnection.commit()
-		myRecordSet.execute("INSERT INTO T_NET (inUse,description,T_EQUIPMENT_id_equipment,protocol,IP,NM,GW) VALUES (1,'',"+str(id_equipment)+",'v4','"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"','"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"','"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"')")
+		myRecordSet.execute("SELECT count(*) as netCounter FROM T_NET where IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"' and NM='"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"' and GW='"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"' and T_EQUIPMENT_id_equipment="+str(id_equipment))
+		row=myRecordSet.fetchone()
+		if row['netCounter'] == 0:
+			myRecordSet.execute("SELECT count(*) as netCounter FROM T_NET where IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"' and NM='"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"' and GW='"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"'")
+			row=myRecordSet.fetchone()
+			if row['netCounter'] == 0:
+				myRecordSet.execute("INSERT INTO T_NET (inUse,description,T_EQUIPMENT_id_equipment,protocol,IP,NM,GW) VALUES (1,'',"+str(id_equipment)+",'v4','"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"','"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"','"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"')")
+				dbConnection.commit()
+		#myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
+		#id_ip=myRecordSet.fetchone()['id_ip']
+		myRecordSet.execute("UPDATE T_NET SET T_EQUIPMENT_id_equipment="+str(id_equipment)+" WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"' AND NM='"+POSTnm1+"."+POSTnm2+"."+POSTnm3+"."+POSTnm4+"' AND GW='"+POSTgw1+"."+POSTgw2+"."+POSTgw3+"."+POSTgw4+"'")
 		dbConnection.commit()
-		myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+POSTip1+"."+POSTip2+"."+POSTip3+"."+POSTip4+"'")
-		id_ip=myRecordSet.fetchone()['id_ip']
 		myRecordSet.execute("DELETE from T_SERIAL where T_EQUIPMENT_id_equipment="+str(id_equipment))
 		dbConnection.commit()
 		for myITF in debugInterface:
@@ -1277,9 +1285,9 @@ def add_bench(request):
 					'user':tempCred[1],
 					'pwd':tempCred[2]})
 
-	ip = ip.split('.') if ip != '' else '...'.split('.')
-	nm = nm.split('.') if nm != '' else '...'.split('.')
-	gw = gw.split('.') if gw != '' else '...'.split('.')
+	ip = ip.split('.') if ip != None else '...'.split('.')
+	nm = nm.split('.') if nm != None else '...'.split('.')
+	gw = gw.split('.') if gw != None else '...'.split('.')
 
 	myRecordSet.execute("SELECT distinct(site) as site FROM T_LOCATION")
 	locations=[row["site"] for row in myRecordSet]
