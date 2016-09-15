@@ -252,7 +252,7 @@ def tuning(request):
 	topoAry='';
 	for myTopology in myTopologies:
 		#myRecordSet.execute("SELECT if(group_concat(concat(description,'$',label) order by indice separator '$') is null,'topoerror',group_concat(concat(description,'$',label) order by indice separator '$')) as dataValues,numNE from topologyBody join topologies using(topoID) where topoID ='"+myTopology+"'")
-		myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$')) as dataValues,1 as numNE from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where id_topology="+myTopology)
+		myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$')) as dataValues,title from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where id_topology="+myTopology)
 		#myRecord=myRecordSet.fetchall()
 		for myRecord in myRecordSet:
 			dataValues=myRecord['dataValues']
@@ -264,7 +264,7 @@ def tuning(request):
 			topoAry+="topologies[topologies.length-1].push(new Array());"
 			topoAry+="topologies[topologies.length-1].push(new Array());"
 			topoAry+="topologies[topologies.length-1].push(new Array());"
-			topoAry+="topologies[topologies.length-1].push(parseInt('"+str(myRecord['numNE'])+"'));"
+			topoAry+="topologies[topologies.length-1].push('"+myRecord['title']+"');"
 		if myTopology != '000':
 			if dataValues != 'topoerror':
 				tempLabels = dataValues.split("$")
