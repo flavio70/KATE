@@ -1154,9 +1154,9 @@ def add_bench(request):
 	credList=request.POST.get('credList','').split('$')
 
 	name=''
-	ip=''
-	nm=''
-	gw=''
+	ip='...'
+	nm='...'
+	gw='...'
 	reference=''
 	site=''
 	room=''
