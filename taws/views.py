@@ -242,7 +242,7 @@ def tuning(request):
 		myRecord=myRecordSet.fetchone()
 		fileName=myRecord["name"]
 	else:
-		myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology order by topology separator '-') using utf8) as topologyNeeded from T_TEST_REVS")
+		myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct id_topology order by id_topology separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
 		myRecord=myRecordSet.fetchone()
 		fileName=''		
 	#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,suitename from jsuites join jsuiteBody using(jsuiteID) join  Jenkinslist using(JID,livraison) where jsuiteID='"+fileName+"'")
