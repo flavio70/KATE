@@ -17,6 +17,7 @@
 	<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}" />
 	<link rel="stylesheet" type="text/css" href="{% static "css/customTables.css" %}" />
 	<link rel="stylesheet" type="text/css" href="{% static "css/loading.css" %}" />
+	<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch.css" %}" />
       
 	<!--<link rel="stylesheet" type="text/css" href="{% static "css/_styles.css" %}" />
 	<link type="text/css" href="{% static "css/tooltip.css" %}" />
