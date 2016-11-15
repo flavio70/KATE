@@ -2135,6 +2135,198 @@ def getCurrentBuild(request):
 	context_dict={'login':request.session['login'].upper(),'job_name':job_name,'test_list':test_list,'debug':''}
 	return render_to_response('taws/getCurrentBuild.html',context_dict,context)
 
+def changeManualStatus(request):
+	
+	import xmlrpc.client
+	import json
+	import mysql.connector
+	
+	context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	modifier=request.POST.get('modifier','')
+	newStatus=request.POST.get('newStatus','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	SQL="insert into T_POWER_STATUS (select "+idPowerMngmt+",power_status,null,'"+modifier+"','Change Manual Status',"+newStatus+" from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt+" order by last_change desc limit 1)"
+	
+	myRecordSet.execute(SQL)
+	dbConnection.commit()
+
+	context_dict={}
+	print('Change Manual Status')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+
+def changePowerStatus(request):
+	
+	import xmlrpc.client
+	import json
+	import mysql.connector
+	
+	context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	modifier=request.POST.get('modifier','')
+	newStatus=request.POST.get('newStatus','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	myRecordSet.execute(SQL)
+	row=myRecordSet.fetchone()
+
+	proxy = xmlrpc.client.ServerProxy("http://"+row['ip']+":8080/")
+	switchReport = proxy.setGPIO([{'gpio':row['pin'],'status':newStatus,'idPowerMngmt':idPowerMngmt,'modifier':modifier}])
+
+	context_dict={'switchReport':switchReport}
+	print('Change Power Status')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+	#return {'switchReport':switchReport}
+
+	
+def power_management(request):
+	
+	import time
+	
+	context_dict={'nothing':'nothing'}
+	powerLevel=request.GET.get('powerLevel','')
+
+	import xmlrpc.client 
+	proxy = xmlrpc.client.ServerProxy("http://151.98.64.32:8080/")
+	#methods = proxy.setGPIO([{'gpio':'2','status':'ON'},{'gpio':'3','status':'ON'},{'gpio':'4','status':'ON'},{'gpio':'5','status':'ON'},{'gpio':'6','status':'ON'},{'gpio':'7','status':'ON'},{'gpio':'8','status':'ON'},{'gpio':'9','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'3','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'4','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'5','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'6','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'7','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'8','status':'ON'}])
+	#time.sleep(1)
+	#methods = proxy.setGPIO([{'gpio':'9','status':'ON'}])
+	#methods = proxy.setGPIO([{'gpio':'2','status':'OFF'}])
+	#time.sleep(2)
+	#methods = proxy.setGPIO([{'gpio':'2','status':'ON'}])
+	#time.sleep(2)
+	#methods = proxy.setGPIO([{'gpio':'2','status':'OFF'}])
+	#time.sleep(2)
+	#methods = proxy.setGPIO([{'gpio':'2','status':'ON'}])
+
+	#context_dict={'login':request.session['login'].upper(),'methods':methods}
+	#return render_to_response('taws/power_management.html',context_dict,context)
+	import mysql.connector
+	#from django.utils.safestring import mark_safe
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'power_management',
+    'gitlaburl':settings.GITLAB['HOST'],
+    'jenkinsurl':settings.JENKINS['HOST'],
+    'jiraurl':settings.JIRA['HOST'],
+    'wikiurl':settings.WIKI['HOST']}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	
+	if powerLevel == '':
+		SQL="select room,count(row) as numRow,sum(racks) as numRacks from (SELECT room,row,count(*) as racks FROM T_LOCATION group by room,row) as myTable group by room"
+		myRecordSet.execute(SQL)
+		labs=[]
+		for row in myRecordSet:
+			labs.append({'room':row["room"],
+				'numRow':row["numRow"],
+				'numRacks':row["numRacks"]
+			})
+	
+		context_dict={'login':request.session['login'],
+			'labs':labs,
+			'powerLevel':powerLevel
+		}
+		return render_to_response('taws/power_management.html',context_dict,context)
+
+	if powerLevel == 'row':
+		lab=request.POST.get('lab','')
+		SQL="SELECT row,count(*) as numRacks FROM T_LOCATION where room='"+lab+"' group by row"
+		myRecordSet.execute(SQL)
+		rows=[]
+		for row in myRecordSet:
+			rows.append({'row':row["row"],
+				'lab':lab,
+				'numRacks':row["numRacks"]
+			})
+	
+		context_dict={'login':request.session['login'],
+			'rows':rows,
+			'powerLevel':powerLevel
+		}
+		return render_to_response('taws/power_management.html',context_dict,context)
+
+	if powerLevel == 'rack':
+		lab=request.POST.get('lab','')
+		myrow=request.POST.get('row','')
+		#SQL="select powerTable.owner,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status from (select * from (SELECT * FROM T_POWER_MNGMT order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
+		#SQL="select powerTable.owner,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
+		SQL="select id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
+		#SQL="SELECT *,netBench.IP as benchIP,netBench.NM as benchNM,netBench.GW as benchGW,group_concat(concat(ip1.ip,':',port,' ','Slot ',if(slot is null,'-',slot),' SubSlot ',if(subslot is null,'-',subslot)) separator '<br>') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET as netBench on(netBench.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) group by id_equipment"
+		myRecordSet.execute(SQL)
+		benches={'3A':{},
+				'3B':{},
+				'4A':{},
+				'4B':{},
+				'5A':{},
+				'5B':{},
+				'6A':{},
+				'6B':{},
+				'7A':{},
+				'7B':{},
+				'8A':{},
+				'8B':{},
+				'9A':{},
+				'9B':{},
+				'10A':{},
+				'10B':{},
+				'11A':{},
+				'11B':{},
+				'12A':{},
+				'12B':{},
+				'13A':{},
+				'13B':{},
+				'14A':{},
+				'14B':{},
+				'15A':{},
+				'15B':{},
+				'16A':{},
+				'16B':{}
+				}
+		numBenches=0
+		for row in myRecordSet:
+			numBenches+=1
+			benches[row["rack"]].update({'rack':row["rack"],
+				'id_powerMngmt':row['id_powerMngmt'],
+				'manual_status':row['manual_status'],
+				'name':row["name"],
+				'ip':row["ip"],
+				'pin':row["pin"],
+				'owner':row["owner"],
+				'log':row["log"],
+				'id_equipment':row["id_equipment"],
+				'id_location':row["id_location"],
+				'power_status':row["power_status"]
+			})
+	
+		context_dict={'login':request.session['login'],
+			'role':request.session['role'],
+			'lab':lab,
+			'row':myrow,
+			'benches':benches,
+			'powerLevel':powerLevel
+		}
+		return render_to_response('taws/power_management.html',context_dict,context)
 
 def getUserRepoBranch(userId):
 	from git import Repo
