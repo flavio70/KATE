@@ -32,5 +32,8 @@ urlpatterns = [
 	url(r'^getCurrentBuild/$', views.getCurrentBuild),
 	url(r'^updateJobStatus/$', views.updateJobStatus),
 	url(r'^theDoctor/$', views.the_doctor),
+	url(r'^powerManagement/$', views.power_management),
+	url(r'^changePowerStatus/$', views.changePowerStatus),
+	url(r'^changeManualStatus/$', views.changeManualStatus),
 	url(r'^temp/$', views.temp)
 ]

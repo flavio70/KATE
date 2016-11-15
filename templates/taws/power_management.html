@@ -1,0 +1,638 @@
+{% extends "taws/mainCompact_template.html" %}
+{% block body %}
+{% load static %}
+<script>
+var benchTable;
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+function Free(bench) {
+var ok = window.confirm("Conform request to free Bench?");
+if (ok) {
+	 		   location.href="free_bench.asp?id="+bench
+        }
+}
+
+function Manual_Change(rackName,idPowerMngmt,curr_status){
+	myDiv=document.getElementById(rackName);
+	if(curr_status=='true'){newStatus='0';}
+	else{newStatus='1';}
+	//myDiv=document.getElementById(rackName);
+	//myDiv.children[0].disabled=true;
+	$.ajax({
+		type: "POST",
+		url: '/taws/changeManualStatus/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt,
+			modifier: '{{ login }}',
+			newStatus:newStatus
+			},
+		success: changePowerStatus,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+
+}
+
+function changeStatus(idPowerMngmt,modifier,curr_status){
+	if(curr_status=='danger'){newStatus='OFF';}
+		else{newStatus='ON';}
+	/*var csrftoken = getCookie('csrftoken');
+	$.ajaxSetup({
+	    beforeSend: function(xhr, settings) {
+		if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+		    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+		}
+	    }
+	});*/
+	$.ajax({
+		type: "POST",
+		url: '/taws/changePowerStatus/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt,
+			modifier: modifier,
+			newStatus:newStatus
+			},
+		success: changePowerStatus,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+
+}
+
+var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	console.log('success');
+	//alert(sersverResponse_data['switchReport']);
+	window.location.reload();
+};
+
+
+	document.getElementById('mainTitle').innerHTML='Power Management';
+
+
+</script>
+<form name="powerManager" action="" method="post" >{% csrf_token %}
+	<input type="hidden" value="" name="lab" id="lab">
+	<input type="hidden" value="" name="row" id="row">
+</form>
+
+
+<div class="bs-docs-section clearfix" style="padding:0px 100px 0px 100px;">
+
+
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="page-header">
+              <h1 id="dialogs">Power Management</h1>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+		{% if powerLevel == '' %}
+			{% for lab in labs %}
+		        	<div class="col-lg-4" onclick="powerManager.action='/taws/powerManagement/?powerLevel=row';powerManager.lab.value='{{ lab.room }}';powerManager.submit();" id='{{ lab.room }}'>
+		                <div class="bs-component">
+		                   <div class="panel panel-primary">
+		                    <div class="panel-heading">
+		                      <h3 class="panel-title">{{ lab.room }}</h3>
+		                    </div>
+		                    <div class="panel-body">
+		                      <table>
+		                        <tbody><tr>
+		                          <td>
+		                            <img src="misc/logo.png" height="100" style="border-radius:10px">
+		                          </td><td style="padding:5px">
+		                            <b>{{ lab.room }}</b><br>
+		                            Test Plant SMOptics {{ lab.numRow }} rows {{ lab.numRacks }} racks                          </td>
+		                        </tr>
+		                      </tbody></table>
+		                    </div>
+		                  </div>
+		                </div>
+		              </div>
+			{% endfor %}
+		{% endif %}
+		{% if powerLevel == 'row' %}
+			{% for row in rows %}
+		        	<div class="col-lg-2" onclick="powerManager.action='/taws/powerManagement/?powerLevel=rack';powerManager.lab.value='{{ row.lab }}';powerManager.row.value='{{ row.row }}';powerManager.submit();" id='{{ lab.room }}'>
+		                <div class="bs-component">
+		                   <div class="panel panel-primary">
+		                    <div class="panel-heading">
+		                      <h3 class="panel-title">Row {{ row.row }}</h3>
+		                    </div>
+		                    <div class="panel-body">
+		                      <table>
+		                        <tbody><tr>
+		                          <td>
+		                            <img src="misc/logo.png" height="100" style="border-radius:10px">
+		                          </td><td style="padding:5px">
+		                            <b>Row {{ row.row }}</b><br>
+		                            Test Plant SMOptics {{ row.lab }} {{ row.numRacks }} racks                          </td>
+		                        </tr>
+		                      </tbody></table>
+		                    </div>
+		                  </div>
+		                </div>
+		              </div>
+			{% endfor %}
+		{% endif %}
+		{% if powerLevel == 'rack' %}
+	        	<div class="col-lg-12">
+	                <div class="bs-component">
+	                   <div class="panel panel-primary">
+	                    <div class="panel-heading">
+	                      <h3 class="panel-title">Room {{ lab }} Row {{ row }}</h3>
+	                    </div>
+	                    <div class="panel-body">
+	                      <table border=1 class="table">
+	                        <tbody>
+	                        <tr>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>3A</b><br>
+	                            {% if benches.3A %}
+		                            {{ benches.3A.name }}<br>
+		                            PIN {{ benches.3A.pin }}<br>
+		                            {{ benches.3A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.3A.pin }}','{{ benches.3A.ip }}','{{ benches.3A.power_status }}');" class="btn btn-{{ benches.3A.power_status }}">
+											<span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+										</button>
+										<button type="button" class="btn btn-default">
+											<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+										</button><br>
+										<button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default" onclick="document.getElementById('modalHeader').innerHTML='Rack 3A';">
+											<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+										</button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>4A</b><br>
+	                            {% if benches.4A %}
+		                            {{ benches.4A.name }}<br>
+		                            PIN {{ benches.4A.pin }}<br>
+		                            {{ benches.4A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.4A.pin }}','{{ benches.4A.ip }}','{{ benches.4A.power_status }}');" class="btn btn-{{ benches.4A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>5A</b><br>
+	                            {% if benches.5A %}
+									<div class="wrap" style="margin-left:-15px;">
+		                              <label>
+		                                <input name="ManualACT" type="checkbox" class="ios-switch"{% if benches.5A.manual_status == 1 %}checked{% endif %} value="{% if benches.5A.manual_status == 0 %}false{% else %}true{% endif %}" id="chkManAct" onclick="Manual_Change('5A','{{ benches.5A.id_powerMngmt }}',this.value);">
+		                              <div><div></div></div></label>
+		                            </div>
+   									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group" id="5A">
+										<button {% if login != benches.5A.owner or benches.5A.manual_status == 1 %} disabled {% endif %} type="button" id='' onclick="changeStatus('{{ benches.5A.id_powerMngmt }}','{{ login }}','{{ benches.5A.power_status }}');" class="btn btn-{{ benches.5A.power_status }}">
+											<span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+										</button>
+										<button {% if login != benches.5A.owner or benches.5A.manual_status == 0 %} disabled {% endif %} data-toggle="modal" data-target="#scheduleModal" type="button" class="btn btn{% if benches.5A.manual_status == 1 %}-info{% else %}-default{% endif %}">
+											<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+										</button><br>
+										<button data-toggle="modal" data-target="#editModal" type="button" class="btn btn-default" onclick="document.getElementById('modalHeader').innerHTML='Rack 5A';document.getElementById('modalName').value='{{ benches.5A.name }}';document.getElementById('modalPin').value='{{ benches.5A.pin }}';document.getElementById('modalIP').value='{{ benches.5A.ip }}';document.getElementById('rackOwner').value='{{ benches.5A.owner }}';">
+											<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+										</button>
+										<button data-toggle="modal" data-target="#logModal" type="button" class="btn btn-default" onclick="document.getElementById('modalLogHeader').innerHTML='Log for Rack 5A';document.getElementById('modalName').value='{{ benches.5A.name }}';document.getElementById('modalLog').innerHTML='{{ benches.5A.log }}';">
+											<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+										</button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>6A</b><br>
+	                            {% if benches.6A %}
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button {% if login != benches.6A.owner %} disabled {% endif %}type="button" id='' onclick="changeStatus('{{ benches.6A.pin }}','{{ benches.6A.ip }}','{{ benches.6A.power_status }}');" class="btn btn-{{ benches.6A.power_status }}">
+											<span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+										</button>
+										<button {% if login != benches.6A.owner %} disabled {% endif %} type="button" class="btn btn-default">
+											<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+										</button><br>
+										<button data-toggle="modal" data-target="#editModal" type="button" class="btn btn-default" onclick="document.getElementById('modalHeader').innerHTML='Rack 6A';document.getElementById('modalName').value='{{ benches.6A.name }}';document.getElementById('modalPin').value='{{ benches.6A.pin }}';document.getElementById('modalIP').value='{{ benches.6A.ip }}';document.getElementById('rackOwner').value='{{ benches.6A.owner }}';">
+											<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+										</button>
+										<button data-toggle="modal" data-target="#logModal" type="button" class="btn btn-default" onclick="document.getElementById('modalLogHeader').innerHTML='Log for Rack 6A';document.getElementById('modalName').value='{{ benches.6A.name }}';document.getElementById('modalLog').innerHTML='{{ benches.6A.log }}';">
+											<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+										</button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>7A</b><br>
+	                            {% if benches.7A %}
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.7A.pin }}','{{ benches.7A.ip }}','{{ benches.7A.power_status }}');" class="btn btn-{{ benches.7A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>8A</b><br>
+	                            {% if benches.8A %}
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.8A.pin }}','{{ benches.8A.ip }}','{{ benches.8A.power_status }}');" class="btn btn-{{ benches.8A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>9A</b><br>
+	                            {% if benches.9A %}
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.9A.pin }}','{{ benches.9A.ip }}','{{ benches.9A.power_status }}');" class="btn btn-{{ benches.9A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>10A</b><br>
+	                            {% if benches.10A %}
+		                            {{ benches.10A.name }}<br>
+		                            PIN {{ benches.10A.pin }}<br>
+		                            {{ benches.10A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.10A.pin }}','{{ benches.10A.ip }}','{{ benches.10A.power_status }}');" class="btn btn-{{ benches.10A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>11A</b><br>
+	                            {% if benches.11A %}
+		                            {{ benches.11A.name }}<br>
+		                            PIN {{ benches.11A.pin }}<br>
+		                            {{ benches.11A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.11A.pin }}','{{ benches.11A.ip }}','{{ benches.11A.power_status }}');" class="btn btn-{{ benches.11A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>12A</b><br>
+	                            {% if benches.12A %}
+		                            {{ benches.12A.name }}<br>
+		                            PIN {{ benches.12A.pin }}<br>
+		                            {{ benches.12A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.12A.pin }}','{{ benches.12A.ip }}','{{ benches.12A.power_status }}');" class="btn btn-{{ benches.12A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>13A</b><br>
+	                            {% if benches.13A %}
+		                            {{ benches.13A.name }}<br>
+		                            PIN {{ benches.13A.pin }}<br>
+		                            {{ benches.13A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.13A.pin }}','{{ benches.13A.ip }}','{{ benches.13A.power_status }}');" class="btn btn-{{ benches.13A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>14A</b><br>
+	                            {% if benches.14A %}
+		                            {{ benches.14A.name }}<br>
+		                            PIN {{ benches.14A.pin }}<br>
+		                            {{ benches.14A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.14A.pin }}','{{ benches.14A.ip }}','{{ benches.14A.power_status }}');" class="btn btn-{{ benches.14A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>15A</b><br>
+	                            {% if benches.15A %}
+		                            {{ benches.15A.name }}<br>
+		                            PIN {{ benches.15A.pin }}<br>
+		                            {{ benches.15A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.15A.pin }}','{{ benches.15A.ip }}','{{ benches.15A.power_status }}');" class="btn btn-{{ benches.15A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>16A</b><br>
+	                            {% if benches.16A %}
+		                            {{ benches.16A.name }}<br>
+		                            PIN {{ benches.16A.pin }}<br>
+		                            {{ benches.16A.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.16A.pin }}','{{ benches.16A.ip }}','{{ benches.16A.power_status }}');" class="btn btn-{{ benches.16A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                        </tr>
+	                        <tr>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>3B</b><br>
+	                            {% if benches.3B %}
+		                            {{ benches.3B.name }}<br>
+		                            PIN {{ benches.3B.pin }}<br>
+		                            {{ benches.3B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.3B.pin }}','{{ benches.3B.ip }}','{{ benches.3B.power_status }}');" class="btn btn-{{ benches.3B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>4B</b><br>
+	                            {% if benches.4B %}
+		                            {{ benches.4B.name }}<br>
+		                            PIN {{ benches.4B.pin }}<br>
+		                            {{ benches.4B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.4B.pin }}','{{ benches.4B.ip }}','{{ benches.4B.power_status }}');" class="btn btn-{{ benches.4B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>5B</b><br>
+	                            {% if benches.5B %}
+		                            {{ benches.5B.name }}<br>
+		                            PIN {{ benches.5B.pin }}<br>
+		                            {{ benches.5B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.5B.pin }}','{{ benches.5B.ip }}','{{ benches.5B.power_status }}');" class="btn btn-{{ benches.5B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>6B</b><br>
+	                            {% if benches.6B %}
+		                            {{ benches.6B.name }}<br>
+		                            PIN {{ benches.6B.pin }}<br>
+		                            {{ benches.6B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.6B.pin }}','{{ benches.6B.ip }}','{{ benches.6B.power_status }}');" class="btn btn-{{ benches.6B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>7B</b><br>
+	                            {% if benches.7B %}
+		                            {{ benches.7B.name }}<br>
+		                            PIN {{ benches.7B.pin }}<br>
+		                            {{ benches.7B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.7B.pin }}','{{ benches.7B.ip }}','{{ benches.7B.power_status }}');" class="btn btn-{{ benches.7B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>8B</b><br>
+	                            {% if benches.8B %}
+		                            {{ benches.8B.name }}<br>
+		                            PIN {{ benches.8B.pin }}<br>
+		                            {{ benches.8B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.8B.pin }}','{{ benches.8B.ip }}','{{ benches.8B.power_status }}');" class="btn btn-{{ benches.8B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>9B</b><br>
+	                            {% if benches.9B %}
+		                            {{ benches.9B.name }}<br>
+		                            PIN {{ benches.9B.pin }}<br>
+		                            {{ benches.9B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.9B.pin }}','{{ benches.9B.ip }}','{{ benches.9B.power_status }}');" class="btn btn-{{ benches.9B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>10B</b><br>
+	                            {% if benches.10B %}
+		                            {{ benches.10B.name }}<br>
+		                            PIN {{ benches.10B.pin }}<br>
+		                            {{ benches.10B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.10B.pin }}','{{ benches.10B.ip }}','{{ benches.10B.power_status }}');" class="btn btn-{{ benches.10B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>11B</b><br>
+	                            {% if benches.11B %}
+		                            {{ benches.11B.name }}<br>
+		                            PIN {{ benches.11B.pin }}<br>
+		                            {{ benches.11B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.11B.pin }}','{{ benches.11B.ip }}','{{ benches.11B.power_status }}');" class="btn btn-{{ benches.11B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>12B</b><br>
+	                            {% if benches.12B %}
+		                            {{ benches.12B.name }}<br>
+		                            PIN {{ benches.12B.pin }}<br>
+		                            {{ benches.12B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.12B.pin }}','{{ benches.12B.ip }}','{{ benches.12B.power_status }}');" class="btn btn-{{ benches.12B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>13B</b><br>
+	                            {% if benches.13B %}
+		                            {{ benches.13B.name }}<br>
+		                            PIN {{ benches.13B.pin }}<br>
+		                            {{ benches.13B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.13B.pin }}','{{ benches.13B.ip }}','{{ benches.13B.power_status }}');" class="btn btn-{{ benches.13B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>14B</b><br>
+	                            {% if benches.14B %}
+		                            {{ benches.14B.name }}<br>
+		                            PIN {{ benches.14B.pin }}<br>
+		                            {{ benches.14B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooModal Headerltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.14B.pin }}','{{ benches.14B.ip }}','{{ benches.14B.power_status }}');" class="btn btn-{{ benches.14B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>15B</b><br>
+	                            {% if benches.15B %}
+		                            {{ benches.15B.name }}<br>
+		                            PIN {{ benches.15B.pin }}<br>
+		                            {{ benches.15B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.15B.pin }}','{{ benches.15B.ip }}','{{ benches.15B.power_status }}');" class="btn btn-{{ benches.15B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                          <td style="padding:5px" VALIGN="TOP">
+	                            <b>16B</b><br>
+	                            {% if benches.16B %}
+		                            {{ benches.16B.name }}<br>
+		                            PIN {{ benches.16B.pin }}<br>
+		                            {{ benches.16B.ip }}<br>
+									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
+										<button type="button" id='' onclick="changeStatus('{{ benches.16B.pin }}','{{ benches.16B.ip }}','{{ benches.16B.power_status }}');" class="btn btn-{{ benches.16B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+									</div>
+		                        {% endif %}
+	                          </td>
+	                        </tr>
+	                      </tbody></table>
+	                    </div>
+	                  </div>
+	                </div>
+	              </div>
+		{% endif %}
+         </div>
+
+    </div>
+
+
+<div id="editModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><div id='modalHeader' /></h4>
+      </div>
+      <div class="modal-body">
+		<form name="rackEditor" action="" method="post" >{% csrf_token %}
+			<input type="hidden" value="" name="lab" id="lab">
+			<input type="hidden" value="" name="row" id="row">
+			<table>
+				<tr><td>Raspberry Name : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalName'></td></tr>
+		        <tr><td>Raspberry PIN : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalPin'></td></tr>
+		        <tr><td>Raspberry IP : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalIP'></td></tr>
+		        <tr><td>Rack Owner : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='rackOwner'></td></tr>
+		        <tr><td colspan=2 align="center"><input {% if role != "ADMIN" %} disabled {% endif %} type="submit"></td></tr>
+		    </table>
+		</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="logModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><div id='modalLogHeader' /></h4>
+      </div>
+      <div class="modal-body">
+			<table>
+				<tr><td><div id="modalLog"></div></td></tr>
+		    </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="scheduleModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-body">
+	   <div class="bs-component">
+	     <div class="panel panel-info">
+	       <div class="panel-heading">
+	         <h3 class="panel-title">Power Management Plan</h3>
+	       </div>
+	       <div class="panel-body" id="divEvents1" style="opacity: 1; display: block;">
+	          <table style="width:100%;margin-top:-5px;text-align:center;font-size:90%">
+	            <tbody><tr>
+	              <td><b>Hours</b></td>
+	              <td><b>Interval</b></td>
+	              <td><b>Next power off</b></td>
+	              <td></td>
+	            </tr>
+	            <form name="frmDeleteEvent_0" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_0.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="1"><form name="frmDeleteEvent_1" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_1.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="2"><form name="frmDeleteEvent_2" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_2.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="3"><form name="frmDeleteEvent_3" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_3.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="4">                  </tbody></table>
+	                                <a href="javascript:Events_HideShow(1,2);" class="btn btn-primary input-sm" style="padding-top:4px;position:absolute;bottom:0;margin-left:90px;margin-bottom:20px">
+	                  New Power off</a>
+	              </div>
+	              <form id="frmNewEvent" action="" method="post">
+	                <div class="panel-body" id="divEvents2" style="text-align: center; opacity: 0; display: none;">
+	                  <table style="width:100%;margin-top:-8px"><tbody><tr>
+	                    <td><b>Power off every</b></td>
+	                    <td>
+	                      <label for="NewEvent_weeks">Weeks</label><br>
+	                      <input id="txtNewWeeks" style="width:60px;display:inline-block" type="number" name="NewEvent_weeks" class="form-control input-sm">
+	                    </td><td>
+	                      &nbsp;<label for="NewEvent_days">Days</label><br>
+	                      <input id="txtNewDays" style="width:60px;display:inline-block" type="number" name="NewEvent_days" class="form-control input-sm">
+	                    </td>
+	                  </tr><tr>
+	                    <td colspan="4" style="padding-top:10px;padding-bottom:10px">
+	                      <label for="NewEvent_liters">Starting from&nbsp;&nbsp;&nbsp;</label>
+	                      <input id="txtNewStartDate" style="width:124px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
+	                      <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
+	                    </td>
+	                  </tr></tbody></table>
+	                  
+	                  <a href="javascript:Events_HideShow(2,1);" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
+	                        Back</a>
+	                  &nbsp;&nbsp;&nbsp;
+	                  <a href="javascript:Events_Validate1();" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px">
+	                        Next</a>
+	                </div>
+	                <div class="panel-body" id="divEvents3" style="display:none;text-align:center;">
+	                  <table style="width:100%;margin-top:-8px"><tbody><tr>
+	                    <td colspan="3" style="padding-top:10px;padding-bottom:10px">
+	                      <label for="NewEvent_liters">Hours for every power off&nbsp;&nbsp;&nbsp;</label>
+	                      <input id="txtNewLiters" style="width:60px;display:inline-block" type="number" name="NewEvent_liters" class="form-control input-sm">
+	                    </td>
+	                  </tr></tbody></table>
+	                  
+	                  <a href="javascript:Events_HideShow(3,2);" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:56px">
+	                        Back</a>
+	                  &nbsp;&nbsp;&nbsp;
+	                  <input type="submit" class="btn btn-primary input-sm" onclick="return Events_Validate2();" style="padding-top:4px;margin-top:56px" value="Confirm">
+	                </div>
+	              </form>
+	           </div>
+	  </div>
+</div>
+
+{% endblock %}
+
