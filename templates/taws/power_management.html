@@ -1,8 +1,103 @@
 {% extends "taws/mainCompact_template.html" %}
 {% block body %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch.css" %}" />
 <script>
 var benchTable;
+var tempIdSchedule;
+var login = '{{ login }}';
+
+var myRows = [
+              { name: "3A", manual_status: "{{ benches.3A.manual_status }}", id_powerMngmt: "{{ benches.3A.id_powerMngmt }}",power_status: '{{ benches.3A.power_status }}',log: '{{ benches.3A.log }}',owner: '{{ benches.3A.owner }}' },
+              { name: "4A", manual_status: "{{ benches.4A.manual_status }}", id_powerMngmt: "{{ benches.4A.id_powerMngmt }}",power_status: '{{ benches.4A.power_status }}',log: '{{ benches.4A.log }}',owner: '{{ benches.4A.owner }}' },
+              { name: "5A", manual_status: "{{ benches.5A.manual_status }}", id_powerMngmt: "{{ benches.5A.id_powerMngmt }}",power_status: '{{ benches.5A.power_status }}',log: '{{ benches.5A.log }}',owner: '{{ benches.5A.owner }}' },
+              { name: "6A", manual_status: "{{ benches.6A.manual_status }}", id_powerMngmt: "{{ benches.6A.id_powerMngmt }}",power_status: '{{ benches.6A.power_status }}',log: '{{ benches.6A.log }}',owner: '{{ benches.6A.owner }}' },
+              { name: "7A", manual_status: "{{ benches.7A.manual_status }}", id_powerMngmt: "{{ benches.7A.id_powerMngmt }}",power_status: '{{ benches.7A.power_status }}',log: '{{ benches.7A.log }}',owner: '{{ benches.7A.owner }}' },
+              { name: "8A", manual_status: "{{ benches.8A.manual_status }}", id_powerMngmt: "{{ benches.8A.id_powerMngmt }}",power_status: '{{ benches.8A.power_status }}',log: '{{ benches.8A.log }}',owner: '{{ benches.8A.owner }}' },
+              { name: "9A", manual_status: "{{ benches.9A.manual_status }}", id_powerMngmt: "{{ benches.9A.id_powerMngmt }}",power_status: '{{ benches.9A.power_status }}',log: '{{ benches.9A.log }}',owner: '{{ benches.9A.owner }}' },
+              { name: "10A", manual_status: "{{ benches.10A.manual_status }}", id_powerMngmt: "{{ benches.10A.id_powerMngmt }}",power_status: '{{ benches.10A.power_status }}',log: '{{ benches.10A.log }}',owner: '{{ benches.10A.owner }}' },
+              { name: "11A", manual_status: "{{ benches.11A.manual_status }}", id_powerMngmt: "{{ benches.11A.id_powerMngmt }}",power_status: '{{ benches.11A.power_status }}',log: '{{ benches.11A.log }}',owner: '{{ benches.11A.owner }}' },
+              { name: "12A", manual_status: "{{ benches.12A.manual_status }}", id_powerMngmt: "{{ benches.12A.id_powerMngmt }}",power_status: '{{ benches.12A.power_status }}',log: '{{ benches.12A.log }}',owner: '{{ benches.12A.owner }}' },
+              { name: "13A", manual_status: "{{ benches.13A.manual_status }}", id_powerMngmt: "{{ benches.13A.id_powerMngmt }}",power_status: '{{ benches.13A.power_status }}',log: '{{ benches.13A.log }}',owner: '{{ benches.13A.owner }}' },
+              { name: "14A", manual_status: "{{ benches.14A.manual_status }}", id_powerMngmt: "{{ benches.14A.id_powerMngmt }}",power_status: '{{ benches.14A.power_status }}',log: '{{ benches.14A.log }}',owner: '{{ benches.14A.owner }}' },
+              { name: "15A", manual_status: "{{ benches.15A.manual_status }}", id_powerMngmt: "{{ benches.15A.id_powerMngmt }}",power_status: '{{ benches.15A.power_status }}',log: '{{ benches.15A.log }}',owner: '{{ benches.15A.owner }}' },
+              { name: "16A", manual_status: "{{ benches.16A.manual_status }}", id_powerMngmt: "{{ benches.16A.id_powerMngmt }}",power_status: '{{ benches.16A.power_status }}',log: '{{ benches.16A.log }}',owner: '{{ benches.16A.owner }}' },
+              { name: "3B", manual_status: "{{ benches.3B.manual_status }}", id_powerMngmt: "{{ benches.3B.id_powerMngmt }}",power_status: '{{ benches.3B.power_status }}',log: '{{ benches.3B.log }}',owner: '{{ benches.3B.owner }}' },
+              { name: "4B", manual_status: "{{ benches.4B.manual_status }}", id_powerMngmt: "{{ benches.4B.id_powerMngmt }}",power_status: '{{ benches.4B.power_status }}',log: '{{ benches.4B.log }}',owner: '{{ benches.4B.owner }}' },
+              { name: "5B", manual_status: "{{ benches.5B.manual_status }}", id_powerMngmt: "{{ benches.5B.id_powerMngmt }}",power_status: '{{ benches.5B.power_status }}',log: '{{ benches.5B.log }}',owner: '{{ benches.5B.owner }}' },
+              { name: "6B", manual_status: "{{ benches.6B.manual_status }}", id_powerMngmt: "{{ benches.6B.id_powerMngmt }}",power_status: '{{ benches.6B.power_status }}',log: '{{ benches.6B.log }}',owner: '{{ benches.6B.owner }}' },
+              { name: "7B", manual_status: "{{ benches.7B.manual_status }}", id_powerMngmt: "{{ benches.7B.id_powerMngmt }}",power_status: '{{ benches.7B.power_status }}',log: '{{ benches.7B.log }}',owner: '{{ benches.7B.owner }}' },
+              { name: "8B", manual_status: "{{ benches.8B.manual_status }}", id_powerMngmt: "{{ benches.8B.id_powerMngmt }}",power_status: '{{ benches.8B.power_status }}',log: '{{ benches.8B.log }}',owner: '{{ benches.8B.owner }}' },
+              { name: "9B", manual_status: "{{ benches.9B.manual_status }}", id_powerMngmt: "{{ benches.9B.id_powerMngmt }}",power_status: '{{ benches.9B.power_status }}',log: '{{ benches.9B.log }}',owner: '{{ benches.9B.owner }}' },
+              { name: "10B", manual_status: "{{ benches.10B.manual_status }}", id_powerMngmt: "{{ benches.10B.id_powerMngmt }}",power_status: '{{ benches.10B.power_status }}',log: '{{ benches.10B.log }}',owner: '{{ benches.10A.owner }}' },
+              { name: "11B", manual_status: "{{ benches.11B.manual_status }}", id_powerMngmt: "{{ benches.11B.id_powerMngmt }}",power_status: '{{ benches.11B.power_status }}',log: '{{ benches.11B.log }}',owner: '{{ benches.11A.owner }}' },
+              { name: "12B", manual_status: "{{ benches.12B.manual_status }}", id_powerMngmt: "{{ benches.12B.id_powerMngmt }}",power_status: '{{ benches.12B.power_status }}',log: '{{ benches.12B.log }}',owner: '{{ benches.12A.owner }}' },
+              { name: "13B", manual_status: "{{ benches.13B.manual_status }}", id_powerMngmt: "{{ benches.13B.id_powerMngmt }}",power_status: '{{ benches.13B.power_status }}',log: '{{ benches.13B.log }}',owner: '{{ benches.13A.owner }}' },
+              { name: "14B", manual_status: "{{ benches.14B.manual_status }}", id_powerMngmt: "{{ benches.14B.id_powerMngmt }}",power_status: '{{ benches.14B.power_status }}',log: '{{ benches.14B.log }}',owner: '{{ benches.14A.owner }}' },
+              { name: "15B", manual_status: "{{ benches.15B.manual_status }}", id_powerMngmt: "{{ benches.15B.id_powerMngmt }}",power_status: '{{ benches.15B.power_status }}',log: '{{ benches.15B.log }}',owner: '{{ benches.15A.owner }}' },
+              { name: "16B", manual_status: "{{ benches.16B.manual_status }}", id_powerMngmt: "{{ benches.16B.id_powerMngmt }}",power_status: '{{ benches.16B.power_status }}',log: '{{ benches.16B.log }}',owner: '{{ benches.16A.owner }}' },
+              ];
+
+//window.onload=layDownRows();
+
+function layDownRows(){
+	for(i=0;i<myRows.length;i++){
+	    myButton=document.getElementById('rack-'+myRows[i].name);
+	    if(myRows[i].power_status==""){myButton.className='btn btn-default navbar-btn custom';}
+	    if(myRows[i].power_status=="0"){myButton.className='btn btn-danger navbar-btn custom';}
+	    if(myRows[i].power_status=="1"){myButton.className='btn btn-success navbar-btn custom';}
+	    if(myRows[i].owner!=login){myButton.disabled=true;}
+	    mySwitch=document.getElementById('onoffswitch-'+myRows[i].name);
+	    if(myRows[i].power_status==""){mySwitch.parentElement.style.display = "none";}
+	    if(myRows[i].power_status=="0"){mySwitch.checked=false;}
+	    if(myRows[i].power_status=="1"){mySwitch.checked=true;}
+	    if(myRows[i].owner!=login){mySwitch.disabled=true;}
+	}
+} 
+
+function Events_Validate(){
+    if($('#txtNewStartDate').val().length==0){
+      alert("Please fill up the Start Data field");
+      return;
+    }  
+    if($('#txtNewStartHour').val().length==0){
+      alert("Please fill up the Start Hour field");
+      return;
+    }  
+    if($('#txtNewStopDate').val().length==0){
+       alert("Please fill up the Stop Data field");
+       return;
+     }  
+    if($('#txtNewStopHour').val().length==0){
+        alert("Please fill up the Stop Hour field");
+        return;
+      }  
+    if($('#txtInterval').val().length==0){
+        alert("Please fill up the Interval field");
+        return;
+      }  
+     if(confirm('Are you sure?')){createScheduledTasks();}
+  }
+
+//function HideShow(fadeIn,fadeOut){
+//    if($('#'+fadeIn).css("display")!="none"){
+//      $('#'+fadeIn).fadeTo('fast',0,function(){
+//        $('#'+fadeIn).css("display","none");
+//        $('#'+fadeOut).fadeTo('fast',1);
+//      });
+//    } else {
+//      $('#'+fadeOut).fadeTo('fast',0,function(){
+//        $('#'+fadeOut).css("display","none");
+//        $('#'+fadeIn).fadeTo('fast',1);
+//      });
+//    }
+//  }
+
+
+function HideShow(fadeIn,fadeOut){
+	$('#'+fadeOut).modal('toggle');
+	$('#'+fadeIn).modal('toggle');
+}
 
 function getCookie(name) {
     var cookieValue = null;
@@ -32,10 +127,16 @@ if (ok) {
         }
 }
 
-function Manual_Change(rackName,idPowerMngmt,curr_status){
-	myDiv=document.getElementById(rackName);
-	if(curr_status=='true'){newStatus='0';}
-	else{newStatus='1';}
+function Manual_Change(rackName,curr_status){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    	newStatus=Math.abs(myRows[i].manual_status-1);
+	    }
+	}
+	//if(curr_status=='true'){newStatus='0';}
+	//else{newStatus='1';}
 	//myDiv=document.getElementById(rackName);
 	//myDiv.children[0].disabled=true;
 	$.ajax({
@@ -44,7 +145,7 @@ function Manual_Change(rackName,idPowerMngmt,curr_status){
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt,
-			modifier: '{{ login }}',
+			modifier: login,
 			newStatus:newStatus
 			},
 		success: changePowerStatus,
@@ -56,9 +157,18 @@ function Manual_Change(rackName,idPowerMngmt,curr_status){
 
 }
 
-function changeStatus(idPowerMngmt,modifier,curr_status){
-	if(curr_status=='danger'){newStatus='OFF';}
-		else{newStatus='ON';}
+function changeStatus(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    	myButton=document.getElementById('rack-'+myRows[i].name);
+	    	//newStatus=String(Math.abs(myRows[i].power_status-1));
+	    	if(myRows[i].power_status==0){newStatus='ON';myButton.className='btn btn-success navbar-btn custom';}
+	    	else{newStatus='OFF';myButton.className='btn btn-danger navbar-btn custom';}
+
+	    }
+	}
 	/*var csrftoken = getCookie('csrftoken');
 	$.ajaxSetup({
 	    beforeSend: function(xhr, settings) {
@@ -73,7 +183,7 @@ function changeStatus(idPowerMngmt,modifier,curr_status){
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt,
-			modifier: modifier,
+			modifier: login,
 			newStatus:newStatus
 			},
 		success: changePowerStatus,
@@ -84,6 +194,176 @@ function changeStatus(idPowerMngmt,modifier,curr_status){
 	});	
 
 }
+
+function getRackDetails(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    }
+	}
+	document.getElementById('createScheduleId').value=idPowerMngmt;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getRackDetails/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getRackDetailsExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+function getRackLog(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    }
+	}
+	document.getElementById('modalLogHeader').innerHTML='Log for Rack '+myRack;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getRackLog/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getRackLogExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+
+function getScheduledTasks(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    	newStatus=Math.abs(myRows[i].manual_status-1);
+	    }
+	}
+	document.getElementById('scheduleHeader').innerHTML='Rack '+myRack;
+	document.getElementById('createScheduleId').value=idPowerMngmt;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+function createScheduledTasks(){
+	/*alert(document.getElementById('createScheduleId').value);
+	alert(document.getElementById('txtNewStartDate').value);
+	alert(document.getElementById('txtNewStartHour').value);
+	alert(document.getElementById('txtNewStopDate').value);
+	alert(document.getElementById('txtNewStopHour').value);
+	alert(document.getElementById('txtInterval').value);*/
+	$.ajax({
+		type: "POST",
+		url: '/taws/createScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: document.getElementById('createScheduleId').value,
+			txtNewStartDate: document.getElementById('txtNewStartDate').value,
+			txtNewStartHour: document.getElementById('txtNewStartHour').value,
+			txtNewStopDate: document.getElementById('txtNewStopDate').value,
+			txtNewStopHour: document.getElementById('txtNewStopHour').value,
+			txtInterval: document.getElementById('txtInterval').value
+			},
+		success: createScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
+	$.ajax({
+		type: "POST",
+		url: '/taws/deleteScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerSchedule: idPowerSchedule,
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+
+var getRackDetailsExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	$('#actionModal').modal('toggle');
+	$('#editModal').modal('toggle');
+	document.getElementById('modalHeader').innerHTML='Rack Details';
+	document.getElementById('modalName').value=sersverResponse_data['name'];
+	document.getElementById('modalPin').value=sersverResponse_data['pin'];
+	document.getElementById('modalIP').value=sersverResponse_data['ip'];
+	document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+var getRackLogExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	$('#actionModal').modal('toggle');
+	$('#logModal').modal('toggle');
+	document.getElementById('modalLog').innerHTML=sersverResponse_data['log'];
+	document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+var createScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	$('#createScheduleModal').modal('toggle');
+	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+var getScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	$('#actionModal').modal('toggle');
+	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
 
 var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
@@ -107,7 +387,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 
 
         <div class="row">
-          <div class="col-lg-12">
+          <div class="col-sm-12">
             <div class="page-header">
               <h1 id="dialogs">Power Management</h1>
             </div>
@@ -117,7 +397,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
         <div class="row">
 		{% if powerLevel == '' %}
 			{% for lab in labs %}
-		        	<div class="col-lg-4" onclick="powerManager.action='/taws/powerManagement/?powerLevel=row';powerManager.lab.value='{{ lab.room }}';powerManager.submit();" id='{{ lab.room }}'>
+		        	<div class="col-sm-4" onclick="powerManager.action='/taws/powerManagement/?powerLevel=row';powerManager.lab.value='{{ lab.room }}';powerManager.submit();" id='{{ lab.room }}'>
 		                <div class="bs-component">
 		                   <div class="panel panel-primary">
 		                    <div class="panel-heading">
@@ -127,7 +407,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		                      <table>
 		                        <tbody><tr>
 		                          <td>
-		                            <img src="misc/logo.png" height="100" style="border-radius:10px">
+		                            <img src="{% static "images/power.png" %}" height="100" style="border-radius:10px">
 		                          </td><td style="padding:5px">
 		                            <b>{{ lab.room }}</b><br>
 		                            Test Plant SMOptics {{ lab.numRow }} rows {{ lab.numRacks }} racks                          </td>
@@ -141,7 +421,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		{% endif %}
 		{% if powerLevel == 'row' %}
 			{% for row in rows %}
-		        	<div class="col-lg-2" onclick="powerManager.action='/taws/powerManagement/?powerLevel=rack';powerManager.lab.value='{{ row.lab }}';powerManager.row.value='{{ row.row }}';powerManager.submit();" id='{{ lab.room }}'>
+		        	<div class="col-sm-2" onclick="powerManager.action='/taws/powerManagement/?powerLevel=rack';powerManager.lab.value='{{ row.lab }}';powerManager.row.value='{{ row.row }}';powerManager.submit();" id='{{ lab.room }}'>
 		                <div class="bs-component">
 		                   <div class="panel panel-primary">
 		                    <div class="panel-heading">
@@ -151,7 +431,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		                      <table>
 		                        <tbody><tr>
 		                          <td>
-		                            <img src="misc/logo.png" height="100" style="border-radius:10px">
+		                            <img src="{% static "images/power.png" %}" height="50" style="border-radius:10px">
 		                          </td><td style="padding:5px">
 		                            <b>Row {{ row.row }}</b><br>
 		                            Test Plant SMOptics {{ row.lab }} {{ row.numRacks }} racks                          </td>
@@ -164,352 +444,407 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			{% endfor %}
 		{% endif %}
 		{% if powerLevel == 'rack' %}
-	        	<div class="col-lg-12">
-	                <div class="bs-component">
-	                   <div class="panel panel-primary">
-	                    <div class="panel-heading">
-	                      <h3 class="panel-title">Room {{ lab }} Row {{ row }}</h3>
-	                    </div>
-	                    <div class="panel-body">
-	                      <table border=1 class="table">
-	                        <tbody>
-	                        <tr>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>3A</b><br>
-	                            {% if benches.3A %}
-		                            {{ benches.3A.name }}<br>
-		                            PIN {{ benches.3A.pin }}<br>
-		                            {{ benches.3A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.3A.pin }}','{{ benches.3A.ip }}','{{ benches.3A.power_status }}');" class="btn btn-{{ benches.3A.power_status }}">
-											<span class="glyphicon glyphicon-off" aria-hidden="true"></span>
-										</button>
-										<button type="button" class="btn btn-default">
-											<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-										</button><br>
-										<button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default" onclick="document.getElementById('modalHeader').innerHTML='Rack 3A';">
-											<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-										</button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>4A</b><br>
-	                            {% if benches.4A %}
-		                            {{ benches.4A.name }}<br>
-		                            PIN {{ benches.4A.pin }}<br>
-		                            {{ benches.4A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.4A.pin }}','{{ benches.4A.ip }}','{{ benches.4A.power_status }}');" class="btn btn-{{ benches.4A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>5A</b><br>
-	                            {% if benches.5A %}
-									<div class="wrap" style="margin-left:-15px;">
-		                              <label>
-		                                <input name="ManualACT" type="checkbox" class="ios-switch"{% if benches.5A.manual_status == 1 %}checked{% endif %} value="{% if benches.5A.manual_status == 0 %}false{% else %}true{% endif %}" id="chkManAct" onclick="Manual_Change('5A','{{ benches.5A.id_powerMngmt }}',this.value);">
-		                              <div><div></div></div></label>
-		                            </div>
-   									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group" id="5A">
-										<button {% if login != benches.5A.owner or benches.5A.manual_status == 1 %} disabled {% endif %} type="button" id='' onclick="changeStatus('{{ benches.5A.id_powerMngmt }}','{{ login }}','{{ benches.5A.power_status }}');" class="btn btn-{{ benches.5A.power_status }}">
-											<span class="glyphicon glyphicon-off" aria-hidden="true"></span>
-										</button>
-										<button {% if login != benches.5A.owner or benches.5A.manual_status == 0 %} disabled {% endif %} data-toggle="modal" data-target="#scheduleModal" type="button" class="btn btn{% if benches.5A.manual_status == 1 %}-info{% else %}-default{% endif %}">
-											<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-										</button><br>
-										<button data-toggle="modal" data-target="#editModal" type="button" class="btn btn-default" onclick="document.getElementById('modalHeader').innerHTML='Rack 5A';document.getElementById('modalName').value='{{ benches.5A.name }}';document.getElementById('modalPin').value='{{ benches.5A.pin }}';document.getElementById('modalIP').value='{{ benches.5A.ip }}';document.getElementById('rackOwner').value='{{ benches.5A.owner }}';">
-											<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-										</button>
-										<button data-toggle="modal" data-target="#logModal" type="button" class="btn btn-default" onclick="document.getElementById('modalLogHeader').innerHTML='Log for Rack 5A';document.getElementById('modalName').value='{{ benches.5A.name }}';document.getElementById('modalLog').innerHTML='{{ benches.5A.log }}';">
-											<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
-										</button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>6A</b><br>
-	                            {% if benches.6A %}
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button {% if login != benches.6A.owner %} disabled {% endif %}type="button" id='' onclick="changeStatus('{{ benches.6A.pin }}','{{ benches.6A.ip }}','{{ benches.6A.power_status }}');" class="btn btn-{{ benches.6A.power_status }}">
-											<span class="glyphicon glyphicon-off" aria-hidden="true"></span>
-										</button>
-										<button {% if login != benches.6A.owner %} disabled {% endif %} type="button" class="btn btn-default">
-											<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-										</button><br>
-										<button data-toggle="modal" data-target="#editModal" type="button" class="btn btn-default" onclick="document.getElementById('modalHeader').innerHTML='Rack 6A';document.getElementById('modalName').value='{{ benches.6A.name }}';document.getElementById('modalPin').value='{{ benches.6A.pin }}';document.getElementById('modalIP').value='{{ benches.6A.ip }}';document.getElementById('rackOwner').value='{{ benches.6A.owner }}';">
-											<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-										</button>
-										<button data-toggle="modal" data-target="#logModal" type="button" class="btn btn-default" onclick="document.getElementById('modalLogHeader').innerHTML='Log for Rack 6A';document.getElementById('modalName').value='{{ benches.6A.name }}';document.getElementById('modalLog').innerHTML='{{ benches.6A.log }}';">
-											<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
-										</button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>7A</b><br>
-	                            {% if benches.7A %}
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.7A.pin }}','{{ benches.7A.ip }}','{{ benches.7A.power_status }}');" class="btn btn-{{ benches.7A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>8A</b><br>
-	                            {% if benches.8A %}
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.8A.pin }}','{{ benches.8A.ip }}','{{ benches.8A.power_status }}');" class="btn btn-{{ benches.8A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>9A</b><br>
-	                            {% if benches.9A %}
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.9A.pin }}','{{ benches.9A.ip }}','{{ benches.9A.power_status }}');" class="btn btn-{{ benches.9A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>10A</b><br>
-	                            {% if benches.10A %}
-		                            {{ benches.10A.name }}<br>
-		                            PIN {{ benches.10A.pin }}<br>
-		                            {{ benches.10A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.10A.pin }}','{{ benches.10A.ip }}','{{ benches.10A.power_status }}');" class="btn btn-{{ benches.10A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>11A</b><br>
-	                            {% if benches.11A %}
-		                            {{ benches.11A.name }}<br>
-		                            PIN {{ benches.11A.pin }}<br>
-		                            {{ benches.11A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.11A.pin }}','{{ benches.11A.ip }}','{{ benches.11A.power_status }}');" class="btn btn-{{ benches.11A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>12A</b><br>
-	                            {% if benches.12A %}
-		                            {{ benches.12A.name }}<br>
-		                            PIN {{ benches.12A.pin }}<br>
-		                            {{ benches.12A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.12A.pin }}','{{ benches.12A.ip }}','{{ benches.12A.power_status }}');" class="btn btn-{{ benches.12A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>13A</b><br>
-	                            {% if benches.13A %}
-		                            {{ benches.13A.name }}<br>
-		                            PIN {{ benches.13A.pin }}<br>
-		                            {{ benches.13A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.13A.pin }}','{{ benches.13A.ip }}','{{ benches.13A.power_status }}');" class="btn btn-{{ benches.13A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>14A</b><br>
-	                            {% if benches.14A %}
-		                            {{ benches.14A.name }}<br>
-		                            PIN {{ benches.14A.pin }}<br>
-		                            {{ benches.14A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.14A.pin }}','{{ benches.14A.ip }}','{{ benches.14A.power_status }}');" class="btn btn-{{ benches.14A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>15A</b><br>
-	                            {% if benches.15A %}
-		                            {{ benches.15A.name }}<br>
-		                            PIN {{ benches.15A.pin }}<br>
-		                            {{ benches.15A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.15A.pin }}','{{ benches.15A.ip }}','{{ benches.15A.power_status }}');" class="btn btn-{{ benches.15A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>16A</b><br>
-	                            {% if benches.16A %}
-		                            {{ benches.16A.name }}<br>
-		                            PIN {{ benches.16A.pin }}<br>
-		                            {{ benches.16A.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.16A.pin }}','{{ benches.16A.ip }}','{{ benches.16A.power_status }}');" class="btn btn-{{ benches.16A.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                        </tr>
-	                        <tr>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>3B</b><br>
-	                            {% if benches.3B %}
-		                            {{ benches.3B.name }}<br>
-		                            PIN {{ benches.3B.pin }}<br>
-		                            {{ benches.3B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.3B.pin }}','{{ benches.3B.ip }}','{{ benches.3B.power_status }}');" class="btn btn-{{ benches.3B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>4B</b><br>
-	                            {% if benches.4B %}
-		                            {{ benches.4B.name }}<br>
-		                            PIN {{ benches.4B.pin }}<br>
-		                            {{ benches.4B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.4B.pin }}','{{ benches.4B.ip }}','{{ benches.4B.power_status }}');" class="btn btn-{{ benches.4B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>5B</b><br>
-	                            {% if benches.5B %}
-		                            {{ benches.5B.name }}<br>
-		                            PIN {{ benches.5B.pin }}<br>
-		                            {{ benches.5B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.5B.pin }}','{{ benches.5B.ip }}','{{ benches.5B.power_status }}');" class="btn btn-{{ benches.5B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>6B</b><br>
-	                            {% if benches.6B %}
-		                            {{ benches.6B.name }}<br>
-		                            PIN {{ benches.6B.pin }}<br>
-		                            {{ benches.6B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.6B.pin }}','{{ benches.6B.ip }}','{{ benches.6B.power_status }}');" class="btn btn-{{ benches.6B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>7B</b><br>
-	                            {% if benches.7B %}
-		                            {{ benches.7B.name }}<br>
-		                            PIN {{ benches.7B.pin }}<br>
-		                            {{ benches.7B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.7B.pin }}','{{ benches.7B.ip }}','{{ benches.7B.power_status }}');" class="btn btn-{{ benches.7B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>8B</b><br>
-	                            {% if benches.8B %}
-		                            {{ benches.8B.name }}<br>
-		                            PIN {{ benches.8B.pin }}<br>
-		                            {{ benches.8B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.8B.pin }}','{{ benches.8B.ip }}','{{ benches.8B.power_status }}');" class="btn btn-{{ benches.8B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>9B</b><br>
-	                            {% if benches.9B %}
-		                            {{ benches.9B.name }}<br>
-		                            PIN {{ benches.9B.pin }}<br>
-		                            {{ benches.9B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.9B.pin }}','{{ benches.9B.ip }}','{{ benches.9B.power_status }}');" class="btn btn-{{ benches.9B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>10B</b><br>
-	                            {% if benches.10B %}
-		                            {{ benches.10B.name }}<br>
-		                            PIN {{ benches.10B.pin }}<br>
-		                            {{ benches.10B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.10B.pin }}','{{ benches.10B.ip }}','{{ benches.10B.power_status }}');" class="btn btn-{{ benches.10B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>11B</b><br>
-	                            {% if benches.11B %}
-		                            {{ benches.11B.name }}<br>
-		                            PIN {{ benches.11B.pin }}<br>
-		                            {{ benches.11B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.11B.pin }}','{{ benches.11B.ip }}','{{ benches.11B.power_status }}');" class="btn btn-{{ benches.11B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>12B</b><br>
-	                            {% if benches.12B %}
-		                            {{ benches.12B.name }}<br>
-		                            PIN {{ benches.12B.pin }}<br>
-		                            {{ benches.12B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.12B.pin }}','{{ benches.12B.ip }}','{{ benches.12B.power_status }}');" class="btn btn-{{ benches.12B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>13B</b><br>
-	                            {% if benches.13B %}
-		                            {{ benches.13B.name }}<br>
-		                            PIN {{ benches.13B.pin }}<br>
-		                            {{ benches.13B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.13B.pin }}','{{ benches.13B.ip }}','{{ benches.13B.power_status }}');" class="btn btn-{{ benches.13B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>14B</b><br>
-	                            {% if benches.14B %}
-		                            {{ benches.14B.name }}<br>
-		                            PIN {{ benches.14B.pin }}<br>
-		                            {{ benches.14B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooModal Headerltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.14B.pin }}','{{ benches.14B.ip }}','{{ benches.14B.power_status }}');" class="btn btn-{{ benches.14B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>15B</b><br>
-	                            {% if benches.15B %}
-		                            {{ benches.15B.name }}<br>
-		                            PIN {{ benches.15B.pin }}<br>
-		                            {{ benches.15B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.15B.pin }}','{{ benches.15B.ip }}','{{ benches.15B.power_status }}');" class="btn btn-{{ benches.15B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                          <td style="padding:5px" VALIGN="TOP">
-	                            <b>16B</b><br>
-	                            {% if benches.16B %}
-		                            {{ benches.16B.name }}<br>
-		                            PIN {{ benches.16B.pin }}<br>
-		                            {{ benches.16B.ip }}<br>
-									<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group">
-										<button type="button" id='' onclick="changeStatus('{{ benches.16B.pin }}','{{ benches.16B.ip }}','{{ benches.16B.power_status }}');" class="btn btn-{{ benches.16B.power_status }}"><span class="glyphicon glyphicon-off" aria-hidden="true"></span></button><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></button><button data-toggle="modal" data-target="#myModal" type="button" class="btn btn-default"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
-									</div>
-		                        {% endif %}
-	                          </td>
-	                        </tr>
-	                      </tbody></table>
-	                    </div>
-	                  </div>
-	                </div>
-	              </div>
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h3 class="panel-title">Room {{ lab }} Row {{ row }}</h3>
+  </div>
+  <div class="panel-body">
+   
+
+
+	<header class="navbar navbar-default">
+	    <div class="container">
+		<div class="navbar-header">
+		    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-navbar-collapse-1">
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		    </button>
+		</div>
+		
+		<!-- Collect the nav links, forms, and other content for toggling -->
+               <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">   
+
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-3A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">3A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-3A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-3A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-4A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">4A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-4A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-4A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">5A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-5A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">6A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-6A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">7A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-7A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">8A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-8A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-9A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">9A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-9A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-9A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">10A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-10A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11A">11A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-11A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12A">12A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-12A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13A">13A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-13A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14A">14A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-14A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15A">15A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-15A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16A">16A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-16A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		</div><!--/.navbar-collapse -->
+	    </div><!--/.navbar-container -->
+	</header>
+
+
+
+
+
+
+
+
+	<header class="navbar navbar-default">
+	    <div class="container">
+		<div class="navbar-header">
+		    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-navbar-collapse-2">
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		    </button>
+		</div>
+		
+		<!-- Collect the nav links, forms, and other content for toggling -->
+               <div class="collapse navbar-collapse" id="bs-navbar-collapse-2">   
+
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-3B">3B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-3B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-3B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-4B">4B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-4B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-4B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5B">5B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-5B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6B">6B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-6B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7B">7B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-7B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8B">8B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-8B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-9B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">9B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-9B" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-9B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10B">10B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-10B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11B">11B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-11B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12B">12B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-12B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13B">13B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-13B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14B">14B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-14B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15B">15B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-15B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16B">16B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-16B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		</div><!--/.navbar-collapse -->
+	    </div><!--/.navbar-container -->
+	</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div><!--/.panel body -->
+</div><!--/.panel-->
 		{% endif %}
          </div>
 
@@ -555,7 +890,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h4 class="modal-title"><div id='modalLogHeader' /></h4>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="height:200px;overflow-y:auto;">
 			<table>
 				<tr><td><div id="modalLog"></div></td></tr>
 		    </table>
@@ -569,70 +904,129 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 </div>
 
 <div id="scheduleModal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <div class="modeswitch col-sm-2">
+			    <input type="checkbox" name="onoffswitch" class="modeswitch-checkbox" id="modeswitch-9B" checked onclick='changeStatus(this.id);'>
+			    <label class="modeswitch-label" for="modeswitch-9B">
+				<span class="modeswitch-inner"></span>
+				<span class="modeswitch-switch"></span>
+			    </label>
+		     </div>
+		    <div class="col-sm-4">
+	        	<h4 class="modal-title"><div id='scheduleHeader'></div></h4>
+	        </div>
+	      </div>
+	      <div class="modal-body">
+				<table class="table">
+					<thead><tr><th>Next Shut Down Time</th><th>Next Power On Time</th><th>Recurring Interval</th><th></th></tr></thead>
+					<tbody id="scheduleBody"></tbody>
+					<!--<tfoot><tr><td colspan="4" align="right">
+				        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createScheduleModal" onclick="HideShow('createScheduleModal','scheduleModal');">New Schedule</button>
+				    </td></tr></tfoot>-->
+			    </table>
+	      </div>
+	      <div class="modal-footer">
+			<a href="javascript:HideShow('createScheduleModal','scheduleModal');" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px">New Schedule</a>
+	      </div>
+	    </div>
 
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-body">
-	   <div class="bs-component">
-	     <div class="panel panel-info">
-	       <div class="panel-heading">
-	         <h3 class="panel-title">Power Management Plan</h3>
-	       </div>
-	       <div class="panel-body" id="divEvents1" style="opacity: 1; display: block;">
-	          <table style="width:100%;margin-top:-5px;text-align:center;font-size:90%">
-	            <tbody><tr>
-	              <td><b>Hours</b></td>
-	              <td><b>Interval</b></td>
-	              <td><b>Next power off</b></td>
-	              <td></td>
-	            </tr>
-	            <form name="frmDeleteEvent_0" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_0.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="1"><form name="frmDeleteEvent_1" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_1.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="2"><form name="frmDeleteEvent_2" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_2.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="3"><form name="frmDeleteEvent_3" method="post" action=""></form><tr><td>1</td><td>1 Day</td><td>2016-11-12 16:30</td><td><a href="javascript:frmDeleteEvent_3.submit();" onclick="return confirm(&quot;Are you sure?&quot;);"><img src="misc/img_delete.png" width="20"></a></td></tr><input type="hidden" name="DeleteEvent" value="4">                  </tbody></table>
-	                                <a href="javascript:Events_HideShow(1,2);" class="btn btn-primary input-sm" style="padding-top:4px;position:absolute;bottom:0;margin-left:90px;margin-bottom:20px">
-	                  New Power off</a>
-	              </div>
-	              <form id="frmNewEvent" action="" method="post">
-	                <div class="panel-body" id="divEvents2" style="text-align: center; opacity: 0; display: none;">
-	                  <table style="width:100%;margin-top:-8px"><tbody><tr>
-	                    <td><b>Power off every</b></td>
-	                    <td>
-	                      <label for="NewEvent_weeks">Weeks</label><br>
-	                      <input id="txtNewWeeks" style="width:60px;display:inline-block" type="number" name="NewEvent_weeks" class="form-control input-sm">
-	                    </td><td>
-	                      &nbsp;<label for="NewEvent_days">Days</label><br>
-	                      <input id="txtNewDays" style="width:60px;display:inline-block" type="number" name="NewEvent_days" class="form-control input-sm">
-	                    </td>
-	                  </tr><tr>
-	                    <td colspan="4" style="padding-top:10px;padding-bottom:10px">
-	                      <label for="NewEvent_liters">Starting from&nbsp;&nbsp;&nbsp;</label>
-	                      <input id="txtNewStartDate" style="width:124px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
-	                      <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
-	                    </td>
-	                  </tr></tbody></table>
-	                  
-	                  <a href="javascript:Events_HideShow(2,1);" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
-	                        Back</a>
-	                  &nbsp;&nbsp;&nbsp;
-	                  <a href="javascript:Events_Validate1();" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px">
-	                        Next</a>
-	                </div>
-	                <div class="panel-body" id="divEvents3" style="display:none;text-align:center;">
-	                  <table style="width:100%;margin-top:-8px"><tbody><tr>
-	                    <td colspan="3" style="padding-top:10px;padding-bottom:10px">
-	                      <label for="NewEvent_liters">Hours for every power off&nbsp;&nbsp;&nbsp;</label>
-	                      <input id="txtNewLiters" style="width:60px;display:inline-block" type="number" name="NewEvent_liters" class="form-control input-sm">
-	                    </td>
-	                  </tr></tbody></table>
-	                  
-	                  <a href="javascript:Events_HideShow(3,2);" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:56px">
-	                        Back</a>
-	                  &nbsp;&nbsp;&nbsp;
-	                  <input type="submit" class="btn btn-primary input-sm" onclick="return Events_Validate2();" style="padding-top:4px;margin-top:56px" value="Confirm">
-	                </div>
-	              </form>
-	           </div>
 	  </div>
 </div>
+
+<div id="actionModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h2 class="modal-title">Action Available
+	        </h2>
+	      </div>
+	      <div class="modal-body">
+				<table class="table">
+					<tr>
+						<div class="btn-group btn-group-lg" data-toggle="tooltip" title="Change Power Status" role="group" id="actionID" name="">
+							<button type="button" class="btn btn-primary" onclick="getScheduledTasks(this.parentElement.name);">
+								Schedule Switch&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+							</button>
+							<button type="button" class="btn btn-primary" onclick="getRackDetails(this.parentElement.name);">
+								Rack Details&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+							</button>
+							<button type="button" class="btn btn-primary" onclick="getRackLog(this.parentElement.name);">
+								History Log&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+							</button>
+						</div>
+			    </table>
+	      </div>
+	      <div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+
+	  </div>
+</div>
+<div id="createScheduleModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Create New Schedule</h4>
+	      </div>
+	      <div class="modal-body">
+	      	<form action="">
+	      		<input type="hidden" id="createScheduleId" value="" />
+               <table>
+               	<tbody>
+               		<tr>
+		                 <td>
+		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td align="left">
+		                   <input id="txtNewStartDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
+		                   <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
+		                 </td>
+	               </tr>
+	               <tr>
+		                 <td>
+		                 	<b>Power on at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td align="left">
+		                   <input id="txtNewStopDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_stopdate" class="form-control input-sm">
+		                   <input id="txtNewStopHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_stoptime" class="form-control input-sm">
+		                 </td>
+		           </tr>
+		           <tr>
+		                 <td colspan="2" style="padding-top:10px;padding-bottom:10px">
+		                   <label for="NewEvent_liters">Repeat Every &nbsp;&nbsp;&nbsp;</label>
+		                   <input id="txtInterval" style="width:60px;display:inline-block" type="number" name="NewEvent_weeks" class="form-control input-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                   <label for="NewEvent_days">Days</label>
+		                   <!--<input id="txtNewDays" style="width:60px;display:inline-block" type="number" name="NewEvent_days" class="form-control input-sm">-->
+		                 </td>
+	               </tr>
+	            </tbody>
+	          </table>
+		  </form>
+	    </div>
+	      <div class="modal-footer">
+               <a href="javascript:HideShow('scheduleModal','createScheduleModal');" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
+                     Back</a>
+               &nbsp;&nbsp;&nbsp;
+               <input type="button" onclick="return Events_Validate();" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px" value="Create" />
+	      </div>
+	    </div>
+
+</div>
+
+
+<script>layDownRows();</script>
 
 {% endblock %}
 

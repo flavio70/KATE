@@ -89,7 +89,7 @@ function saveValues(action){
 	}
 	bench.debugInterface.value=bench.debugInterface.value.slice(0,-1)
 	bench.credList.value='';
-	for(i=0;i<document.getElementById('credTable').rows.length;i++){
+	for(i=0;i<document.getElementById('credTable').rows.length-1;i++){
 		bench.credList.value+=document.getElementById('credTable').rows[i].cells[2].children[0].value+'#';
 		bench.credList.value+=document.getElementById('credTable').rows[i].cells[4].firstChild.value+'#';
 		bench.credList.value+=document.getElementById('credTable').rows[i].cells[6].firstChild.value+'$';
@@ -252,7 +252,7 @@ if('{{ createReport }}'!=''){
 								<td align="left" style="padding:10px;"><label class="title">Slot</label></td>
 								<td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="{{ serial.slot }}"  tabindex="24"></td>
 								<td align="center" style="padding:0px;"><label class="title">SubSlot</label></td>
-								<td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="{{ serial.subSlot }}"  tabindex="25"></td>
+								<td align="center" style="padding:0px;"><input type="text" id="" maxlength="2" value="{{ serial.subslot }}"  tabindex="25"></td>
 							</tr>
 						{% endfor %}
 				</table>
