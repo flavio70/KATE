@@ -1151,7 +1151,7 @@ def add_bench(request):
 	if action == 'create': bench=''
 
 	debugInterface=request.POST.get('debugInterface','')
-	credList=request.POST.get('credList','').split('$')
+	credList=request.POST.get('credList','')
 
 	name=''
 	ip='...'
@@ -1182,8 +1182,11 @@ def add_bench(request):
 		row=myRecordSet.fetchone()
 		if row['myCount'] > 0:createReport+='IP ADDRESS '+POSTip1+'.'+POSTip2+'.'+POSTip3+'.'+POSTip4+' already in use\\n'
 		if debugInterface != '':
-			debugInterface=debugInterface.split('$')
-			for myITF in debugInterface:
+			if debugInterface.rfind('$')>=0:
+				debugInterfaceAry=debugInterface.split('$')
+			else:
+				debugInterfaceAry=[debugInterface]
+			for myITF in debugInterfaceAry:
 				tempFields=myITF.split('#')
 				myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET_id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_SERIAL.T_EQUIPMENT_id_equipment<>'"+bench+"' limit 1")
 				#createReport+="SELECT count(*) as myCount FROM T_SERIAL join T_NET on(id_ip=T_NET.id_ip) WHERE IP='"+tempFields[0]+"' and port="+tempFields[1]+" and T_NET.inUse=1 and T_NET.T_EQUIPMENT_id_equipment<>'"+bench+"'"
@@ -1199,11 +1202,12 @@ def add_bench(request):
 			myRecordSet.execute("INSERT INTO T_LOCATION (site,room,row,rack,pos) VALUES ('"+POSTsite+"','"+POSTroom+"','"+POSTrow+"','"+POSTrack+"','"+POSTpos+"')")
 			dbConnection.commit()
 			myRecordSet.execute("SELECT id_location from T_LOCATION WHERE site='"+POSTsite+"' and room='"+POSTroom+"' and row='"+POSTrow+"' and rack='"+POSTrack+"' and pos='"+POSTpos+"'")
+			row=myRecordSet.fetchone()
 		id_location=row['id_location']
 		myRecordSet.execute("SELECT id_scope from T_SCOPE WHERE description='"+POSTscope+"' limit 1")
 		id_scope=myRecordSet.fetchone()['id_scope']
 		if action == 'create':
-			myRecordSet.execute("INSERT INTO T_EQUIPMENT (name, T_EQUIP_TYPE_id_type, T_LOCATION_id_location, T_SCOPE_id_scope, T_PACKAGES_id_pack, owner, inUse, description, note) VALUES ('"+POSTname+"', "+str(id_type)+", "+str(id_location)+", "+str(id_scope)+", null, '"+POSTreference+"', 1, '"+POSTdescription+"', '"+POSTnote+"')")
+			myRecordSet.execute("INSERT INTO T_EQUIPMENT (name, T_EQUIP_TYPE_id_type, T_LOCATION_id_location, T_SCOPE_id_scope, T_PACKAGES_id_pack, owner, inUse, description, note) VALUES ('"+POSTname+"', "+str(id_type)+", "+str(id_location)+", "+str(id_scope)+", null, '"+POSTreference+"', 0, '"+POSTdescription+"', '"+POSTnote+"')")
 			dbConnection.commit()
 			myRecordSet.execute("SELECT id_equipment from T_EQUIPMENT WHERE name='"+POSTname+"' limit 1")
 			id_equipment=myRecordSet.fetchone()['id_equipment']
@@ -1227,30 +1231,37 @@ def add_bench(request):
 		dbConnection.commit()
 		myRecordSet.execute("DELETE from T_SERIAL where T_EQUIPMENT_id_equipment="+str(id_equipment))
 		dbConnection.commit()
-		for myITF in debugInterface:
-			tempFields=myITF.split('#')
-			myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+tempFields[0]+"'")
-			id_ip=str(myRecordSet.fetchone()['id_ip'])
-			myRecordSet.execute("UPDATE T_NET SET inUse=1 where id_ip="+id_ip)
+		if debugInterface != '':
+			if debugInterface.rfind('$')>=0:
+				debugInterfaceAry=debugInterface.split('$')
+			else:
+				debugInterfaceAry=[debugInterface]
+			for myITF in debugInterfaceAry:
+				tempFields=myITF.split('#')
+				myRecordSet.execute("SELECT id_ip from T_NET WHERE IP='"+tempFields[0]+"'")
+				id_ip=str(myRecordSet.fetchone()['id_ip'])
+				myRecordSet.execute("UPDATE T_NET SET inUse=1 where id_ip="+id_ip)
+				dbConnection.commit()
+				#myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL  WHERE T_NET_id_ip="+id_ip+" and port="+tempFields[1]+" and inUse=1")
+				#if myRecordSet.fetchone()['myCount']>0:
+				#	myRecordSet.execute("UPDATE T_SERIAL SET inUse=1 where id_ip="+id_ip+" and port="+tempFields[1])
+				#	dbConnection.commit()
+				#else:
+				if tempFields[2] == '':tempFields[2]='0'
+				if tempFields[3] == '':tempFields[3]='0'
+				myRecordSet.execute("INSERT INTO T_SERIAL (inUse, T_NET_id_ip, port, T_EQUIPMENT_id_equipment, slot, subslot, note) VALUES (1,'"+id_ip+"','"+tempFields[1]+"',"+str(id_equipment)+",'"+tempFields[2]+"','"+tempFields[3]+"','')")
+				dbConnection.commit()
+		
+		if credList != '':
+			credList=credList.split('$')
+			myRecordSet.execute("DELETE from T_EQPT_CRED where T_EQUIPMENT_id_equipment="+str(id_equipment))
 			dbConnection.commit()
-			#myRecordSet.execute("SELECT count(*) as myCount FROM T_SERIAL  WHERE T_NET_id_ip="+id_ip+" and port="+tempFields[1]+" and inUse=1")
-			#if myRecordSet.fetchone()['myCount']>0:
-			#	myRecordSet.execute("UPDATE T_SERIAL SET inUse=1 where id_ip="+id_ip+" and port="+tempFields[1])
-			#	dbConnection.commit()
-			#else:
-			if tempFields[2] == '':tempFields[2]='0'
-			if tempFields[3] == '':tempFields[3]='0'
-			myRecordSet.execute("INSERT INTO T_SERIAL (inUse, T_NET_id_ip, port, T_EQUIPMENT_id_equipment, slot, subslot, note) VALUES (1,'"+id_ip+"','"+tempFields[1]+"',"+str(id_equipment)+",'"+tempFields[2]+"','"+tempFields[3]+"','')")
-			dbConnection.commit()
-
-		myRecordSet.execute("DELETE from T_EQPT_CRED where T_EQUIPMENT_id_equipment="+str(id_equipment))
-		dbConnection.commit()
-		for myITF in credList:
-			tempFields=myITF.split('#')
-			#if tempFields[1] == '':tempFields[1]='0'
-			#if tempFields[2] == '':tempFields[2]='0'
-			myRecordSet.execute("INSERT INTO T_EQPT_CRED (T_EQPT_CRED_TYPE_id_cred_type, T_EQUIPMENT_id_equipment, usr, pwd) VALUES ("+str(tempFields[0])+", "+str(id_equipment)+", '"+str(tempFields[1])+"','"+str(tempFields[2])+"')")
-			dbConnection.commit()
+			for myITF in credList:
+				tempFields=myITF.split('#')
+				#if tempFields[1] == '':tempFields[1]='0'
+				#if tempFields[2] == '':tempFields[2]='0'
+				myRecordSet.execute("INSERT INTO T_EQPT_CRED (T_EQPT_CRED_TYPE_id_cred_type, T_EQUIPMENT_id_equipment, usr, pwd) VALUES ("+str(tempFields[0])+", "+str(id_equipment)+", '"+str(tempFields[1])+"','"+str(tempFields[2])+"')")
+				dbConnection.commit()
 		
 		bench=id_equipment
 
@@ -2182,52 +2193,174 @@ def changePowerStatus(request):
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
 	#return {'switchReport':switchReport}
 
+def getScheduledTasks(request):
 	
+	import json
+	import mysql.connector
+	
+	#context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	SQL="select * from T_POWER_SCHEDULE where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
+	myRecordSet.execute(SQL)
+	scheduled=[]
+	for row in myRecordSet:
+		scheduled.append({'id_powerSchedule':str(row["idT_POWER_SCHEDULE"]),
+			'start_time':str(row["start_time"]),
+			'stop_time':str(row["stop_time"]),
+			'interval':str(int(row["interval"])/1440)
+		})
+
+	context_dict={'login':request.session['login'],
+		'scheduled':scheduled,
+		'idPowerMngmt':idPowerMngmt
+	}
+	print('Get Scheduled Task')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+
+
+def getRackLog(request):
+	
+	import json
+	import mysql.connector
+	
+	#context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	myRecordSet.execute("SET group_concat_max_len = 200000")
+	dbConnection.commit()
+	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	SQL="select group_concat(concat(last_change,' - ',modifier,' ',remarks) order by last_change desc separator '<br>') as log from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
+	myRecordSet.execute(SQL)
+	row=myRecordSet.fetchone()
+
+	context_dict={'login':request.session['login'],
+			'log':row["log"]
+		}
+	#location=row["T_LOCATION_id_location"]
+	#SQL="select * from T_EQUIPMENT where T_LOCATION_id_location="+location
+	#myRecordSet.execute(SQL)
+	#row=myRecordSet.fetchone()
+
+	print('Get Rack Details')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+
+def getRackDetails(request):
+	
+	import json
+	import mysql.connector
+	
+	#context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	SQL="select * from T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=T_LOCATION_id_location) join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	myRecordSet.execute(SQL)
+	row=myRecordSet.fetchone()
+
+	context_dict={'login':request.session['login'],
+			'idPowerMngmt':idPowerMngmt,
+			'name':str(row["name"]),
+			'pin':str(row["pin"]),
+			'ip':row["IP"],
+			'owner':row["owner"]
+		}
+	#location=row["T_LOCATION_id_location"]
+	#SQL="select * from T_EQUIPMENT where T_LOCATION_id_location="+location
+	#myRecordSet.execute(SQL)
+	#row=myRecordSet.fetchone()
+
+	print('Get Rack Details')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+
+def deleteScheduledTasks(request):
+	
+	import json
+	import mysql.connector
+	
+	#context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	idPowerSchedule=request.POST.get('idPowerSchedule','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	SQL="delete from T_POWER_SCHEDULE where idT_POWER_SCHEDULE="+idPowerSchedule
+	myRecordSet.execute(SQL)
+	dbConnection.commit()
+	
+	SQL="select * from T_POWER_SCHEDULE where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
+	myRecordSet.execute(SQL)
+	scheduled=[]
+	for row in myRecordSet:
+		scheduled.append({'id_powerSchedule':str(row["idT_POWER_SCHEDULE"]),
+			'start_time':str(row["start_time"]),
+			'stop_time':str(row["stop_time"]),
+			'interval':row["interval"]
+		})
+
+	context_dict={'login':request.session['login'],
+		'scheduled':scheduled,
+		'idPowerMngmt':idPowerMngmt
+	}
+	print('Delete Scheduled Task')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+
+def createScheduledTasks(request):
+	
+	import json
+	import mysql.connector
+	
+	#context = RequestContext(request)
+	idPowerMngmt=request.POST.get('idPowerMngmt','')
+	txtNewStartDate=request.POST.get('txtNewStartDate','')
+	txtNewStartHour=request.POST.get('txtNewStartHour','')
+	txtNewStopDate=request.POST.get('txtNewStopDate','')
+	txtNewStopHour=request.POST.get('txtNewStopHour','')
+	txtInterval=request.POST.get('txtInterval','')
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
+	SQL="insert into T_POWER_SCHEDULE (T_POWER_MNGMT_id_powerMngmt, start_time, stop_time, T_POWER_SCHEDULE.interval) VALUES('"+idPowerMngmt+"','"+txtNewStartDate+" "+txtNewStartHour+"','"+txtNewStopDate+" "+txtNewStopHour+"','"+str(int(txtInterval)*1440)+"')"
+	myRecordSet.execute(SQL)
+	dbConnection.commit()
+	
+	SQL="select * from T_POWER_SCHEDULE where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
+	myRecordSet.execute(SQL)
+	scheduled=[]
+	for row in myRecordSet:
+		scheduled.append({'id_powerSchedule':str(row["idT_POWER_SCHEDULE"]),
+			'start_time':str(row["start_time"]),
+			'stop_time':str(row["stop_time"]),
+			'interval':row["interval"]
+		})
+
+	context_dict={'login':request.session['login'],
+		'scheduled':scheduled,
+		'idPowerMngmt':idPowerMngmt
+	}
+	print('Create Scheduled Task')
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+
 def power_management(request):
 	
-	import time
-	
+	import mysql.connector
+
 	context_dict={'nothing':'nothing'}
 	powerLevel=request.GET.get('powerLevel','')
-
-	import xmlrpc.client 
-	proxy = xmlrpc.client.ServerProxy("http://151.98.64.32:8080/")
-	#methods = proxy.setGPIO([{'gpio':'2','status':'ON'},{'gpio':'3','status':'ON'},{'gpio':'4','status':'ON'},{'gpio':'5','status':'ON'},{'gpio':'6','status':'ON'},{'gpio':'7','status':'ON'},{'gpio':'8','status':'ON'},{'gpio':'9','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'3','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'4','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'5','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'6','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'7','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'8','status':'ON'}])
-	#time.sleep(1)
-	#methods = proxy.setGPIO([{'gpio':'9','status':'ON'}])
-	#methods = proxy.setGPIO([{'gpio':'2','status':'OFF'}])
-	#time.sleep(2)
-	#methods = proxy.setGPIO([{'gpio':'2','status':'ON'}])
-	#time.sleep(2)
-	#methods = proxy.setGPIO([{'gpio':'2','status':'OFF'}])
-	#time.sleep(2)
-	#methods = proxy.setGPIO([{'gpio':'2','status':'ON'}])
-
-	#context_dict={'login':request.session['login'].upper(),'methods':methods}
-	#return render_to_response('taws/power_management.html',context_dict,context)
-	import mysql.connector
-	#from django.utils.safestring import mark_safe
 
 	context = RequestContext(request)
 	if 'login' not in request.session:
 		fromPage = request.META.get('HTTP_REFERER')
-		context_dict={'fromPage':'power_management',
-    'gitlaburl':settings.GITLAB['HOST'],
-    'jenkinsurl':settings.JENKINS['HOST'],
-    'jiraurl':settings.JIRA['HOST'],
-    'wikiurl':settings.WIKI['HOST']}
+		context_dict={'fromPage':'power_management'}
 		return render_to_response('taws/login.html',context_dict,context)
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
@@ -2271,8 +2404,10 @@ def power_management(request):
 		myrow=request.POST.get('row','')
 		#SQL="select powerTable.owner,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status from (select * from (SELECT * FROM T_POWER_MNGMT order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
 		#SQL="select powerTable.owner,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
-		SQL="select id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
+		SQL="select id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,power_status from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
+		#SQL="select scheduling,id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment) left join (select T_POWER_MNGMT_id_powerMngmt,group_concat(concat('<tr><td>',start_time,'</td><td>',stop_time,'</td><td>',T_POWER_SCHEDULE.interval,'</td><td><button type=\\\\'button\\\\' onclick=\\\"deleteSchedule(this);\\\" class=\\\"btn btn-primary\\\"><span class=\\\"glyphicon glyphicon-trash\\\" aria-hidden=\\\"true\\\"></span></button></td></tr>') separator '') as scheduling from T_POWER_SCHEDULE group by T_POWER_MNGMT_id_powerMngmt) as T_POWER_SCHEDULE using(T_POWER_MNGMT_id_powerMngmt)"
 		#SQL="SELECT *,netBench.IP as benchIP,netBench.NM as benchNM,netBench.GW as benchGW,group_concat(concat(ip1.ip,':',port,' ','Slot ',if(slot is null,'-',slot),' SubSlot ',if(subslot is null,'-',subslot)) separator '<br>') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET as netBench on(netBench.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) group by id_equipment"
+		
 		myRecordSet.execute(SQL)
 		benches={'3A':{},
 				'3B':{},
@@ -2313,7 +2448,6 @@ def power_management(request):
 				'ip':row["ip"],
 				'pin':row["pin"],
 				'owner':row["owner"],
-				'log':row["log"],
 				'id_equipment':row["id_equipment"],
 				'id_location':row["id_location"],
 				'power_status':row["power_status"]
@@ -2729,7 +2863,7 @@ def accesso(request):
 		#presetType = request.POST.get('presetType','')
 
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
-		myRecordSet=dbConnection.cursor(dictionary=True)
+		myRecordSet=dbConnection.cursor(dictionary=True,buffered=True)
 
 		#myRecordSet.execute("SELECT count(preset_title) as myCount from T_PRESETS WHERE preset_title='"+fileName+"'")
 		#row=myRecordSet.fetchone()
