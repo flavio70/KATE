@@ -1,0 +1,1032 @@
+{% extends "taws/mainCompact_template.html" %}
+{% block body %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch.css" %}" />
+<script>
+var benchTable;
+var tempIdSchedule;
+var login = '{{ login }}';
+
+var myRows = [
+              { name: "3A", manual_status: "{{ benches.3A.manual_status }}", id_powerMngmt: "{{ benches.3A.id_powerMngmt }}",power_status: '{{ benches.3A.power_status }}',log: '{{ benches.3A.log }}',owner: '{{ benches.3A.owner }}' },
+              { name: "4A", manual_status: "{{ benches.4A.manual_status }}", id_powerMngmt: "{{ benches.4A.id_powerMngmt }}",power_status: '{{ benches.4A.power_status }}',log: '{{ benches.4A.log }}',owner: '{{ benches.4A.owner }}' },
+              { name: "5A", manual_status: "{{ benches.5A.manual_status }}", id_powerMngmt: "{{ benches.5A.id_powerMngmt }}",power_status: '{{ benches.5A.power_status }}',log: '{{ benches.5A.log }}',owner: '{{ benches.5A.owner }}' },
+              { name: "6A", manual_status: "{{ benches.6A.manual_status }}", id_powerMngmt: "{{ benches.6A.id_powerMngmt }}",power_status: '{{ benches.6A.power_status }}',log: '{{ benches.6A.log }}',owner: '{{ benches.6A.owner }}' },
+              { name: "7A", manual_status: "{{ benches.7A.manual_status }}", id_powerMngmt: "{{ benches.7A.id_powerMngmt }}",power_status: '{{ benches.7A.power_status }}',log: '{{ benches.7A.log }}',owner: '{{ benches.7A.owner }}' },
+              { name: "8A", manual_status: "{{ benches.8A.manual_status }}", id_powerMngmt: "{{ benches.8A.id_powerMngmt }}",power_status: '{{ benches.8A.power_status }}',log: '{{ benches.8A.log }}',owner: '{{ benches.8A.owner }}' },
+              { name: "9A", manual_status: "{{ benches.9A.manual_status }}", id_powerMngmt: "{{ benches.9A.id_powerMngmt }}",power_status: '{{ benches.9A.power_status }}',log: '{{ benches.9A.log }}',owner: '{{ benches.9A.owner }}' },
+              { name: "10A", manual_status: "{{ benches.10A.manual_status }}", id_powerMngmt: "{{ benches.10A.id_powerMngmt }}",power_status: '{{ benches.10A.power_status }}',log: '{{ benches.10A.log }}',owner: '{{ benches.10A.owner }}' },
+              { name: "11A", manual_status: "{{ benches.11A.manual_status }}", id_powerMngmt: "{{ benches.11A.id_powerMngmt }}",power_status: '{{ benches.11A.power_status }}',log: '{{ benches.11A.log }}',owner: '{{ benches.11A.owner }}' },
+              { name: "12A", manual_status: "{{ benches.12A.manual_status }}", id_powerMngmt: "{{ benches.12A.id_powerMngmt }}",power_status: '{{ benches.12A.power_status }}',log: '{{ benches.12A.log }}',owner: '{{ benches.12A.owner }}' },
+              { name: "13A", manual_status: "{{ benches.13A.manual_status }}", id_powerMngmt: "{{ benches.13A.id_powerMngmt }}",power_status: '{{ benches.13A.power_status }}',log: '{{ benches.13A.log }}',owner: '{{ benches.13A.owner }}' },
+              { name: "14A", manual_status: "{{ benches.14A.manual_status }}", id_powerMngmt: "{{ benches.14A.id_powerMngmt }}",power_status: '{{ benches.14A.power_status }}',log: '{{ benches.14A.log }}',owner: '{{ benches.14A.owner }}' },
+              { name: "15A", manual_status: "{{ benches.15A.manual_status }}", id_powerMngmt: "{{ benches.15A.id_powerMngmt }}",power_status: '{{ benches.15A.power_status }}',log: '{{ benches.15A.log }}',owner: '{{ benches.15A.owner }}' },
+              { name: "16A", manual_status: "{{ benches.16A.manual_status }}", id_powerMngmt: "{{ benches.16A.id_powerMngmt }}",power_status: '{{ benches.16A.power_status }}',log: '{{ benches.16A.log }}',owner: '{{ benches.16A.owner }}' },
+              { name: "3B", manual_status: "{{ benches.3B.manual_status }}", id_powerMngmt: "{{ benches.3B.id_powerMngmt }}",power_status: '{{ benches.3B.power_status }}',log: '{{ benches.3B.log }}',owner: '{{ benches.3B.owner }}' },
+              { name: "4B", manual_status: "{{ benches.4B.manual_status }}", id_powerMngmt: "{{ benches.4B.id_powerMngmt }}",power_status: '{{ benches.4B.power_status }}',log: '{{ benches.4B.log }}',owner: '{{ benches.4B.owner }}' },
+              { name: "5B", manual_status: "{{ benches.5B.manual_status }}", id_powerMngmt: "{{ benches.5B.id_powerMngmt }}",power_status: '{{ benches.5B.power_status }}',log: '{{ benches.5B.log }}',owner: '{{ benches.5B.owner }}' },
+              { name: "6B", manual_status: "{{ benches.6B.manual_status }}", id_powerMngmt: "{{ benches.6B.id_powerMngmt }}",power_status: '{{ benches.6B.power_status }}',log: '{{ benches.6B.log }}',owner: '{{ benches.6B.owner }}' },
+              { name: "7B", manual_status: "{{ benches.7B.manual_status }}", id_powerMngmt: "{{ benches.7B.id_powerMngmt }}",power_status: '{{ benches.7B.power_status }}',log: '{{ benches.7B.log }}',owner: '{{ benches.7B.owner }}' },
+              { name: "8B", manual_status: "{{ benches.8B.manual_status }}", id_powerMngmt: "{{ benches.8B.id_powerMngmt }}",power_status: '{{ benches.8B.power_status }}',log: '{{ benches.8B.log }}',owner: '{{ benches.8B.owner }}' },
+              { name: "9B", manual_status: "{{ benches.9B.manual_status }}", id_powerMngmt: "{{ benches.9B.id_powerMngmt }}",power_status: '{{ benches.9B.power_status }}',log: '{{ benches.9B.log }}',owner: '{{ benches.9B.owner }}' },
+              { name: "10B", manual_status: "{{ benches.10B.manual_status }}", id_powerMngmt: "{{ benches.10B.id_powerMngmt }}",power_status: '{{ benches.10B.power_status }}',log: '{{ benches.10B.log }}',owner: '{{ benches.10A.owner }}' },
+              { name: "11B", manual_status: "{{ benches.11B.manual_status }}", id_powerMngmt: "{{ benches.11B.id_powerMngmt }}",power_status: '{{ benches.11B.power_status }}',log: '{{ benches.11B.log }}',owner: '{{ benches.11A.owner }}' },
+              { name: "12B", manual_status: "{{ benches.12B.manual_status }}", id_powerMngmt: "{{ benches.12B.id_powerMngmt }}",power_status: '{{ benches.12B.power_status }}',log: '{{ benches.12B.log }}',owner: '{{ benches.12A.owner }}' },
+              { name: "13B", manual_status: "{{ benches.13B.manual_status }}", id_powerMngmt: "{{ benches.13B.id_powerMngmt }}",power_status: '{{ benches.13B.power_status }}',log: '{{ benches.13B.log }}',owner: '{{ benches.13A.owner }}' },
+              { name: "14B", manual_status: "{{ benches.14B.manual_status }}", id_powerMngmt: "{{ benches.14B.id_powerMngmt }}",power_status: '{{ benches.14B.power_status }}',log: '{{ benches.14B.log }}',owner: '{{ benches.14A.owner }}' },
+              { name: "15B", manual_status: "{{ benches.15B.manual_status }}", id_powerMngmt: "{{ benches.15B.id_powerMngmt }}",power_status: '{{ benches.15B.power_status }}',log: '{{ benches.15B.log }}',owner: '{{ benches.15A.owner }}' },
+              { name: "16B", manual_status: "{{ benches.16B.manual_status }}", id_powerMngmt: "{{ benches.16B.id_powerMngmt }}",power_status: '{{ benches.16B.power_status }}',log: '{{ benches.16B.log }}',owner: '{{ benches.16A.owner }}' },
+              ];
+
+//window.onload=layDownRows();
+
+function layDownRows(){
+	for(i=0;i<myRows.length;i++){
+	    myButton=document.getElementById('rack-'+myRows[i].name);
+	    if(myRows[i].power_status==""){myButton.className='btn btn-default navbar-btn custom';}
+	    if(myRows[i].power_status=="0"){myButton.className='btn btn-danger navbar-btn custom';}
+	    if(myRows[i].power_status=="1"){myButton.className='btn btn-success navbar-btn custom';}
+	    if(myRows[i].owner!=login){myButton.disabled=true;}
+	    mySwitch=document.getElementById('onoffswitch-'+myRows[i].name);
+	    if(myRows[i].power_status==""){mySwitch.parentElement.style.display = "none";}
+	    if(myRows[i].power_status=="0"){mySwitch.checked=false;}
+	    if(myRows[i].power_status=="1"){mySwitch.checked=true;}
+	    if(myRows[i].owner!=login){mySwitch.disabled=true;}
+	}
+} 
+
+function Events_Validate(){
+    if($('#txtNewStartDate').val().length==0){
+      alert("Please fill up the Start Data field");
+      return;
+    }  
+    if($('#txtNewStartHour').val().length==0){
+      alert("Please fill up the Start Hour field");
+      return;
+    }  
+    if($('#txtNewStopDate').val().length==0){
+       alert("Please fill up the Stop Data field");
+       return;
+     }  
+    if($('#txtNewStopHour').val().length==0){
+        alert("Please fill up the Stop Hour field");
+        return;
+      }  
+    if($('#txtInterval').val().length==0){
+        alert("Please fill up the Interval field");
+        return;
+      }  
+     if(confirm('Are you sure?')){createScheduledTasks();}
+  }
+
+//function HideShow(fadeIn,fadeOut){
+//    if($('#'+fadeIn).css("display")!="none"){
+//      $('#'+fadeIn).fadeTo('fast',0,function(){
+//        $('#'+fadeIn).css("display","none");
+//        $('#'+fadeOut).fadeTo('fast',1);
+//      });
+//    } else {
+//      $('#'+fadeOut).fadeTo('fast',0,function(){
+//        $('#'+fadeOut).css("display","none");
+//        $('#'+fadeIn).fadeTo('fast',1);
+//      });
+//    }
+//  }
+
+
+function HideShow(fadeIn,fadeOut){
+	$('#'+fadeOut).modal('toggle');
+	$('#'+fadeIn).modal('toggle');
+}
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+function Free(bench) {
+var ok = window.confirm("Conform request to free Bench?");
+if (ok) {
+	 		   location.href="free_bench.asp?id="+bench
+        }
+}
+
+function Manual_Change(rackName,curr_status){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    	newStatus=Math.abs(myRows[i].manual_status-1);
+	    }
+	}
+	//if(curr_status=='true'){newStatus='0';}
+	//else{newStatus='1';}
+	//myDiv=document.getElementById(rackName);
+	//myDiv.children[0].disabled=true;
+	$.ajax({
+		type: "POST",
+		url: '/taws/changeManualStatus/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt,
+			modifier: login,
+			newStatus:newStatus
+			},
+		success: changePowerStatus,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+
+}
+
+function changeStatus(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    	myButton=document.getElementById('rack-'+myRows[i].name);
+	    	//newStatus=String(Math.abs(myRows[i].power_status-1));
+	    	if(myRows[i].power_status==0){newStatus='ON';myButton.className='btn btn-success navbar-btn custom';}
+	    	else{newStatus='OFF';myButton.className='btn btn-danger navbar-btn custom';}
+
+	    }
+	}
+	/*var csrftoken = getCookie('csrftoken');
+	$.ajaxSetup({
+	    beforeSend: function(xhr, settings) {
+		if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+		    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+		}
+	    }
+	});*/
+	$.ajax({
+		type: "POST",
+		url: '/taws/changePowerStatus/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt,
+			modifier: login,
+			newStatus:newStatus
+			},
+		success: changePowerStatus,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+
+}
+
+function getRackDetails(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    }
+	}
+	document.getElementById('createScheduleId').value=idPowerMngmt;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getRackDetails/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getRackDetailsExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+function getRackLog(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    }
+	}
+	document.getElementById('modalLogHeader').innerHTML='Log for Rack '+myRack;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getRackLog/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getRackLogExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+
+function getScheduledTasks(rackName){
+	myRack=rackName.split('-')[1];
+	for(i=0;i<myRows.length;i++) {
+	    if(myRows[i].name==myRack){
+	    	idPowerMngmt=myRows[i].id_powerMngmt;
+	    	newStatus=Math.abs(myRows[i].manual_status-1);
+	    }
+	}
+	document.getElementById('scheduleHeader').innerHTML='Rack '+myRack;
+	document.getElementById('createScheduleId').value=idPowerMngmt;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+function createScheduledTasks(){
+	/*alert(document.getElementById('createScheduleId').value);
+	alert(document.getElementById('txtNewStartDate').value);
+	alert(document.getElementById('txtNewStartHour').value);
+	alert(document.getElementById('txtNewStopDate').value);
+	alert(document.getElementById('txtNewStopHour').value);
+	alert(document.getElementById('txtInterval').value);*/
+	$.ajax({
+		type: "POST",
+		url: '/taws/createScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: document.getElementById('createScheduleId').value,
+			txtNewStartDate: document.getElementById('txtNewStartDate').value,
+			txtNewStartHour: document.getElementById('txtNewStartHour').value,
+			txtNewStopDate: document.getElementById('txtNewStopDate').value,
+			txtNewStopHour: document.getElementById('txtNewStopHour').value,
+			txtInterval: document.getElementById('txtInterval').value
+			},
+		success: createScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
+	$.ajax({
+		type: "POST",
+		url: '/taws/deleteScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerSchedule: idPowerSchedule,
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+
+var getRackDetailsExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	$('#actionModal').modal('toggle');
+	$('#editModal').modal('toggle');
+	document.getElementById('modalHeader').innerHTML='Rack Details';
+	document.getElementById('modalName').value=sersverResponse_data['name'];
+	document.getElementById('modalPin').value=sersverResponse_data['pin'];
+	document.getElementById('modalIP').value=sersverResponse_data['ip'];
+	document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+var getRackLogExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	$('#actionModal').modal('toggle');
+	$('#logModal').modal('toggle');
+	document.getElementById('modalLog').innerHTML=sersverResponse_data['log'];
+	document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+var createScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	$('#createScheduleModal').modal('toggle');
+	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+var getScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	$('#actionModal').modal('toggle');
+	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	console.log('success');
+	//alert(sersverResponse_data['switchReport']);
+	window.location.reload();
+};
+
+
+	document.getElementById('mainTitle').innerHTML='Power Management';
+
+
+</script>
+<form name="powerManager" action="" method="post" >{% csrf_token %}
+	<input type="hidden" value="" name="lab" id="lab">
+	<input type="hidden" value="" name="row" id="row">
+</form>
+
+
+<div class="bs-docs-section clearfix" style="padding:0px 100px 0px 100px;">
+
+
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="page-header">
+              <h1 id="dialogs">Power Management</h1>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+		{% if powerLevel == '' %}
+			{% for lab in labs %}
+		        	<div class="col-sm-4" onclick="powerManager.action='/taws/powerManagement/?powerLevel=row';powerManager.lab.value='{{ lab.room }}';powerManager.submit();" id='{{ lab.room }}'>
+		                <div class="bs-component">
+		                   <div class="panel panel-primary">
+		                    <div class="panel-heading">
+		                      <h3 class="panel-title">{{ lab.room }}</h3>
+		                    </div>
+		                    <div class="panel-body">
+		                      <table>
+		                        <tbody><tr>
+		                          <td>
+		                            <img src="{% static "images/power.png" %}" height="100" style="border-radius:10px">
+		                          </td><td style="padding:5px">
+		                            <b>{{ lab.room }}</b><br>
+		                            Test Plant SMOptics {{ lab.numRow }} rows {{ lab.numRacks }} racks                          </td>
+		                        </tr>
+		                      </tbody></table>
+		                    </div>
+		                  </div>
+		                </div>
+		              </div>
+			{% endfor %}
+		{% endif %}
+		{% if powerLevel == 'row' %}
+			{% for row in rows %}
+		        	<div class="col-sm-2" onclick="powerManager.action='/taws/powerManagement/?powerLevel=rack';powerManager.lab.value='{{ row.lab }}';powerManager.row.value='{{ row.row }}';powerManager.submit();" id='{{ lab.room }}'>
+		                <div class="bs-component">
+		                   <div class="panel panel-primary">
+		                    <div class="panel-heading">
+		                      <h3 class="panel-title">Row {{ row.row }}</h3>
+		                    </div>
+		                    <div class="panel-body">
+		                      <table>
+		                        <tbody><tr>
+		                          <td>
+		                            <img src="{% static "images/power.png" %}" height="50" style="border-radius:10px">
+		                          </td><td style="padding:5px">
+		                            <b>Row {{ row.row }}</b><br>
+		                            Test Plant SMOptics {{ row.lab }} {{ row.numRacks }} racks                          </td>
+		                        </tr>
+		                      </tbody></table>
+		                    </div>
+		                  </div>
+		                </div>
+		              </div>
+			{% endfor %}
+		{% endif %}
+		{% if powerLevel == 'rack' %}
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h3 class="panel-title">Room {{ lab }} Row {{ row }}</h3>
+  </div>
+  <div class="panel-body">
+   
+
+
+	<header class="navbar navbar-default">
+	    <div class="container">
+		<div class="navbar-header">
+		    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-navbar-collapse-1">
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		    </button>
+		</div>
+		
+		<!-- Collect the nav links, forms, and other content for toggling -->
+               <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">   
+
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-3A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">3A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-3A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-3A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-4A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">4A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-4A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-4A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">5A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-5A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">6A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-6A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">7A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-7A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">8A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-8A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-9A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">9A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-9A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-9A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">10A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10A" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-10A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11A">11A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-11A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12A">12A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-12A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13A">13A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-13A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14A">14A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-14A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15A">15A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-15A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16A">16A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-16A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		</div><!--/.navbar-collapse -->
+	    </div><!--/.navbar-container -->
+	</header>
+
+
+
+
+
+
+
+
+	<header class="navbar navbar-default">
+	    <div class="container">
+		<div class="navbar-header">
+		    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-navbar-collapse-2">
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		    </button>
+		</div>
+		
+		<!-- Collect the nav links, forms, and other content for toggling -->
+               <div class="collapse navbar-collapse" id="bs-navbar-collapse-2">   
+
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-3B">3B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-3B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-3B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-4B">4B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-4B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-4B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5B">5B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-5B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6B">6B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-6B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7B">7B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-7B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8B">8B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-8B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-9B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">9B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-9B" checked onclick='changeStatus(this.id);'>
+				    <label class="onoffswitchR-label" for="onoffswitch-9B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10B">10B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-10B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11B">11B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-11B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12B">12B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-12B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13B">13B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-13B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14B">14B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-14B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15B">15B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-15B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16B">16B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-16B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		</div><!--/.navbar-collapse -->
+	    </div><!--/.navbar-container -->
+	</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div><!--/.panel body -->
+</div><!--/.panel-->
+		{% endif %}
+         </div>
+
+    </div>
+
+
+<div id="editModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><div id='modalHeader' /></h4>
+      </div>
+      <div class="modal-body">
+		<form name="rackEditor" action="" method="post" >{% csrf_token %}
+			<input type="hidden" value="" name="lab" id="lab">
+			<input type="hidden" value="" name="row" id="row">
+			<table>
+				<tr><td>Raspberry Name : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalName'></td></tr>
+		        <tr><td>Raspberry PIN : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalPin'></td></tr>
+		        <tr><td>Raspberry IP : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalIP'></td></tr>
+		        <tr><td>Rack Owner : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='rackOwner'></td></tr>
+		        <tr><td colspan=2 align="center"><input {% if role != "ADMIN" %} disabled {% endif %} type="submit"></td></tr>
+		    </table>
+		</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="logModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><div id='modalLogHeader' /></h4>
+      </div>
+      <div class="modal-body" style="height:200px;overflow-y:auto;">
+			<table>
+				<tr><td><div id="modalLog"></div></td></tr>
+		    </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="scheduleModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <div class="modeswitch col-sm-2">
+			    <input type="checkbox" name="onoffswitch" class="modeswitch-checkbox" id="modeswitch-9B" checked onclick='changeStatus(this.id);'>
+			    <label class="modeswitch-label" for="modeswitch-9B">
+				<span class="modeswitch-inner"></span>
+				<span class="modeswitch-switch"></span>
+			    </label>
+		     </div>
+		    <div class="col-sm-4">
+	        	<h4 class="modal-title"><div id='scheduleHeader'></div></h4>
+	        </div>
+	      </div>
+	      <div class="modal-body">
+				<table class="table">
+					<thead><tr><th>Next Shut Down Time</th><th>Next Power On Time</th><th>Recurring Interval</th><th></th></tr></thead>
+					<tbody id="scheduleBody"></tbody>
+					<!--<tfoot><tr><td colspan="4" align="right">
+				        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createScheduleModal" onclick="HideShow('createScheduleModal','scheduleModal');">New Schedule</button>
+				    </td></tr></tfoot>-->
+			    </table>
+	      </div>
+	      <div class="modal-footer">
+			<a href="javascript:HideShow('createScheduleModal','scheduleModal');" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px">New Schedule</a>
+	      </div>
+	    </div>
+
+	  </div>
+</div>
+
+<div id="actionModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h2 class="modal-title">Action Available
+	        </h2>
+	      </div>
+	      <div class="modal-body">
+				<table class="table">
+					<tr>
+						<div class="btn-group btn-group-lg" data-toggle="tooltip" title="Change Power Status" role="group" id="actionID" name="">
+							<button type="button" class="btn btn-primary" onclick="getScheduledTasks(this.parentElement.name);">
+								Schedule Switch&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+							</button>
+							<button type="button" class="btn btn-primary" onclick="getRackDetails(this.parentElement.name);">
+								Rack Details&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+							</button>
+							<button type="button" class="btn btn-primary" onclick="getRackLog(this.parentElement.name);">
+								History Log&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+							</button>
+						</div>
+			    </table>
+	      </div>
+	      <div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+
+	  </div>
+</div>
+<div id="createScheduleModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Create New Schedule</h4>
+	      </div>
+	      <div class="modal-body">
+	      	<form action="">
+	      		<input type="hidden" id="createScheduleId" value="" />
+               <table>
+               	<tbody>
+               		<tr>
+		                 <td>
+		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td align="left">
+		                   <input id="txtNewStartDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
+		                   <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
+		                 </td>
+	               </tr>
+	               <tr>
+		                 <td>
+		                 	<b>Power on at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td align="left">
+		                   <input id="txtNewStopDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_stopdate" class="form-control input-sm">
+		                   <input id="txtNewStopHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_stoptime" class="form-control input-sm">
+		                 </td>
+		           </tr>
+		           <tr>
+		                 <td colspan="2" style="padding-top:10px;padding-bottom:10px">
+		                   <label for="NewEvent_liters">Repeat Every &nbsp;&nbsp;&nbsp;</label>
+		                   <input id="txtInterval" style="width:60px;display:inline-block" type="number" name="NewEvent_weeks" class="form-control input-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                   <label for="NewEvent_days">Days</label>
+		                   <!--<input id="txtNewDays" style="width:60px;display:inline-block" type="number" name="NewEvent_days" class="form-control input-sm">-->
+		                 </td>
+	               </tr>
+	            </tbody>
+	          </table>
+		  </form>
+	    </div>
+	      <div class="modal-footer">
+               <a href="javascript:HideShow('scheduleModal','createScheduleModal');" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
+                     Back</a>
+               &nbsp;&nbsp;&nbsp;
+               <input type="button" onclick="return Events_Validate();" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px" value="Create" />
+	      </div>
+	    </div>
+
+</div>
+
+
+<script>layDownRows();</script>
+
+{% endblock %}
+

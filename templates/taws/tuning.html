@@ -129,7 +129,7 @@ function deletePreset(){
 	</div>
 	
 	<div id="div_topology_table" class="col-sm-6">
-		<h2 id='topoTitle'>Title</h2>
+		<div id='topoTitle'>Title</div>
 		<table class="display table table-striped table-hover table-condensed" id="showedTable" style="width:100%">
 			<thead>
 				<tr>
@@ -279,7 +279,7 @@ function showalert(message,alerttype) {
 	function show(topoIndex){
 		topoName=topologies[topoIndex][0];
 		valueTable.clear().draw();
-		document.getElementById('topoTitle').innerHTML="Topology " + topoName;
+		document.getElementById('topoTitle').innerHTML="<h3><b>" + topologies[topoIndex][7] + "</b> [ID : <b>" + topoName + "</b>]</h3>";
 		currentTopology=topoIndex;
 		currentLabel='';
 		for(i=0;i<topologies[topoIndex][1].length;i++){
