@@ -1,19 +1,20 @@
-{% extends "taws/jenkins_template.html" %}
+{% extends "taws/main_template.html" %}
 {% block body %}
 {% load static %}
 
-<link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<!--<link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch-k.css" %}" />
 <link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
-<script type="text/javascript" src="{% static "js/dataTables.rowReorder.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/dataTables.rowReorder.min.js" %}"></script>-->
 
-
+<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch-k.css" %}" />
 <script>
 
 
 var dataSetExample = [
-    [ "Tiger Nixon", "System Architect", "Edinburgh", "5421", "2011/04/25", "$320,800" ],
-    [ "Garrett Winters", "Accountant", "Tokyo", "8422", "2011/07/25", "$170,750" ],
-    [ "Ashton Cox", "Junior Technical Author", "San Francisco", "1562", "2009/01/12", "$86,000" ]
+    [ "Tiger Nixon", "System Brchitect", "Edinburgh", "5421", "2011/04/25", "$320,800" ],
+    [ "Garrett Winters", "Bccountant", "Tokyo", "8422", "2011/07/25", "$170,750" ],
+    [ "Bshton Cox", "Junior Technical Buthor", "San Francisco", "1562", "2009/01/12", "$86,000" ]
     ];
 
 //var testSetExample = [
@@ -53,16 +54,16 @@ $(document).ready(function() {
         ]
     } );
   var testTable1 = $('#testTable1').DataTable({
-		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testAction">><"col-sm-3"f>>\
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testBction">><"col-sm-3"f>>\
 				<"row"<"col-sm-12"tr>>\
 				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
 				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
 				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
-		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
-		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
-		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
-		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
-		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleBttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleBttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleBttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleBttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleBttr: 'Print table'}, ],
 		rowReorder: {
             selector: 'tr'
         },
@@ -102,21 +103,70 @@ $(document).ready(function() {
 ]
 	});
 
+
+
+
+	$('#myModal1').on('hidden.bs.modal', function (e) {
+	  console.log('Modal1 nascosto');
+	  $('#myModal2').modal('show');
+	});
+
+
+   $('.onoffswitchV-checkbox').click(function(event) {
+        currId = event.target.id;
+        res = currId.split("-");
+        locId=res[1];
+        if($("#"+currId).is(':checked')){
+        	$("#rack-"+locId).addClass("label-success");
+        	$("#rack-"+locId).removeClass("label-danger");
+        	console.log(locId + " ON")
+   
+        
+        } else {
+        	$("#rack-"+locId).removeClass("label-success");
+        	$("#rack-"+locId).addClass("label-danger");
+        	console.log(locId + " OFF")
+        
+        }
+        
+    });
+    
+    
+      $('.onoffswitchR-checkbox').click(function(event) {
+        currId = event.target.id;
+        res = currId.split("-");
+        locId=res[1];
+        if($("#"+currId).is(':checked')){
+        	$("#rack-"+locId).addClass("btn-success");
+        	$("#rack-"+locId).removeClass("btn-danger");
+        	console.log(locId + " ON from navbar")
+   
+        
+        } else {
+        	$("#rack-"+locId).removeClass("btn-success");
+        	$("#rack-"+locId).addClass("btn-danger");
+        	console.log(locId + " OFF from navbar")
+        
+        }
+        
+    });
+
+
     
 } );
 
 </script>
-<style>
+<!--<style>
 
 table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:static;outline:2px solid #888;outline-offset:-2px;z-index:2001}tr.dt-rowReorder-moving{outline:2px solid #555;outline-offset:-2px}body.dt-rowReorder-noOverflow{overflow-x:hidden}table.dataTable td.reorder{text-align:center;cursor:move}
 
 
-</style>
+</style>-->
 
 
 
-<div id="testContainer" style="width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
-	<!--<table id="example" class="display table table-striped table-hover table-condensed" cellspacing="0" width="100%"></table>-->
+<!--<div id="testContainer" style="overflow-y:auto;width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
+	
 	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable1" style="width:100%">
 		<thead>       
 			<tr>     
@@ -177,7 +227,7 @@ table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:
 				<th></th>
 				<th></th>
 			</tr>
-		</tfoot>-->
+		</tfoot>
 		<!--<tbody>
 			<tr>
 				<td>1</td>
@@ -229,8 +279,445 @@ table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:
 			</tr>
 		</tbody>-->
 		
-	</table>
-</div>
+	<!--</table>-->
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h3 class="panel-title">Room Lab 2 Row 22</h3>
+  </div>
+  <div class="panel-body">
+   
+
+
+	<header class="navbar navbar-default">
+	    <div class="container">
+		<div class="navbar-header">
+		    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-navbar-collapse-1">
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		    </button>
+		</div>
+		
+		<!-- Collect the nav links, forms, and other content for toggling -->
+               <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">   
+
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-3A">3A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-3A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-3A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-4A">4A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-4A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-4A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5A">5A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-5A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6A">6A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-6A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7A">7A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-7A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8A">8A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-8A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-9A">9A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-9A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-9A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10A">10A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-10A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11A">11A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-11A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12A">12A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-12A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13A">13A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-13A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14A">14A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-14A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15A">15A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-15A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16A">16A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16A" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-16A">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		</div><!--/.navbar-collapse -->
+	    </div><!--/.navbar-container -->
+	</header>
+
+
+
+
+
+
+
+
+	<header class="navbar navbar-default">
+	    <div class="container">
+		<div class="navbar-header">
+		    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-navbar-collapse-2">
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		    </button>
+		</div>
+		
+		<!-- Collect the nav links, forms, and other content for toggling -->
+               <div class="collapse navbar-collapse" id="bs-navbar-collapse-2">   
+
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-3B">3B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-3B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-3B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-4B">4B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-4B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-4B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5B">5B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-5B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6B">6B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-6B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7B">7B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-7B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8B">8B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-8B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-9B">9B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-9B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-9B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10B">10B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-10B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11B">11B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-11B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12B">12B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-12B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13B">13B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-13B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14B">14B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-14B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15B">15B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-15B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		     <ul class="nav navbar-nav navbar">
+			     <div class="btn-group navbar-btn">
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16B">16B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     </div>
+			     <div class="onoffswitchR">
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16B" checked>
+				    <label class="onoffswitchR-label" for="onoffswitch-16B">
+					<span class="onoffswitchR-inner"></span>
+					<span class="onoffswitchR-switch"></span>
+				    </label>
+			     </div>
+		     </ul>
+		</div><!--/.navbar-collapse -->
+	    </div><!--/.navbar-container -->
+	</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div><!--/.panel body -->
+</div><!--/.panel-->
+
+
+
+<!--
+	
+	<div class="wrap" style="margin-left:-15px;">
+		<label>
+		     <input name="ManualBCT" type="checkbox" class="ios-switch" value="True" id="chkManBct" onclick="">
+		     <div><div></div></div>
+		</label>
+	</div>
+
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
