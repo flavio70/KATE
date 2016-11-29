@@ -3219,7 +3219,7 @@ def accesso(request):
 
 	if myAction=='saveLocal':
 
-		import ntpath
+		import ntpath, os
 		username=request.session['login']
 		savingString = request.POST.get('savingString','')
 		localString=''
@@ -3240,64 +3240,62 @@ def accesso(request):
 		localSuite.close()
    
 		localSuite = open(localPath+'suite.txt',"r")
-		#localString=localSuite.read()
-		for myLine in localSuite.readlines():
-			tempLine=myLine.split('.py')
-			tempTest = open(tempLine[0]+'.py',"r")
-			tempMetaInfo=tempTest.read().split('<METAINFO>')
-			if len(tempMetaInfo)>1:
-				metaInfo=tempMetaInfo[1].split('<DESCRIPTION>')
-				description=metaInfo[1]
-				metaInfo=tempMetaInfo[1].split('<TOPOLOGY>')
-				topology=metaInfo[1]
-				metaInfo=tempMetaInfo[1].split('<DEPENDENCY>')
-				dependency=metaInfo[1]
-				metaInfo=tempMetaInfo[1].split('<LAB>')
-				lab=metaInfo[1]
-				metaInfo=tempMetaInfo[1].split('<TPS>')
-				tps=metaInfo[1]
-				metaInfo=tempMetaInfo[1].split('<RUNSECTIONS>')
-				runsection=metaInfo[1]
-				if runsection.isdigit()==False:runsection='11111'
-				metaInfo=tempMetaInfo[1].split('<AUTHOR>')
-				author=metaInfo[1]
-			else:
-				description="NA"
-				topology="NA"
-				dependency="NA"
-				lab="NA"
-				tps="NA"
-				runsection="NA"
-				author="NA"
 
-			tempSection=list(runsection)
-			if myLine.rfind(' --')>=0:
-				if tempLine[1].rfind('--DUTSet')>=0:tempSection[0]='2'
-				if tempLine[1].rfind('--testSet')>=0:tempSection[1]='2'
-				if tempLine[1].rfind('--testBody')>=0:tempSection[2]='2'
-				if tempLine[1].rfind('--testClean')>=0:tempSection[3]='2'
-				if tempLine[1].rfind('--DUTClean')>=0:tempSection[4]='2'
-			tempTest.close()
-			localString+="NA#"+\
-			"NA#"+\
-			"NA#"+\
-			"0#"+\
-			"NA#"+\
-			tps+"#"+\
-			ntpath.basename(tempLine[0])+".py#"+\
-			"0#"+\
-			"0#"+\
-			"NA#"+\
-			"NA#"+\
-			"NA#"+\
-			dependency+"#"+\
-			tempLine[0]+".py#"+\
-			author+"#"+\
-			description+"#"+\
-			"NA#"+\
-			''.join(tempSection)+"#"+\
-			"NA#"+\
-			lab+"$"
+		for myLine in localSuite.read().split('\n'):
+			tempLine=myLine.split('.py')
+			if os.path.isfile(tempLine[0]+'.py'):
+				res=get_testinfo(tempLine[0]+'.py')
+				check_testinfo_format(tempLine[0]+'.py',res)
+				print('docinfo for %s: %s'%(tempLine[0]+'.py',res))
+				if check_testinfo_format(tempLine[0]+'.py',res):
+					print('docinfo format ok for file %s'%tempLine[0]+'.py')
+					description=res['Description']
+					topology=res['Topology']
+					dependency=res['Dependency']
+					lab=res['Lab']
+					#tps=metaInfo[1].replace(',','<br>')
+					tps=res['TPS']
+					runsection=res['RunSections']
+					author=res['Author']
+				else:
+					description="NA"
+					topology="NA"
+					dependency="NA"
+					lab="NA"
+					tps="NA"
+					runsection='00000'
+					author="NA"
+
+				if(runsection.isdigit()==False):runsection='00000'
+
+				tempSection=list(runsection)
+				if myLine.rfind(' --')>=0:
+					if myLine.rfind('--DUTSet')>=0:tempSection[0]='2'
+					if myLine.rfind('--testSet')>=0:tempSection[1]='2'
+					if myLine.rfind('--testBody')>=0:tempSection[2]='2'
+					if myLine.rfind('--testClean')>=0:tempSection[3]='2'
+					if myLine.rfind('--DUTClean')>=0:tempSection[4]='2'
+				
+				localString+=tempLine[0]+".py#"+\
+				"NA#"+\
+				"NA#"+\
+				"0#"+\
+				"NA#"+\
+				tps+"#"+\
+				ntpath.basename(tempLine[0])+".py#"+\
+				"0#"+\
+				"0#"+\
+				"NA#"+\
+				"NA#"+\
+				"NA#"+\
+				dependency+"#"+\
+				tempLine[0]+".py#"+\
+				author+"#"+\
+				description+"#"+\
+				"NA#"+\
+				''.join(tempSection)+"#"+\
+				"NA#"+\
+				lab+"$"
     
 		localSuite.close()
 
