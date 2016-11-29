@@ -255,21 +255,21 @@ function saveLocalSuite(develop){
 			sect3=0;
 			sect4=0;
 			sect5=0;
-			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('disabled'))){sect1+=1;}
-			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('disabled'))){sect2+=1;}
-			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('disabled'))){sect3+=1;}
-			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('disabled'))){sect4+=1;}
-			if(!(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('disabled'))){sect5+=1;}
-			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect1.match('checked')){sect1+=1;}
-			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect2.match('checked')){sect2+=1;}
-			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect3.match('checked')){sect3+=1;}
-			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect4.match('checked')){sect4+=1;}
-			if(testBundleTable.row(testBundleTable.rows()[k]).data().sect5.match('checked')){sect5+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect1.match('disabled'))){sect1+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect2.match('disabled'))){sect2+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect3.match('disabled'))){sect3+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect4.match('disabled'))){sect4+=1;}
+			if(!(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect5.match('disabled'))){sect5+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect1.match('checked')){sect1+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect2.match('checked')){sect2+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect3.match('checked')){sect3+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect4.match('checked')){sect4+=1;}
+			if(testBundleTable.row(testBundleTable.rows()[0][k]).data().sect5.match('checked')){sect5+=1;}
 			savingString+=String(sect1)+String(sect2)+String(sect3)+String(sect4)+String(sect5)+'$';
 		}
 	}
 	savingString=savingString.slice(0,-1)
-	//alert('SAVE'+savingString);
+	alert('SAVE'+savingString);
 	if(develop==''){doAccess('saveLocal');}
 		else{selectTest.savingStr.value=savingString;selectTest.submit();}
 }
