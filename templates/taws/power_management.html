@@ -2,6 +2,9 @@
 {% block body %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "css/ios-switch.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.css" %}" />
+<script type="text/javascript" src="{% static "js/moment-with-locales.js" %}"></script>
+<script type="text/javascript" src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
 <script>
 var benchTable;
 var tempIdSchedule;
@@ -1056,8 +1059,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 </div><!--/.panel-->
 		{% endif %}
          </div>
-
-    </div>
+</div>
 
 
 <div id="editModal" class="modal fade" role="dialog">
@@ -1190,6 +1192,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	      		<input type="hidden" id="createScheduleId" value="" />
                <table>
                	<tbody>
+
                		<tr>
 		                 <td>
 		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -1198,6 +1201,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		                   <input id="txtNewStartDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
 		                   <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
 		                 </td>
+		                 
 	               </tr>
 	               <tr>
 		                 <td>
@@ -1207,6 +1211,41 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		                   <input id="txtNewStopDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_stopdate" class="form-control input-sm">
 		                   <input id="txtNewStopHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_stoptime" class="form-control input-sm">
 		                 </td>
+		                 
+		           </tr>
+		           <tr>
+		                 <td>
+		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td>
+		           		
+					        <div class="form-group">
+					            <div class='input-group date' id='datetimepickeroff'>
+					                <input type='text' class="form-control" />
+					                <span class="input-group-addon">
+					                    <span class="glyphicon glyphicon-calendar"></span>
+					                </span>
+					            </div>
+					        </div>
+					    
+					    </td>
+		           </tr>
+		           <tr>
+		           		 <td>
+		                 	<b>Power on at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td>
+		           		
+					        <div class="form-group">
+					            <div class='input-group date' id='datetimepickeron'>
+					                <input type='text' class="form-control" />
+					                <span class="input-group-addon">
+					                    <span class="glyphicon glyphicon-calendar"></span>
+					                </span>
+					            </div>
+					        </div>
+					    
+					    </td>
 		           </tr>
 		           <tr>
 		                 <td colspan="2" style="padding-top:10px;padding-bottom:10px">
@@ -1219,7 +1258,26 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	            </tbody>
 	          </table>
 		  </form>
-	    </div>
+	      </div>
+	      <script type="text/javascript">
+			    $(function () {
+			        $('#datetimepickeroff').datetimepicker({
+			        	stepping:1,
+			        	sideBySide: true
+			        });
+			        $('#datetimepickeron').datetimepicker({
+			            useCurrent: false, //Important! See issue #1075
+			            stepping: 1,
+			            sideBySide: true
+			        });
+			        $("#datetimepickeroff").on("dp.change", function (e) {
+			            $('#datetimepickeron').data("DateTimePicker").minDate(e.date);
+			        });
+			        $("#datetimepickeron").on("dp.change", function (e) {
+			            $('#datetimepickeroff').data("DateTimePicker").maxDate(e.date);
+			        });
+			    });
+		  </script>
 	      <div class="modal-footer">
                <a href="javascript:HideShow('scheduleModal','createScheduleModal');" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
                      Back</a>
@@ -1228,9 +1286,9 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	      </div>
 	    </div>
 
+	</div>
+
 </div>
-
-
 <script>layDownRows();</script>
 
 {% endblock %}
