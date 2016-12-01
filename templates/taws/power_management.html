@@ -2,6 +2,9 @@
 {% block body %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "css/ios-switch.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.css" %}" />
+<script type="text/javascript" src="{% static "js/moment-with-locales.js" %}"></script>
+<script type="text/javascript" src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
 <script>
 var benchTable;
 var tempIdSchedule;
@@ -29,13 +32,13 @@ var myRows = [
               { name: "7B", manual_status: "{{ benches.7B.manual_status }}", id_powerMngmt: "{{ benches.7B.id_powerMngmt }}",power_status: '{{ benches.7B.power_status }}',log: '{{ benches.7B.log }}',owner: '{{ benches.7B.owner }}' },
               { name: "8B", manual_status: "{{ benches.8B.manual_status }}", id_powerMngmt: "{{ benches.8B.id_powerMngmt }}",power_status: '{{ benches.8B.power_status }}',log: '{{ benches.8B.log }}',owner: '{{ benches.8B.owner }}' },
               { name: "9B", manual_status: "{{ benches.9B.manual_status }}", id_powerMngmt: "{{ benches.9B.id_powerMngmt }}",power_status: '{{ benches.9B.power_status }}',log: '{{ benches.9B.log }}',owner: '{{ benches.9B.owner }}' },
-              { name: "10B", manual_status: "{{ benches.10B.manual_status }}", id_powerMngmt: "{{ benches.10B.id_powerMngmt }}",power_status: '{{ benches.10B.power_status }}',log: '{{ benches.10B.log }}',owner: '{{ benches.10A.owner }}' },
-              { name: "11B", manual_status: "{{ benches.11B.manual_status }}", id_powerMngmt: "{{ benches.11B.id_powerMngmt }}",power_status: '{{ benches.11B.power_status }}',log: '{{ benches.11B.log }}',owner: '{{ benches.11A.owner }}' },
-              { name: "12B", manual_status: "{{ benches.12B.manual_status }}", id_powerMngmt: "{{ benches.12B.id_powerMngmt }}",power_status: '{{ benches.12B.power_status }}',log: '{{ benches.12B.log }}',owner: '{{ benches.12A.owner }}' },
-              { name: "13B", manual_status: "{{ benches.13B.manual_status }}", id_powerMngmt: "{{ benches.13B.id_powerMngmt }}",power_status: '{{ benches.13B.power_status }}',log: '{{ benches.13B.log }}',owner: '{{ benches.13A.owner }}' },
-              { name: "14B", manual_status: "{{ benches.14B.manual_status }}", id_powerMngmt: "{{ benches.14B.id_powerMngmt }}",power_status: '{{ benches.14B.power_status }}',log: '{{ benches.14B.log }}',owner: '{{ benches.14A.owner }}' },
-              { name: "15B", manual_status: "{{ benches.15B.manual_status }}", id_powerMngmt: "{{ benches.15B.id_powerMngmt }}",power_status: '{{ benches.15B.power_status }}',log: '{{ benches.15B.log }}',owner: '{{ benches.15A.owner }}' },
-              { name: "16B", manual_status: "{{ benches.16B.manual_status }}", id_powerMngmt: "{{ benches.16B.id_powerMngmt }}",power_status: '{{ benches.16B.power_status }}',log: '{{ benches.16B.log }}',owner: '{{ benches.16A.owner }}' },
+              { name: "10B", manual_status: "{{ benches.10B.manual_status }}", id_powerMngmt: "{{ benches.10B.id_powerMngmt }}",power_status: '{{ benches.10B.power_status }}',log: '{{ benches.10B.log }}',owner: '{{ benches.10B.owner }}' },
+              { name: "11B", manual_status: "{{ benches.11B.manual_status }}", id_powerMngmt: "{{ benches.11B.id_powerMngmt }}",power_status: '{{ benches.11B.power_status }}',log: '{{ benches.11B.log }}',owner: '{{ benches.11B.owner }}' },
+              { name: "12B", manual_status: "{{ benches.12B.manual_status }}", id_powerMngmt: "{{ benches.12B.id_powerMngmt }}",power_status: '{{ benches.12B.power_status }}',log: '{{ benches.12B.log }}',owner: '{{ benches.12B.owner }}' },
+              { name: "13B", manual_status: "{{ benches.13B.manual_status }}", id_powerMngmt: "{{ benches.13B.id_powerMngmt }}",power_status: '{{ benches.13B.power_status }}',log: '{{ benches.13B.log }}',owner: '{{ benches.13B.owner }}' },
+              { name: "14B", manual_status: "{{ benches.14B.manual_status }}", id_powerMngmt: "{{ benches.14B.id_powerMngmt }}",power_status: '{{ benches.14B.power_status }}',log: '{{ benches.14B.log }}',owner: '{{ benches.14B.owner }}' },
+              { name: "15B", manual_status: "{{ benches.15B.manual_status }}", id_powerMngmt: "{{ benches.15B.id_powerMngmt }}",power_status: '{{ benches.15B.power_status }}',log: '{{ benches.15B.log }}',owner: '{{ benches.15B.owner }}' },
+              { name: "16B", manual_status: "{{ benches.16B.manual_status }}", id_powerMngmt: "{{ benches.16B.id_powerMngmt }}",power_status: '{{ benches.16B.power_status }}',log: '{{ benches.16B.log }}',owner: '{{ benches.16B.owner }}' },
               ];
 
 //window.onload=layDownRows();
@@ -44,13 +47,20 @@ function layDownRows(){
 	for(i=0;i<myRows.length;i++){
 	    myButton=document.getElementById('rack-'+myRows[i].name);
 	    if(myRows[i].power_status==""){myButton.className='btn btn-default navbar-btn custom';}
-	    if(myRows[i].power_status=="0"){myButton.className='btn btn-danger navbar-btn custom';}
-	    if(myRows[i].power_status=="1"){myButton.className='btn btn-success navbar-btn custom';}
+	    if(myRows[i].power_status=="1"){myButton.className='btn btn-danger navbar-btn custom';}
+	    if(myRows[i].power_status=="0"){myButton.className='btn btn-success navbar-btn custom';}
 	    if(myRows[i].owner!=login){myButton.disabled=true;}
+	    //if(myRows[i].owner!=''}{myButton.className='btn btn-warning navbar-btn custom';}
+	    myButton.title=myRows[i].owner;
 	    mySwitch=document.getElementById('onoffswitch-'+myRows[i].name);
 	    if(myRows[i].power_status==""){mySwitch.parentElement.style.display = "none";}
-	    if(myRows[i].power_status=="0"){mySwitch.checked=false;}
-	    if(myRows[i].power_status=="1"){mySwitch.checked=true;}
+	    if(myRows[i].power_status=="1"){mySwitch.checked=false;}
+	    if(myRows[i].power_status=="0"){mySwitch.checked=true;}
+	    if(myRows[i].owner!=login||myRows[i].manual_status=="1"){mySwitch.disabled=true;}
+	    mySwitch=document.getElementById('modeswitch-'+myRows[i].name);
+	    if(myRows[i].manual_status==""){mySwitch.parentElement.style.display = "none";}
+	    if(myRows[i].manual_status=="0"){mySwitch.checked=false;}
+	    if(myRows[i].manual_status=="1"){mySwitch.checked=true;}
 	    if(myRows[i].owner!=login){mySwitch.disabled=true;}
 	}
 } 
@@ -60,18 +70,10 @@ function Events_Validate(){
       alert("Please fill up the Start Data field");
       return;
     }  
-    if($('#txtNewStartHour').val().length==0){
-      alert("Please fill up the Start Hour field");
-      return;
-    }  
     if($('#txtNewStopDate').val().length==0){
        alert("Please fill up the Stop Data field");
        return;
      }  
-    if($('#txtNewStopHour').val().length==0){
-        alert("Please fill up the Stop Hour field");
-        return;
-      }  
     if($('#txtInterval').val().length==0){
         alert("Please fill up the Interval field");
         return;
@@ -164,9 +166,14 @@ function changeStatus(rackName){
 	    	idPowerMngmt=myRows[i].id_powerMngmt;
 	    	myButton=document.getElementById('rack-'+myRows[i].name);
 	    	//newStatus=String(Math.abs(myRows[i].power_status-1));
-	    	if(myRows[i].power_status==0){newStatus='ON';myButton.className='btn btn-success navbar-btn custom';}
-	    	else{newStatus='OFF';myButton.className='btn btn-danger navbar-btn custom';}
-
+	    	if(myRows[i].power_status==0){
+	    		newStatus='ON';
+	    		myButton.className='btn btn-success navbar-btn custom';
+	    	}else{
+	    		newStatus='OFF';
+	    		myButton.className='btn btn-danger navbar-btn custom';
+	    	}
+    		myButton.innerHTML='<i class="glyphicon glyphicon-repeat gly-spin"></i>';
 	    }
 	}
 	/*var csrftoken = getCookie('csrftoken');
@@ -281,9 +288,9 @@ function createScheduledTasks(){
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: document.getElementById('createScheduleId').value,
 			txtNewStartDate: document.getElementById('txtNewStartDate').value,
-			txtNewStartHour: document.getElementById('txtNewStartHour').value,
+			//txtNewStartHour: document.getElementById('txtNewStartHour').value,
 			txtNewStopDate: document.getElementById('txtNewStopDate').value,
-			txtNewStopHour: document.getElementById('txtNewStopHour').value,
+			//txtNewStopHour: document.getElementById('txtNewStopHour').value,
 			txtInterval: document.getElementById('txtInterval').value
 			},
 		success: createScheduledTasksExit,
@@ -295,20 +302,22 @@ function createScheduledTasks(){
 }
 
 function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
-	$.ajax({
-		type: "POST",
-		url: '/taws/deleteScheduledTasks/',
-		data: {
-			csrfmiddlewaretoken:'{{ csrf_token }}',
-			idPowerSchedule: idPowerSchedule,
-			idPowerMngmt: idPowerMngmt
-			},
-		success: getScheduledTasksExit,
-		error: function(xhr, textStatus, errorThrown) {
-				console.log(xhr.status+':'+xhr.responseText);
-				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
-			}
-	});	
+	if(confirm('Are you sure?')){
+		$.ajax({
+			type: "POST",
+			url: '/taws/deleteScheduledTasks/',
+			data: {
+				csrfmiddlewaretoken:'{{ csrf_token }}',
+				idPowerSchedule: idPowerSchedule,
+				idPowerMngmt: idPowerMngmt
+				},
+			success: deleteScheduledTasksExit,
+			error: function(xhr, textStatus, errorThrown) {
+					console.log(xhr.status+':'+xhr.responseText);
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
 }
 
 
@@ -333,6 +342,21 @@ var createScheduledTasksExit = function(sersverResponse_data, textStatus_ignored
 	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 	$('#createScheduleModal').modal('toggle');
 	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+var deleteScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 	console.log('success');
 	scheduleList=sersverResponse_data['scheduled'];
 	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
@@ -466,6 +490,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
                <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">   
 
 		     <ul class="nav navbar-nav navbar">
+		     	     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-3A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-3A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-3A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">3A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -478,6 +509,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-4A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-4A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-4A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">4A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -490,6 +528,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-5A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-5A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-5A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">5A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -502,6 +547,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-6A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-6A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-6A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">6A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -514,6 +566,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-7A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-7A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-7A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">7A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -526,6 +585,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-8A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-8A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-8A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">8A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -538,6 +604,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-9A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-9A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-9A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">9A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -550,6 +623,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-10A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-10A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-10A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">10A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -562,11 +642,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-11A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-11A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-11A">11A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">11A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11A" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11A" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-11A">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -574,11 +661,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-12A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-12A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-12A">12A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">12A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12A" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12A" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-12A">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -586,11 +680,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-13A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-13A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-13A">13A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">13A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13A" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13A" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-13A">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -598,11 +699,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-14A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-14A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-14A">14A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">14A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14A" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14A" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-14A">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -610,11 +718,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-15A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-15A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-15A">15A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-15A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">15A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15A" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-15A" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-15A">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -622,11 +737,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-16A" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-16A">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-16A">16A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-16A" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">16A <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16A" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-16A" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-16A">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -658,6 +780,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
                <div class="collapse navbar-collapse" id="bs-navbar-collapse-2">   
 
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-3B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-3B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-3B">3B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -670,6 +799,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-4B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-4B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-4B">4B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -682,11 +818,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-5B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-5B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-5B">5B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-5B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">5B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-5B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-5B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -694,11 +837,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-6B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-6B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-6B">6B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-6B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">6B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-6B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-6B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -706,11 +856,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-7B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-7B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-7B">7B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-7B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">7B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-7B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-7B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -718,11 +875,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-8B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-8B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-8B">8B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-8B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">8B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-8B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-8B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -730,6 +894,14 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+			     
+			     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-9B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-9B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-9B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">9B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -742,11 +914,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-10B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-10B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-10B">10B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-10B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">10B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-10B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-10B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -754,11 +933,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-11B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-11B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-11B">11B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-11B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">11B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-11B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-11B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -766,11 +952,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-12B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-12B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-12B">12B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-12B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">12B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-12B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-12B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -778,11 +971,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-13B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-13B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-13B">13B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-13B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">13B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-13B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-13B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -790,11 +990,18 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-14B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-14B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
-			     	<button class="btn btn-success navbar-btn custom" id="rack-14B">14B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
+			     	<button class="btn btn-success navbar-btn custom" id="rack-14B" data-toggle="modal" data-target="#actionModal" onclick="document.getElementById('actionID').name=this.id;">14B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
 			     <div class="onoffswitchR">
-				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14B" checked>
+				    <input type="checkbox" name="onoffswitch" class="onoffswitchR-checkbox" id="onoffswitch-14B" checked onclick='changeStatus(this.id);'>
 				    <label class="onoffswitchR-label" for="onoffswitch-14B">
 					<span class="onoffswitchR-inner"></span>
 					<span class="onoffswitchR-switch"></span>
@@ -802,6 +1009,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-15B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-15B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-15B">15B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -814,6 +1028,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			     </div>
 		     </ul>
 		     <ul class="nav navbar-nav navbar">
+		     <div class="modeswitchR">
+				    <input type="checkbox" name="modeswitch" class="modeswitchR-checkbox" id="modeswitch-16B" checked onclick='Manual_Change(this.id);'>
+				    <label class="modeswitchR-label" for="modeswitch-16B">
+					<span class="modeswitchR-inner"></span>
+					<span class="modeswitchR-switch"></span>
+				    </label>
+			     </div>
 			     <div class="btn-group navbar-btn">
 			     	<button class="btn btn-success navbar-btn custom" id="rack-16B">16B <span class="glyphicon glyphicon-object-align-top" aria-hidden="true"></span></button>
 			     </div>
@@ -847,8 +1068,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 </div><!--/.panel-->
 		{% endif %}
          </div>
-
-    </div>
+</div>
 
 
 <div id="editModal" class="modal fade" role="dialog">
@@ -887,6 +1107,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
+      
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h4 class="modal-title"><div id='modalLogHeader' /></h4>
       </div>
@@ -910,16 +1131,10 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	    <div class="modal-content">
 	      <div class="modal-header">
 	        <button type="button" class="close" data-dismiss="modal">&times;</button>
-	        <div class="modeswitch col-sm-2">
-			    <input type="checkbox" name="onoffswitch" class="modeswitch-checkbox" id="modeswitch-9B" checked onclick='changeStatus(this.id);'>
-			    <label class="modeswitch-label" for="modeswitch-9B">
-				<span class="modeswitch-inner"></span>
-				<span class="modeswitch-switch"></span>
-			    </label>
-		     </div>
-		    <div class="col-sm-4">
+	        
+		    
 	        	<h4 class="modal-title"><div id='scheduleHeader'></div></h4>
-	        </div>
+	       
 	      </div>
 	      <div class="modal-body">
 				<table class="table">
@@ -945,13 +1160,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	    <div class="modal-content">
 	      <div class="modal-header">
 	        <button type="button" class="close" data-dismiss="modal">&times;</button>
-	        <h2 class="modal-title">Action Available
-	        </h2>
+	        <h4 class="modal-title">Available Rack Settings</h4>
 	      </div>
-	      <div class="modal-body">
-				<table class="table">
-					<tr>
-						<div class="btn-group btn-group-lg" data-toggle="tooltip" title="Change Power Status" role="group" id="actionID" name="">
+	      <div class="modal-body" style="margin-left:6em;">
+	      	
+
+					
+						<div class="btn-group" data-toggle="tooltip" title="Change Power Status" role="group" id="actionID" name="">
 							<button type="button" class="btn btn-primary" onclick="getScheduledTasks(this.parentElement.name);">
 								Schedule Switch&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
 							</button>
@@ -962,7 +1177,8 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 								History Log&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
 							</button>
 						</div>
-			    </table>
+       		
+	      	
 	      </div>
 	      <div class="modal-footer">
 			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -985,23 +1201,39 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	      		<input type="hidden" id="createScheduleId" value="" />
                <table>
                	<tbody>
-               		<tr>
+		           <tr>
 		                 <td>
 		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		                 </td>
-		                 <td align="left">
-		                   <input id="txtNewStartDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
-		                   <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
-		                 </td>
-	               </tr>
-	               <tr>
 		                 <td>
+		           		
+					        <div class="form-group">
+					            <div class='input-group date' id='datetimepickeroff'>
+					                <input type='text' class="form-control" id="txtNewStartDate"/>
+					                <span class="input-group-addon">
+					                    <span class="glyphicon glyphicon-calendar"></span>
+					                </span>
+					            </div>
+					        </div>
+					    
+					    </td>
+		           </tr>
+		           <tr>
+		           		 <td>
 		                 	<b>Power on at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		                 </td>
-		                 <td align="left">
-		                   <input id="txtNewStopDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_stopdate" class="form-control input-sm">
-		                   <input id="txtNewStopHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_stoptime" class="form-control input-sm">
-		                 </td>
+		                 <td>
+		           		
+					        <div class="form-group">
+					            <div class='input-group date' id='datetimepickeron'>
+					                <input type='text' class="form-control"  id="txtNewStopDate"/>
+					                <span class="input-group-addon">
+					                    <span class="glyphicon glyphicon-calendar"></span>
+					                </span>
+					            </div>
+					        </div>
+					    
+					    </td>
 		           </tr>
 		           <tr>
 		                 <td colspan="2" style="padding-top:10px;padding-bottom:10px">
@@ -1014,7 +1246,28 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	            </tbody>
 	          </table>
 		  </form>
-	    </div>
+	      </div>
+	      <script type="text/javascript">
+			    $(function () {
+			        $('#datetimepickeroff').datetimepicker({
+			        	stepping:1,
+			        	format: 'YYYY-MM-DD HH:mm:',
+			        	sideBySide: true
+			        });
+			        $('#datetimepickeron').datetimepicker({
+			            useCurrent: false, //Important! See issue #1075
+			            stepping: 1,
+			        	format: 'YYYY-MM-DD HH:mm',
+			            sideBySide: true
+			        });
+			        $("#datetimepickeroff").on("dp.change", function (e) {
+			            $('#datetimepickeron').data("DateTimePicker").minDate(e.date);
+			        });
+			        $("#datetimepickeron").on("dp.change", function (e) {
+			            $('#datetimepickeroff').data("DateTimePicker").maxDate(e.date);
+			        });
+			    });
+		  </script>
 	      <div class="modal-footer">
                <a href="javascript:HideShow('scheduleModal','createScheduleModal');" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
                      Back</a>
@@ -1023,9 +1276,9 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	      </div>
 	    </div>
 
+	</div>
+
 </div>
-
-
 <script>layDownRows();</script>
 
 {% endblock %}
