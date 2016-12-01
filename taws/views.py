@@ -2321,15 +2321,15 @@ def createScheduledTasks(request):
 	#context = RequestContext(request)
 	idPowerMngmt=request.POST.get('idPowerMngmt','')
 	txtNewStartDate=request.POST.get('txtNewStartDate','')
-	txtNewStartHour=request.POST.get('txtNewStartHour','')
+	#txtNewStartHour=request.POST.get('txtNewStartHour','')
 	txtNewStopDate=request.POST.get('txtNewStopDate','')
-	txtNewStopHour=request.POST.get('txtNewStopHour','')
+	#txtNewStopHour=request.POST.get('txtNewStopHour','')
 	txtInterval=request.POST.get('txtInterval','')
 	
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
-	SQL="insert into T_POWER_SCHEDULE (T_POWER_MNGMT_id_powerMngmt, start_time, stop_time, T_POWER_SCHEDULE.interval) VALUES('"+idPowerMngmt+"','"+txtNewStartDate+" "+txtNewStartHour+"','"+txtNewStopDate+" "+txtNewStopHour+"','"+str(int(txtInterval)*1440)+"')"
+	SQL="insert into T_POWER_SCHEDULE (T_POWER_MNGMT_id_powerMngmt, start_time, stop_time, T_POWER_SCHEDULE.interval) VALUES('"+idPowerMngmt+"','"+txtNewStartDate+":00','"+txtNewStopDate+":00','"+str(int(txtInterval)*1440)+"')"
 	myRecordSet.execute(SQL)
 	dbConnection.commit()
 	

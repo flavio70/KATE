@@ -70,18 +70,10 @@ function Events_Validate(){
       alert("Please fill up the Start Data field");
       return;
     }  
-    if($('#txtNewStartHour').val().length==0){
-      alert("Please fill up the Start Hour field");
-      return;
-    }  
     if($('#txtNewStopDate').val().length==0){
        alert("Please fill up the Stop Data field");
        return;
      }  
-    if($('#txtNewStopHour').val().length==0){
-        alert("Please fill up the Stop Hour field");
-        return;
-      }  
     if($('#txtInterval').val().length==0){
         alert("Please fill up the Interval field");
         return;
@@ -296,9 +288,9 @@ function createScheduledTasks(){
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: document.getElementById('createScheduleId').value,
 			txtNewStartDate: document.getElementById('txtNewStartDate').value,
-			txtNewStartHour: document.getElementById('txtNewStartHour').value,
+			//txtNewStartHour: document.getElementById('txtNewStartHour').value,
 			txtNewStopDate: document.getElementById('txtNewStopDate').value,
-			txtNewStopHour: document.getElementById('txtNewStopHour').value,
+			//txtNewStopHour: document.getElementById('txtNewStopHour').value,
 			txtInterval: document.getElementById('txtInterval').value
 			},
 		success: createScheduledTasksExit,
@@ -310,20 +302,22 @@ function createScheduledTasks(){
 }
 
 function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
-	$.ajax({
-		type: "POST",
-		url: '/taws/deleteScheduledTasks/',
-		data: {
-			csrfmiddlewaretoken:'{{ csrf_token }}',
-			idPowerSchedule: idPowerSchedule,
-			idPowerMngmt: idPowerMngmt
-			},
-		success: getScheduledTasksExit,
-		error: function(xhr, textStatus, errorThrown) {
-				console.log(xhr.status+':'+xhr.responseText);
-				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
-			}
-	});	
+	if(confirm('Are you sure?')){
+		$.ajax({
+			type: "POST",
+			url: '/taws/deleteScheduledTasks/',
+			data: {
+				csrfmiddlewaretoken:'{{ csrf_token }}',
+				idPowerSchedule: idPowerSchedule,
+				idPowerMngmt: idPowerMngmt
+				},
+			success: deleteScheduledTasksExit,
+			error: function(xhr, textStatus, errorThrown) {
+					console.log(xhr.status+':'+xhr.responseText);
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
 }
 
 
@@ -348,6 +342,21 @@ var createScheduledTasksExit = function(sersverResponse_data, textStatus_ignored
 	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
 	$('#createScheduleModal').modal('toggle');
 	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+var deleteScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 	console.log('success');
 	scheduleList=sersverResponse_data['scheduled'];
 	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
@@ -1192,27 +1201,6 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 	      		<input type="hidden" id="createScheduleId" value="" />
                <table>
                	<tbody>
-
-               		<tr>
-		                 <td>
-		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		                 </td>
-		                 <td align="left">
-		                   <input id="txtNewStartDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_startdate" class="form-control input-sm">
-		                   <input id="txtNewStartHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_starttime" class="form-control input-sm">
-		                 </td>
-		                 
-	               </tr>
-	               <tr>
-		                 <td>
-		                 	<b>Power on at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		                 </td>
-		                 <td align="left">
-		                   <input id="txtNewStopDate" style="width:134px;display:inline-block;padding-right:0px;" type="date" name="NewEvent_stopdate" class="form-control input-sm">
-		                   <input id="txtNewStopHour" style="width:95px;display:inline-block;padding-right:0px;" type="time" name="NewEvent_stoptime" class="form-control input-sm">
-		                 </td>
-		                 
-		           </tr>
 		           <tr>
 		                 <td>
 		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -1221,7 +1209,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		           		
 					        <div class="form-group">
 					            <div class='input-group date' id='datetimepickeroff'>
-					                <input type='text' class="form-control" />
+					                <input type='text' class="form-control" id="txtNewStartDate"/>
 					                <span class="input-group-addon">
 					                    <span class="glyphicon glyphicon-calendar"></span>
 					                </span>
@@ -1238,7 +1226,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		           		
 					        <div class="form-group">
 					            <div class='input-group date' id='datetimepickeron'>
-					                <input type='text' class="form-control" />
+					                <input type='text' class="form-control"  id="txtNewStopDate"/>
 					                <span class="input-group-addon">
 					                    <span class="glyphicon glyphicon-calendar"></span>
 					                </span>
@@ -1263,11 +1251,13 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			    $(function () {
 			        $('#datetimepickeroff').datetimepicker({
 			        	stepping:1,
+			        	format: 'YYYY-MM-DD HH:mm:',
 			        	sideBySide: true
 			        });
 			        $('#datetimepickeron').datetimepicker({
 			            useCurrent: false, //Important! See issue #1075
 			            stepping: 1,
+			        	format: 'YYYY-MM-DD HH:mm',
 			            sideBySide: true
 			        });
 			        $("#datetimepickeroff").on("dp.change", function (e) {
