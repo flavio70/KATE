@@ -1,5 +1,6 @@
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.contrib.auth.models import Group
 
 register = template.Library()
 
@@ -36,3 +37,10 @@ def evaluate_color(value):
 	if float(value) > 98: return "success"
 	if float(value) > 95: return "warning"
 	return "danger"
+
+@register.filter(name='has_group')
+def has_group(user, group_name):
+	group = Group.objects.get(name=group_name)
+	return True if group in user.groups.all() else False
+
+
