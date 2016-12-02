@@ -2156,10 +2156,12 @@ def changeManualStatus(request):
 	idPowerMngmt=request.POST.get('idPowerMngmt','')
 	modifier=request.POST.get('modifier','')
 	newStatus=request.POST.get('newStatus','')
+	newStatusStr="Manual"
+	if newStatus == "1": newStatusStr="Auto"
 	
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
-	SQL="insert into T_POWER_STATUS (select "+idPowerMngmt+",power_status,null,'"+modifier+"','Change Manual Status',"+newStatus+" from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt+" order by last_change desc limit 1)"
+	SQL="insert into T_POWER_STATUS (select "+idPowerMngmt+",power_status,null,'"+modifier+"','Change Rack Mode to "+newStatusStr+"',"+newStatus+" from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt+" order by last_change desc limit 1)"
 	
 	myRecordSet.execute(SQL)
 	dbConnection.commit()
@@ -2235,7 +2237,8 @@ def getRackLog(request):
 	myRecordSet.execute("SET group_concat_max_len = 200000")
 	dbConnection.commit()
 	#SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) where id_powerMngmt="+idPowerMngmt
-	SQL="select group_concat(concat(last_change,' - ',modifier,' ',remarks) order by last_change desc separator '<br>') as log from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
+	SQL="select group_concat(concat('<tr><td>',last_change,'</td><td>',modifier,'</td><td>',remarks,'</td></tr>') order by last_change desc separator '') as log from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
+	#SQL="select group_concat(concat(last_change,' - ',modifier,' ',if(remarks='Change Rack Mode',concat(remarks,' to ',manual_status),if(remarks='Change Power Status',concat(remarks,' to ',power_status),remarks))) order by last_change desc separator '<br>') as log from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+idPowerMngmt
 	myRecordSet.execute(SQL)
 	row=myRecordSet.fetchone()
 
@@ -2404,7 +2407,7 @@ def power_management(request):
 		myrow=request.POST.get('row','')
 		#SQL="select powerTable.owner,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status from (select * from (SELECT * FROM T_POWER_MNGMT order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
 		#SQL="select powerTable.owner,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment)"
-		SQL="select id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,power_status from (select *,1 as log from (SELECT * FROM T_POWER_MNGMT join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment) where room='"+lab+"' and row='"+myrow+"'"
+		SQL="select id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,power_status from (select *,1 as log from (SELECT * FROM T_POWER_MNGMT left join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment) where room='"+lab+"' and row='"+myrow+"'"
 		#SQL="select scheduling,id_powerMngmt,powerTable.owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,if(power_status=1,'danger','success') as power_status,log from (select *,group_concat(concat(last_change,' - ',remarks) separator '<br>') as log from (SELECT * FROM T_POWER_MNGMT join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment) left join (select T_POWER_MNGMT_id_powerMngmt,group_concat(concat('<tr><td>',start_time,'</td><td>',stop_time,'</td><td>',T_POWER_SCHEDULE.interval,'</td><td><button type=\\\\'button\\\\' onclick=\\\"deleteSchedule(this);\\\" class=\\\"btn btn-primary\\\"><span class=\\\"glyphicon glyphicon-trash\\\" aria-hidden=\\\"true\\\"></span></button></td></tr>') separator '') as scheduling from T_POWER_SCHEDULE group by T_POWER_MNGMT_id_powerMngmt) as T_POWER_SCHEDULE using(T_POWER_MNGMT_id_powerMngmt)"
 		#SQL="SELECT *,netBench.IP as benchIP,netBench.NM as benchNM,netBench.GW as benchGW,group_concat(concat(ip1.ip,':',port,' ','Slot ',if(slot is null,'-',slot),' SubSlot ',if(subslot is null,'-',subslot)) separator '<br>') as serials,T_SCOPE.description as scope,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName,if(status like '%ING%',status,'IDLE') as benchStatus,T_EQUIPMENT.owner as reference,runtime.owner as author FROM T_EQUIPMENT LEFT JOIN (select * from T_RTM_BODY left join T_RUNTIME on(id_run=T_RUNTIME_id_run) where status='RUNNING') as runtime on(id_equipment=T_EQUIPMENT_id_equipment) left join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) left join T_NET as netBench on(netBench.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_LOCATION on(T_LOCATION_id_location=id_location) LEFT JOIN T_SERIAL on(T_SERIAL.T_EQUIPMENT_id_equipment=id_equipment) LEFT JOIN T_SCOPE on(T_SCOPE_id_scope=id_scope) LEFT JOIN T_NET as ip1 on(T_SERIAL.T_NET_id_ip=ip1.id_ip) group by id_equipment"
 		
