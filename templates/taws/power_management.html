@@ -55,16 +55,16 @@ function layDownRows(){
 	    if(myRows[i].owner!=login&&isPowerAdmin!='True'){myButton.disabled=true;}
 	    //if(myRows[i].owner!=''}{myButton.className='btn btn-warning navbar-btn custom';}
 	    myButton.title=myRows[i].owner;
-	    mySwitch=document.getElementById('onoffswitch-'+myRows[i].name);
-	    if(myRows[i].power_status==""){mySwitch.parentElement.style.display = "none";}
-	    if(myRows[i].power_status=="1"){mySwitch.checked=false;}
-	    if(myRows[i].power_status=="0"){mySwitch.checked=true;}
-	    if((myRows[i].owner!=login||myRows[i].manual_status=="1")&&isPowerAdmin!='True'){mySwitch.disabled=true;}
-	    mySwitch=document.getElementById('modeswitch-'+myRows[i].name);
-	    if(myRows[i].manual_status==""){mySwitch.parentElement.style.display = "none";}
-	    if(myRows[i].manual_status=="0"){mySwitch.checked=false;}
-	    if(myRows[i].manual_status=="1"){mySwitch.checked=true;}
-	    if(myRows[i].owner!=login&&isPowerAdmin!='True'){mySwitch.disabled=true;}
+	    powerSwitch=document.getElementById('onoffswitch-'+myRows[i].name);
+	    if(myRows[i].power_status==""){powerSwitch.parentElement.style.display = "none";}
+	    if(myRows[i].power_status=="1"){powerSwitch.checked=false;}
+	    if(myRows[i].power_status=="0"){powerSwitch.checked=true;}
+	    if((myRows[i].owner!=login||myRows[i].manual_status=="1")&&isPowerAdmin!='True'){powerSwitch.disabled=true;}
+	    autoSwitch=document.getElementById('modeswitch-'+myRows[i].name);
+	    if(myRows[i].manual_status==""){autoSwitch.parentElement.style.display = "none";}
+	    if(myRows[i].manual_status=="0"){autoSwitch.checked=false;}
+	    if(myRows[i].manual_status=="1"){autoSwitch.checked=true;powerSwitch.disabled=true;}
+	    if(myRows[i].owner!=login&&isPowerAdmin!='True'){autoSwitch.disabled=true;}
 	}
 } 
 

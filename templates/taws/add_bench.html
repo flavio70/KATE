@@ -89,13 +89,15 @@ function saveValues(action){
 	}
 	bench.debugInterface.value=bench.debugInterface.value.slice(0,-1)
 	bench.credList.value='';
-	for(i=0;i<document.getElementById('credTable').rows.length-1;i++){
+	for(i=0;i<document.getElementById('credTable').rows.length;i++){
 		bench.credList.value+=document.getElementById('credTable').rows[i].cells[2].children[0].value+'#';
-		bench.credList.value+=document.getElementById('credTable').rows[i].cells[4].firstChild.value+'#';
-		bench.credList.value+=document.getElementById('credTable').rows[i].cells[6].firstChild.value+'$';
+		if(document.getElementById('credTable').rows[i].cells[4].firstChild.value!='NA'){bench.credList.value+=document.getElementById('credTable').rows[i].cells[4].firstChild.value;}
+		bench.credList.value+='#';
+		if(document.getElementById('credTable').rows[i].cells[6].firstChild.value!='NA'){bench.credList.value+=document.getElementById('credTable').rows[i].cells[6].firstChild.value;}
+		bench.credList.value+='$';
 	}
 	bench.credList.value=bench.credList.value.slice(0,-1)
-	//alert(bench.credList.value);
+	alert(bench.credList.value);
 	bench.submit();
 }
 
