@@ -40,5 +40,6 @@ urlpatterns = [
 	url(r'^createScheduledTasks/$', views.createScheduledTasks),
 	url(r'^getRackDetails/$', views.getRackDetails),
 	url(r'^getRackLog/$', views.getRackLog),
+	url(r'^changeRackOwner/$', views.changeRackOwner),
 	url(r'^temp/$', views.temp)
 ]

@@ -205,6 +205,24 @@ function changeStatus(rackName){
 
 }
 
+function changeOwner(idPowerMngmt){
+	$.ajax({
+		type: "POST",
+		url: '/taws/changeRackOwner/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt,
+			newOwner: document.getElementById('rackOwner').value
+			},
+		success: getRackDetailsExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+	
+}
+
 function getRackDetails(rackName){
 	myRack=rackName.split('-')[1];
 	for(i=0;i<myRows.length;i++) {
@@ -327,11 +345,27 @@ function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
 var getRackDetailsExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 	$('#actionModal').modal('toggle');
 	$('#editModal').modal('toggle');
-	document.getElementById('modalHeader').innerHTML='Rack Details';
-	document.getElementById('modalName').value=sersverResponse_data['name'];
-	document.getElementById('modalPin').value=sersverResponse_data['pin'];
-	document.getElementById('modalIP').value=sersverResponse_data['ip'];
-	document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+	benchTable='';
+	benches=sersverResponse_data['bench'];
+	for(myIndex in benches){
+		benchTable+='<tr style="vertical-align:bottom;">';
+		benchTable+='<td valign="center">'+benches[myIndex]['bench']+'</td>';
+		benchTable+='<td valign="center">'+benches[myIndex]['owner']+'</td>';
+		benchTable+='<td valign="center">'+benches[myIndex]['type']+'</td>';
+		//benchTable+='<td><img src="{% static "images/'+benches[myIndex]['type']+'.jpg" %} /></td>';
+		benchTable+='<td style="border-bottom: 4px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;background-color: grey;"><img src="/static/images/DUT/'+benches[myIndex]['type']+'.png" /></td>';
+		/*benchTable+='<td><div class="btn-group navbar-btn">';
+		benchTable+='<button type="button" id="" onclick="" class="btn btn-primary btn-xs">Ping</button>';
+		benchTable+='<button type="button" id="" onclick="" class="btn btn-primary btn-xs">';
+		benchTable+='<span class="glyphicon glyphicon-off" aria-hidden="true"></span></button>';
+		benchTable+='</div></td>';*/
+	}
+	document.getElementById('benchTable').innerHTML=benchTable;
+	document.getElementById('modalHeader').innerHTML='Rack '+sersverResponse_data['rackName']+' Details	Rack - Owner : <select name="rackOwner" id="rackOwner">'+sersverResponse_data['users']+'</select><button type="button" id="'+sersverResponse_data['idPowerMngmt']+'" onclick="changeOwner(this.id);" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>';
+	//document.getElementById('modalName').value=sersverResponse_data['name'];
+	//document.getElementById('modalPin').value=sersverResponse_data['pin'];
+	//document.getElementById('modalIP').value=sersverResponse_data['ip'];
+	//document.getElementById('rackOwner').value=sersverResponse_data['owner'];
 };
 
 var getRackLogExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
@@ -1087,12 +1121,9 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		<form name="rackEditor" action="" method="post" >{% csrf_token %}
 			<input type="hidden" value="" name="lab" id="lab">
 			<input type="hidden" value="" name="row" id="row">
-			<table>
-				<tr><td>Raspberry Name : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalName'></td></tr>
-		        <tr><td>Raspberry PIN : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalPin'></td></tr>
-		        <tr><td>Raspberry IP : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='modalIP'></td></tr>
-		        <tr><td>Rack Owner : </td><td><input {% if role != "ADMIN" %} disabled {% endif %} type="text" id='rackOwner'></td></tr>
-		        <tr><td colspan=2 align="center"><input {% if role != "ADMIN" %} disabled {% endif %} type="submit"></td></tr>
+		    <table class='table'>
+		    	<thead><tr><th>Name</th><th>Owner</th><th>Type</th><th style='width: 130px;background-color: grey;border-top: 4px solid grey;border-bottom: 2px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;'><img src='{% static "images/DUT/TRU.png" %}' /></th></tr></thead>
+		    	<tbody id='benchTable' style='vertical-align:center;'></tbody>
 		    </table>
 		</form>
       </div>

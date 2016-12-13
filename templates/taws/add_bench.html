@@ -83,6 +83,7 @@ function saveValues(action){
 	bench.debugInterface.value='';
 	for(i=0;i<document.getElementById('debugTable').rows.length;i++){
 		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[3].children[0].value+'#';
+		if(document.getElementById('debugTable').rows[i].cells[5].firstChild.value==''){alert('Debug Interface Port Missing!');return;}
 		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[5].firstChild.value+'#';
 		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[7].firstChild.value+'#';
 		bench.debugInterface.value+=document.getElementById('debugTable').rows[i].cells[9].firstChild.value+'$';
@@ -97,7 +98,17 @@ function saveValues(action){
 		bench.credList.value+='$';
 	}
 	bench.credList.value=bench.credList.value.slice(0,-1)
-	alert(bench.credList.value);
+	//alert(bench.credList.value);
+	if($('#name')[0].value==''){alert('Equipment Name Missing!');return;}
+	if($('#ip1')[0].value==''||$('#ip2')[0].value==''||$('#ip3')[0].value==''||$('#ip4')[0].value==''){alert('Wrong IP address!');return;}
+	if($('#nm1')[0].value==''||$('#nm2')[0].value==''||$('#nm3')[0].value==''||$('#nm4')[0].value==''){alert('Wrong Net Mask!');return;}
+	if($('#gw1')[0].value==''||$('#gw2')[0].value==''||$('#gw3')[0].value==''||$('#gw4')[0].value==''){alert('Wrong Gateway!');return;}
+	if($('#reference')[0].value==''){alert('Equipment Reference Missing!');return;}
+	if($('#site')[0].value==''){alert('Site Missing!');return;}
+	if($('#room')[0].value==''){alert('Room Missing!');return;}
+	if($('#row')[0].value==''||$('#rack')[0].value==''||$('#pos')[0].value==''){alert('Wrong Position!');return;}
+	if($('#product')[0].value==''){alert('Product Missing!');return;}
+	if($('#scope')[0].value==''){alert('Equipment Scope Missing!');return;}
 	bench.submit();
 }
 
@@ -117,15 +128,15 @@ if('{{ createReport }}'!=''){
 				<table width="100%" height="100%" id="benchTable">
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" width="200px"><label class="title">BENCH NAME</label></td>
-						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><input type="text" name="name" maxlength="20" value="{{ name }}" ></td>
+						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><input type="text" id="name" name="name" maxlength="20" value="{{ name }}" ></td>
 					</tr>
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">IP ADDRESS</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<input type="text" class="input" name="ip1" maxlength="3" value="{{ ip1 }}" tabindex="1" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
-							<input type="text" class="input" name="ip2" maxlength="3" value="{{ ip2 }}" tabindex="2" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
-							<input type="text" class="input" name="ip3" maxlength="3" value="{{ ip3 }}" tabindex="3" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
-							<input type="text" class="input" name="ip4" maxlength="3" value="{{ ip4 }}" tabindex="4" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">
+							<input type="text" class="input" name="ip1" id="ip1" maxlength="3" value="{{ ip1 }}" tabindex="1" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+							<input type="text" class="input" name="ip2" id="ip2" maxlength="3" value="{{ ip2 }}" tabindex="2" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+							<input type="text" class="input" name="ip3" id="ip3" maxlength="3" value="{{ ip3 }}" tabindex="3" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">.
+							<input type="text" class="input" name="ip4" id="ip4" maxlength="3" value="{{ ip4 }}" tabindex="4" onkeypress='return restrictCharacters(this, event, integerOnly);' size="3" style="text-align:right;">
 						</td>
 					</tr>
 					<tr style="height:31px;">
@@ -149,7 +160,7 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">BENCH REFERENCE</label></td>
 						<td align="left" style="padding:5px;border	-bottom:solid lightgray 1px;">
-							<select name="reference" style="width:150px;" tabindex="16">
+							<select name="reference" id="reference" style="width:150px;" tabindex="16">
 								{% for user in users %}
 									<option {% if reference == user %}selected{% endif %} value='{{ user }}'>{{ user }}</option>
 								{% endfor %}
@@ -159,7 +170,7 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;"><label class="title">DESCRIPTION</label></td>
 						<td align="left" style="padding:5px;">
-							<input type="text" name="description" maxlength="20" value="{{ description }}" >
+							<input type="text" name="description" id="description" maxlength="20" value="{{ description }}" >
 						</td>
 					</tr>
 				</table>
@@ -174,7 +185,7 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" width="200px"><label class="title">SITE</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<input list="sites" name="site" value="{{ site }}" style="width:150px;" tabindex="14">
+							<input list="sites" name="site" id="site" value="{{ site }}" style="width:150px;" tabindex="14">
 							<datalist id="sites">
 								{% for site in locations %}
 									<option value='{{ site }}'>{{ site }}</option>
@@ -185,7 +196,7 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">ROOM</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<input list="rooms" name="room" value="{{ room }}" style="width:150px;" tabindex="15">
+							<input list="rooms" name="room" id="room" value="{{ room }}" style="width:150px;" tabindex="15">
 							<datalist id="rooms">
 								{% for room in rooms %}
 									<option value='{{ room }}'>{{ room }}</option>
@@ -196,15 +207,15 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">POSITION</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" colspan="2">
-							<input type="text" name="row" size="2" title="Row Number" tabindex="15" value="{{ row }}">/
-							<input type="text" name="rack" size="2" title="Rack Number" tabindex="16" value="{{ rack }}">/
-							<input type="text" name="pos" size="2" title="Position" tabindex="17" value="{{ pos }}" >
+							<input type="text" id="row" name="row" size="2" title="Row Number" tabindex="15" value="{{ row }}">/
+							<input type="text" id="rack" name="rack" size="2" title="Rack Number" tabindex="16" value="{{ rack }}">/
+							<input type="text" id="pos" name="pos" size="2" title="Position" tabindex="17" value="{{ pos }}" >
 						</td>
 					</tr>
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">PRODUCT</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<select name="product" style="width:150px;" tabindex="18">
+							<select name="product" id="product" style="width:150px;" tabindex="18">
 								{% for myProduct in products %}
 									<option {% if myProduct == product %}selected{% endif %} value='{{ myProduct }}'>{{ myProduct }}</option>
 								{% endfor %}
@@ -214,7 +225,7 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">SCOPE</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<select name="scope" style="width:150px;" tabindex="19">
+							<select name="scope" id="scope" style="width:150px;" tabindex="19">
 								{% for myScope in scopes %}
 									<option {% if myScope == scope %}selected{% endif %} value='{{ myScope }}'>{{ myScope }}</option>
 								{% endfor %}
@@ -224,7 +235,7 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;"><label class="title">NOTES</label></td>
 						<td align="left" style="padding:5px;">
-							<input type="text" name="note" tabindex="21" maxlength="20" value="{{ note }}" >
+							<input type="text" id="note" name="note" tabindex="21" maxlength="20" value="{{ note }}" >
 						</td>
 					</tr>
 				</table>
