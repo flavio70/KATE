@@ -2,9 +2,254 @@
 {% block body %}
 {% load static %}
 {% load kate_group %}
+<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.css" %}" />
+<script type="text/javascript" src="{% static "js/moment-with-locales.js" %}"></script>
+<script type="text/javascript" src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
+
 <script>
 var benchTable;
 var login = '{{ login }}';
+var login = '{{ login }}';
+var isSuperUser= '{{ request.user.is_superuser}}';
+var isPowerAdmin= '{{ request.user|has_group:"POWER_ADMINS" }}';
+
+function HideShow(fadeIn,fadeOut){
+	$('#'+fadeOut).modal('toggle');
+	$('#'+fadeIn).modal('toggle');
+}
+
+function Events_Validate(){
+    if($('#txtNewStartDate').val().length==0){
+      alert("Please fill up the Start Data field");
+      return;
+    }  
+    if($('#txtNewStopDate').val().length==0){
+       alert("Please fill up the Stop Data field");
+       return;
+     }  
+    if($('#txtInterval').val().length==0){
+        alert("Please fill up the Interval field");
+        return;
+      }  
+     if(confirm('Are you sure?')){createScheduledTasks();}
+  }
+
+
+function changeOwner(idPowerMngmt){
+	$.ajax({
+		type: "POST",
+		url: '/taws/changeRackOwner/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt,
+			newOwner: document.getElementById('rackOwner').value
+			},
+		success: window.location.reload(),
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+	
+}
+
+function shutDown(myIP){
+	alert('Un giorno spegnero\' '+myIP.replace('PB_',''));
+}
+
+function ping(myIP){
+	document.getElementById(myIP).className='btn btn-warning btn-xs';
+	document.getElementById(myIP).innerHTML='<i class="glyphicon glyphicon-repeat gly-spin"></i>';
+	document.getElementById(myIP).style.width='37px';
+	$.ajax({
+		type: "POST",
+		url: '/taws/pingIP/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			myIP: myIP,
+			},
+		success: pingIPExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+	
+}
+
+var pingIPExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	document.getElementById(sersverResponse_data['myIP']).innerHTML='Ping';
+	if(sersverResponse_data['pingStatus']=='OK'){
+		document.getElementById(sersverResponse_data['myIP']).className='btn btn-success btn-xs';
+		document.getElementById('PB_'+sersverResponse_data['myIP']).disabled=false;
+		document.getElementById('PB_'+sersverResponse_data['myIP']).className='btn btn-danger btn-xs';
+	}else{
+		document.getElementById(sersverResponse_data['myIP']).className='btn btn-danger btn-xs';
+		document.getElementById('PB_'+sersverResponse_data['myIP']).disabled=true;
+		document.getElementById('PB_'+sersverResponse_data['myIP']).className='btn btn-default btn-xs';
+	}
+};
+
+function getRackLog(myObj){
+	idPowerMngmt=myObj.parentElement.id;
+	document.getElementById('modalLogHeader').innerHTML='Log for '+myObj.closest('tr').cells[0].innerText;
+	document.getElementById('modalLogHeader').innerHTML+=' '+myObj.closest('tr').cells[1].innerText;
+	document.getElementById('modalLogHeader').innerHTML+=' Row '+myObj.closest('tr').cells[2].innerText;
+	document.getElementById('modalLogHeader').innerHTML+=' Rack '+myObj.closest('tr').cells[3].innerText;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getRackLog/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getRackLogExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+var getRackLogExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	$('#actionModal').modal('toggle');
+	$('#logModal').modal('toggle');
+	document.getElementById('modalLog').innerHTML=sersverResponse_data['log'];
+	//document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+function getRackDetails(myObj){
+	idPowerMngmt=myObj.parentElement.id;
+	document.getElementById('createScheduleId').value=idPowerMngmt;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getRackDetails/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getRackDetailsExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+var getRackDetailsExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	$('#actionModal').modal('toggle');
+	$('#editModal').modal('toggle');
+	benchTable='';
+	benches=sersverResponse_data['bench'];
+	for(myIndex in benches){
+		benchTable+='<tr style="vertical-align:bottom;">';
+		benchTable+='<td valign="center">'+benches[myIndex]['bench']+'</td>';
+		benchTable+='<td valign="center">'+benches[myIndex]['owner']+'</td>';
+		benchTable+='<td valign="center">'+benches[myIndex]['type']+'</td>';
+		benchTable+='<td><div class="btn-group navbar-btn">';
+		benchTable+='<button type="button" id="'+benches[myIndex]['IP']+'" title="Ping NE" onclick="ping(this.id);" class="btn btn-primary btn-xs">Ping</button>';
+		benchTable+='<button type="button" id="PB_'+benches[myIndex]['IP']+'" title="Shut Down NE" onclick="shutDown(this.id)" disabled class="btn btn-default btn-xs">';
+		benchTable+='<span class="glyphicon glyphicon-off" aria-hidden="true"></span></button>';
+		benchTable+='</div></td>';
+		//benchTable+='<td><img src="{% static "images/'+benches[myIndex]['type']+'.jpg" %} /></td>';
+		benchTable+='<td style="border-bottom: 4px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;background-color: grey;"><img src="/static/images/DUT/'+benches[myIndex]['type']+'.png" /></td>';
+	}
+	document.getElementById('benchTable').innerHTML=benchTable;
+	document.getElementById('modalHeader').innerHTML='Rack '+sersverResponse_data['rackName']+' Details	Rack - Owner : <select name="rackOwner" id="rackOwner">'+sersverResponse_data['users']+'</select><button type="button" id="'+sersverResponse_data['idPowerMngmt']+'" onclick="changeOwner(this.id);" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>';
+	//document.getElementById('modalName').value=sersverResponse_data['name'];
+	//document.getElementById('modalPin').value=sersverResponse_data['pin'];
+	//document.getElementById('modalIP').value=sersverResponse_data['ip'];
+	//document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+
+function createScheduledTasks(){
+	/*alert(document.getElementById('createScheduleId').value);
+	alert(document.getElementById('txtNewStartDate').value);
+	alert(document.getElementById('txtNewStartHour').value);
+	alert(document.getElementById('txtNewStopDate').value);
+	alert(document.getElementById('txtNewStopHour').value);
+	alert(document.getElementById('txtInterval').value);*/
+	$.ajax({
+		type: "POST",
+		url: '/taws/createScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: document.getElementById('createScheduleId').value,
+			txtNewStartDate: document.getElementById('txtNewStartDate').value,
+			//txtNewStartHour: document.getElementById('txtNewStartHour').value,
+			txtNewStopDate: document.getElementById('txtNewStopDate').value,
+			//txtNewStopHour: document.getElementById('txtNewStopHour').value,
+			txtInterval: document.getElementById('txtInterval').value
+			},
+		success: createScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+var createScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	$('#createScheduleModal').modal('toggle');
+	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+function getScheduledTasks(myObj){
+	idPowerMngmt=myObj.parentElement.id;
+	document.getElementById('scheduleHeader').innerHTML=myObj.closest('tr').cells[0].innerText;
+	document.getElementById('scheduleHeader').innerHTML+=' '+myObj.closest('tr').cells[1].innerText;
+	document.getElementById('scheduleHeader').innerHTML+=' Row '+myObj.closest('tr').cells[2].innerText;
+	document.getElementById('scheduleHeader').innerHTML+=' Rack '+myObj.closest('tr').cells[3].innerText;
+	document.getElementById('createScheduleId').value=idPowerMngmt;
+	$.ajax({
+		type: "POST",
+		url: '/taws/getScheduledTasks/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			idPowerMngmt: idPowerMngmt
+			},
+		success: getScheduledTasksExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+}
+
+var getScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	$('#actionModal').modal('toggle');
+	$('#scheduleModal').modal('toggle');
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+
 
 function getSelectedLines(){
 	rowNum=benchTable.rows('.info').data().length;
@@ -219,12 +464,198 @@ $(document).ready(function() {
 						<td>{{ myBench.owner }}</td>
 						<td>{% if myBench.power_status == 0 %}<span class="label label-success">ON</span>{% else %}<span class="label label-danger">OFF</span>{% endif %}</td>
 						<td>{% if myBench.manual_status == 1 %}<span class="label label-primary">AUTO</span>{% else %}<span class="label label-info">MANUAL</span>{% endif %}</td>
-						<td></td>
+						<td>
+							<div class="btn-group btn-group-xs" data-toggle="tooltip" title="Change Power Status" role="group" id="{{ myBench.id_powerMngmt }}">
+								<button type="button" class="btn btn-primary" onclick="getScheduledTasks(this);">
+									Schedule Switch&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+								</button>
+								<button type="button" class="btn btn-primary" onclick="getRackDetails(this);">
+									Rack Details&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+								</button>
+								<button type="button" class="btn btn-primary" onclick="getRackLog(this);">
+									History Log&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+								</button>
+							</div>
+					
+						</td>
 					</tr>
 				{% endif %}
 			{% endfor %}
 	</tbody> 
 	</table>
+
+</div>
+<div id="editModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><div id='modalHeader' /></h4>
+      </div>
+      <div class="modal-body">
+		<form name="rackEditor" action="" method="post" >{% csrf_token %}
+			<input type="hidden" value="" name="lab" id="lab">
+			<input type="hidden" value="" name="row" id="row">
+		    <table class='table'>
+		    	<thead><tr><th>Name</th><th>Owner</th><th>Type</th><th></th>Actions<th style='width: 130px;background-color: grey;border-top: 4px solid grey;border-bottom: 2px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;'><img src='{% static "images/DUT/TRU.png" %}' /></th></tr></thead>
+		    	<tbody id='benchTable' style='vertical-align:center;'></tbody>
+		    </table>
+		</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="logModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+      
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title"><div id='modalLogHeader' /></h4>
+      </div>
+      <div class="modal-body" style="height:200px;overflow-y:auto;">
+			<table class="table">
+				<tr><th>Timestamp</th><th>User</th><th>Event</th></tr>
+				<tbody id="modalLog"></tbody>
+		    </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="scheduleModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        
+		    
+	        	<h4 class="modal-title"><div id='scheduleHeader'></div></h4>
+	       
+	      </div>
+	      <div class="modal-body">
+				<table class="table">
+					<thead><tr><th>Next Shut Down Time</th><th>Next Power On Time</th><th>Recurring Interval</th><th></th></tr></thead>
+					<tbody id="scheduleBody"></tbody>
+					<!--<tfoot><tr><td colspan="4" align="right">
+				        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createScheduleModal" onclick="HideShow('createScheduleModal','scheduleModal');">New Schedule</button>
+				    </td></tr></tfoot>-->
+			    </table>
+	      </div>
+	      <div class="modal-footer">
+			<a href="javascript:HideShow('createScheduleModal','scheduleModal');" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px">New Schedule</a>
+	      </div>
+	    </div>
+
+	  </div>
+</div>
+
+
+<div id="createScheduleModal" class="modal fade" role="dialog">
+ 	 <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Create New Schedule</h4>
+	      </div>
+	      <div class="modal-body">
+	      	<form action="">
+	      		<input type="hidden" id="createScheduleId" value="" />
+               <table>
+               	<tbody>
+		           <tr>
+		                 <td>
+		                 	<b>Power off at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td>
+		           		
+					        <div class="form-group">
+					            <div class='input-group date' id='datetimepickeroff'>
+					                <input type='text' class="form-control" id="txtNewStartDate"/>
+					                <span class="input-group-addon">
+					                    <span class="glyphicon glyphicon-calendar"></span>
+					                </span>
+					            </div>
+					        </div>
+					    
+					    </td>
+		           </tr>
+		           <tr>
+		           		 <td>
+		                 	<b>Power on at</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                 </td>
+		                 <td>
+		           		
+					        <div class="form-group">
+					            <div class='input-group date' id='datetimepickeron'>
+					                <input type='text' class="form-control"  id="txtNewStopDate"/>
+					                <span class="input-group-addon">
+					                    <span class="glyphicon glyphicon-calendar"></span>
+					                </span>
+					            </div>
+					        </div>
+					    
+					    </td>
+		           </tr>
+		           <tr>
+		                 <td colspan="2" style="padding-top:10px;padding-bottom:10px">
+		                   <label for="NewEvent_liters">Repeat Every &nbsp;&nbsp;&nbsp;</label>
+		                   <input id="txtInterval" style="width:60px;display:inline-block" type="number" min="0" name="NewEvent_weeks" class="form-control input-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		                   <label for="NewEvent_days">Days</label>
+		                   <!--<input id="txtNewDays" style="width:60px;display:inline-block" type="number" name="NewEvent_days" class="form-control input-sm">-->
+		                 </td>
+	               </tr>
+	            </tbody>
+	          </table>
+		  </form>
+	      </div>
+	      <script type="text/javascript">
+			    $(function () {
+			        $('#datetimepickeroff').datetimepicker({
+			        	stepping:1,
+			        	format: 'YYYY-MM-DD HH:mm:',
+			        	sideBySide: true
+			        });
+			        $('#datetimepickeron').datetimepicker({
+			            useCurrent: false, //Important! See issue #1075
+			            stepping: 1,
+			        	format: 'YYYY-MM-DD HH:mm',
+			            sideBySide: true
+			        });
+			        $("#datetimepickeroff").on("dp.change", function (e) {
+			            $('#datetimepickeron').data("DateTimePicker").minDate(e.date);
+			        });
+			        $("#datetimepickeron").on("dp.change", function (e) {
+			            $('#datetimepickeroff').data("DateTimePicker").maxDate(e.date);
+			        });
+			    });
+		  </script>
+	      <div class="modal-footer">
+               <a href="javascript:HideShow('scheduleModal','createScheduleModal');" class="btn btn-warning input-sm" style="padding-top:4px;margin-top:6px">
+                     Back</a>
+               &nbsp;&nbsp;&nbsp;
+               <input type="button" onclick="return Events_Validate();" class="btn btn-primary input-sm" style="padding-top:4px;margin-top:6px" value="Create" />
+	      </div>
+	    </div>
+
+	</div>
 
 </div>
 {% endblock %}
