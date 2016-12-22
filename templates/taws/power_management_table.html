@@ -1,0 +1,231 @@
+{% extends "taws/mainCompact_template.html" %}
+{% block body %}
+{% load static %}
+{% load kate_group %}
+<script>
+var benchTable;
+var login = '{{ login }}';
+
+function getSelectedLines(){
+	rowNum=benchTable.rows('.info').data().length;
+	rackList=[];
+	for(i=0;i<rowNum;i++){
+		rackList.push(benchTable.rows(benchTable.rows('.info')[0][i]).data()[0].id);
+	}
+	return rackList.join('#');
+}
+
+function setRackStatus(rackStatus,newStatus){
+	rackList=getSelectedLines();
+	//if(rackList.length()!=0){
+		$.ajax({
+			type: "POST",
+			url: '/taws/setRackStatus/',
+			data: {
+				csrfmiddlewaretoken:'{{ csrf_token }}',
+				rackStatus: rackStatus,
+				newStatus: newStatus,
+				rackList: rackList,
+				modifier: login
+				},
+			success: setRackStatusExit,
+			error: function(xhr, textStatus, errorThrown) {
+					console.log(xhr.status+':'+xhr.responseText);
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	//}
+}
+
+var setRackStatusExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	//prompt('',sersverResponse_data['templatePreset'].replace('%0A','%0D%0A'));
+	console.log('success');
+	//alert(sersverResponse_data['switchReport']);
+	window.location.reload();
+};
+
+$(document).ready(function() {
+
+	document.getElementById('mainTitle').innerHTML='<span class="glyphicon glyphicon-th" title="GRID VIEW" aria-hidden="true" onclick="window.location.href=\'/taws/powerManagement/\'"></span> Power Management';
+	
+
+	benchTable = $('#suiteTable').DataTable({
+		dom:'<"row"<"col-sm-3"><"col-sm-6"><"col-sm-3"f>>\
+		<"row"<"col-sm-12"tr>>\
+		<"row"<"col-sm-5"i><"col-sm-7"p>>\
+		<"row"<"col-sm-4"<>><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleAttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleAttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleAttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleAttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleAttr: 'Print table'}, ],
+		scrollY:'480px',
+		bPaginate:false,
+		scrollCollapse:true,"columns": [
+		{
+			"data":           "id",
+			"visible": false
+		},
+		{
+			"data": "bench", 
+			"className": "dt-center" 
+		},
+		{
+			"data": "status", 
+			"className": "dt-center" 
+		},
+		{
+			"data": "startingDate", 
+			"className": "dt-center"
+		},
+		{
+			"data": "tester", 
+			"className": "dt-center"
+		},
+		{
+			"data": "SWP",
+			 "className": "dt-center"
+		},
+		{
+			"data": "job",
+			"className": "dt-center"
+		 },
+		{
+			"data": "build",
+			"className": "dt-center"
+		 },
+		{
+			"data": "location",
+			"className": "dt-center"
+		 }]
+	});
+	 
+	
+	new $.fn.dataTable.Buttons( benchTable, {'buttons': [
+							{text:'Select:'},
+							{
+								text:'ALL',
+								titleAttr: 'Select All filtered Entries',
+								action:function(){$('#suiteTable').find('tr').addClass('info');}
+							},
+							{
+								text:'NONE',
+								titleAttr: 'Deselect All Entries',
+								action:function(){$('#suiteTable').find('tr.info').removeClass('info');}
+							},
+							
+						]} );
+						
+	new $.fn.dataTable.Buttons( benchTable, {'buttons': [
+							{text:'Modify:'},
+							{
+								text:'ON',
+								titleAttr: 'Power ON Selected Nodes',
+								action:function(){setRackStatus('power_status','OFF');}
+							},
+							{
+								text:'OFF',
+								titleAttr: 'Shut DOWN Selected Nodes',
+								action:function(){setRackStatus('power_status','ON');}
+							},
+							{
+								text:'AUTO',
+								titleAttr: 'Set AUTO status on Selected Nodes',
+								action:function(){setRackStatus('manual_status','1');}
+							},
+							{
+								text:'MANUAL',
+								titleAttr: 'Set MANUAL status on Selected Nodess',
+								action:function(){setRackStatus('manual_status','0');}
+							},
+							
+						]} );					
+						
+	benchTable.buttons(1,null).container().appendTo($('.col-sm-3:eq(0)',benchTable.table().container() ));
+	benchTable.buttons(2,null).container().appendTo($('.col-sm-6:eq(0)',benchTable.table().container() ));
+	//benchTable.buttons().container().appendTo($('.col-sm-5:eq(0)',benchTable.table().container() ));
+	benchTable.buttons(1,0).disable()
+	benchTable.buttons(2,0).disable()
+
+
+	
+	$("div.tail").html('<div align="center">');
+	/*
+	 $('#suiteTable tbody').on( 'click', 'tr', function () {
+		if ( $(this).hasClass('selected') ) {
+		    $(this).removeClass('selected');
+		}
+		else {
+		    benchTable.$('tr.selected').removeClass('selected');
+		    $(this).addClass('selected');
+		}
+	    } );*/
+	$('#suiteTable tbody').on('click','tr',function(e){
+		//$('#suiteTable').find('tr.info').removeClass('info');
+		$(this).toggleClass('info');
+	})
+
+	$('[data-toggle="popover"]').popover({'trigger':'hover','placement':'down','animation':true,'template':'<div class="popover" style="width:300px;" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}); 
+
+} );
+
+//$.fn.dataTable.ext.buttons.alert = { className: 'buttons-alert', action: function ( e, dt, node, config ) { alert( this.text() ); } }; $(document).ready(function() { $('#example').DataTable( { dom: 'Bfrtip', buttons: [ { extend: 'alert', text: 'My button 1' }, { extend: 'alert', text: 'My button 2' }, { extend: 'alert', text: 'My button 3' } ] } ); } );
+
+
+</script>
+
+<form name="bench" method="post" action="/taws/bench/?action=delete">{% csrf_token %}
+	<input type="hidden" name="deleteBench" value="" />
+</form>
+
+
+<div style="position:fixed; left:3%; margin-top:10px; width:94%; z-index:10;" id="suite" >
+	<table class="table table-striped table-hover table-condensed" cellspacing="0" id="suiteTable" style="width:100%">
+	<thead>       
+			<tr>             
+				<td></td>
+				<th>Site</th>
+				<th>Room</th>
+				<th>Row</th>
+				<th>Rack</th>
+				<th>Owner</th>
+				<th>ON/OFF</th>
+				<th>Manual</th>
+				<th>Actions</th>
+			</tr>     
+	</thead>     
+	<tfoot>       
+			<tr>             
+				<td></td>
+				<th>Site</th>
+				<th>Room</th>
+				<th>Row</th>
+				<th>Rack</th>
+				<th>Owner</th>
+				<th>ON/OFF</th>
+				<th>Manual</th>
+				<th>Actions</th>
+			</tr>     
+	</tfoot>     
+	<tbody>
+			{% for myBench in benches %}
+				{% if myBench.owner|upper == login|upper or request.user|has_group:"POWER_ADMINS" %}
+					<tr>
+						<td>{{ myBench.id_powerMngmt }}</td>
+						<td>{{ myBench.site }}</td>
+						<td>{{ myBench.room }}</td>
+						<td>{{ myBench.row }}</td>
+						<td>{{ myBench.rack }}</td>
+						<td>{{ myBench.owner }}</td>
+						<td>{% if myBench.power_status == 0 %}<span class="label label-success">ON</span>{% else %}<span class="label label-danger">OFF</span>{% endif %}</td>
+						<td>{% if myBench.manual_status == 1 %}<span class="label label-primary">AUTO</span>{% else %}<span class="label label-info">MANUAL</span>{% endif %}</td>
+						<td></td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+	</tbody> 
+	</table>
+
+</div>
+{% endblock %}
+

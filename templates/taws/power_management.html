@@ -223,6 +223,30 @@ function changeOwner(idPowerMngmt){
 	
 }
 
+function shutDown(myIP){
+	alert('Un giorno spegnero\' '+myIP.replace('PB_',''));
+}
+
+function ping(myIP){
+	document.getElementById(myIP).className='btn btn-warning btn-xs';
+	document.getElementById(myIP).innerHTML='<i class="glyphicon glyphicon-repeat gly-spin"></i>';
+	document.getElementById(myIP).style.width='37px';
+	$.ajax({
+		type: "POST",
+		url: '/taws/pingIP/',
+		data: {
+			csrfmiddlewaretoken:'{{ csrf_token }}',
+			myIP: myIP,
+			},
+		success: pingIPExit,
+		error: function(xhr, textStatus, errorThrown) {
+				console.log(xhr.status+':'+xhr.responseText);
+				alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+			}
+	});	
+	
+}
+
 function getRackDetails(rackName){
 	myRack=rackName.split('-')[1];
 	for(i=0;i<myRows.length;i++) {
@@ -341,7 +365,6 @@ function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
 	}
 }
 
-
 var getRackDetailsExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 	$('#actionModal').modal('toggle');
 	$('#editModal').modal('toggle');
@@ -352,13 +375,13 @@ var getRackDetailsExit = function(sersverResponse_data, textStatus_ignored,jqXHR
 		benchTable+='<td valign="center">'+benches[myIndex]['bench']+'</td>';
 		benchTable+='<td valign="center">'+benches[myIndex]['owner']+'</td>';
 		benchTable+='<td valign="center">'+benches[myIndex]['type']+'</td>';
+		benchTable+='<td><div class="btn-group navbar-btn">';
+		benchTable+='<button type="button" id="'+benches[myIndex]['IP']+'" title="Ping NE" onclick="ping(this.id);" class="btn btn-primary btn-xs">Ping</button>';
+		benchTable+='<button type="button" id="PB_'+benches[myIndex]['IP']+'" title="Shut Down NE" onclick="shutDown(this.id)" disabled class="btn btn-default btn-xs">';
+		benchTable+='<span class="glyphicon glyphicon-off" aria-hidden="true"></span></button>';
+		benchTable+='</div></td>';
 		//benchTable+='<td><img src="{% static "images/'+benches[myIndex]['type']+'.jpg" %} /></td>';
 		benchTable+='<td style="border-bottom: 4px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;background-color: grey;"><img src="/static/images/DUT/'+benches[myIndex]['type']+'.png" /></td>';
-		/*benchTable+='<td><div class="btn-group navbar-btn">';
-		benchTable+='<button type="button" id="" onclick="" class="btn btn-primary btn-xs">Ping</button>';
-		benchTable+='<button type="button" id="" onclick="" class="btn btn-primary btn-xs">';
-		benchTable+='<span class="glyphicon glyphicon-off" aria-hidden="true"></span></button>';
-		benchTable+='</div></td>';*/
 	}
 	document.getElementById('benchTable').innerHTML=benchTable;
 	document.getElementById('modalHeader').innerHTML='Rack '+sersverResponse_data['rackName']+' Details	Rack - Owner : <select name="rackOwner" id="rackOwner">'+sersverResponse_data['users']+'</select><button type="button" id="'+sersverResponse_data['idPowerMngmt']+'" onclick="changeOwner(this.id);" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></button>';
@@ -373,6 +396,19 @@ var getRackLogExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ign
 	$('#logModal').modal('toggle');
 	document.getElementById('modalLog').innerHTML=sersverResponse_data['log'];
 	document.getElementById('rackOwner').value=sersverResponse_data['owner'];
+};
+
+var pingIPExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	document.getElementById(sersverResponse_data['myIP']).innerHTML='Ping';
+	if(sersverResponse_data['pingStatus']=='OK'){
+		document.getElementById(sersverResponse_data['myIP']).className='btn btn-success btn-xs';
+		document.getElementById('PB_'+sersverResponse_data['myIP']).disabled=false;
+		document.getElementById('PB_'+sersverResponse_data['myIP']).className='btn btn-danger btn-xs';
+	}else{
+		document.getElementById(sersverResponse_data['myIP']).className='btn btn-danger btn-xs';
+		document.getElementById('PB_'+sersverResponse_data['myIP']).disabled=true;
+		document.getElementById('PB_'+sersverResponse_data['myIP']).className='btn btn-default btn-xs';
+	}
 };
 
 var createScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
@@ -434,7 +470,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 };
 
 
-	document.getElementById('mainTitle').innerHTML='Power Management';
+	document.getElementById('mainTitle').innerHTML='<span class="glyphicon glyphicon-th-list" aria-hidden="true" title="TABLE VIEW" onclick="window.location.href=\'/taws/powerManagementTable/\'"></span> Power Management';
 
 
 </script>
@@ -1122,7 +1158,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 			<input type="hidden" value="" name="lab" id="lab">
 			<input type="hidden" value="" name="row" id="row">
 		    <table class='table'>
-		    	<thead><tr><th>Name</th><th>Owner</th><th>Type</th><th style='width: 130px;background-color: grey;border-top: 4px solid grey;border-bottom: 2px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;'><img src='{% static "images/DUT/TRU.png" %}' /></th></tr></thead>
+		    	<thead><tr><th>Name</th><th>Owner</th><th>Type</th><th></th>Actions<th style='width: 130px;background-color: grey;border-top: 4px solid grey;border-bottom: 2px solid grey;border-left: 6px solid grey;border-right: 6px solid grey;padding: 0px;'><img src='{% static "images/DUT/TRU.png" %}' /></th></tr></thead>
 		    	<tbody id='benchTable' style='vertical-align:center;'></tbody>
 		    </table>
 		</form>
