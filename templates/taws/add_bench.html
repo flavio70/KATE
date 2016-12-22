@@ -185,31 +185,51 @@ if('{{ createReport }}'!=''){
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" width="200px"><label class="title">SITE</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<input list="sites" name="site" id="site" value="{{ site }}" style="width:150px;" tabindex="14">
+							<select name="site" id="site" style="width:150px;" tabindex="16">
+								{% for location in locations %}
+									<option {% if site == location %}selected{% endif %} value='{{ location }}'>{{ location }}</option>
+								{% endfor %}
+							</select>
+							<!--<input list="sites" name="site" id="site" value="{{ site }}" style="width:150px;" tabindex="14">
 							<datalist id="sites">
 								{% for site in locations %}
 									<option value='{{ site }}'>{{ site }}</option>
 								{% endfor %}
-							</datalist>
+							</datalist>-->
 						</td>
 					</tr>
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">ROOM</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;">
-							<input list="rooms" name="room" id="room" value="{{ room }}" style="width:150px;" tabindex="15">
+							<select name="room" id="room" style="width:150px;" tabindex="16">
+								{% for myRoom in rooms %}
+									<option {% if room == myRoom %}selected{% endif %} value='{{ myRoom }}'>{{ myRoom }}</option>
+								{% endfor %}
+							</select>
+							<!--<input list="rooms" name="room" id="room" value="{{ room }}" style="width:150px;" tabindex="15">
 							<datalist id="rooms">
 								{% for room in rooms %}
 									<option value='{{ room }}'>{{ room }}</option>
 								{% endfor %}
-							</datalist>
+							</datalist>-->
 						</td>
 					</tr>
 					<tr style="height:31px;">
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;"><label class="title">POSITION</label></td>
 						<td align="left" style="padding:5px;border-bottom:solid lightgray 1px;" colspan="2">
-							<input type="text" id="row" name="row" size="2" title="Row Number" tabindex="15" value="{{ row }}">/
-							<input type="text" id="rack" name="rack" size="2" title="Rack Number" tabindex="16" value="{{ rack }}">/
-							<input type="text" id="pos" name="pos" size="2" title="Position" tabindex="17" value="{{ pos }}" >
+							<select name="row" id="row" tabindex="16">
+								{% for myRow in rows %}
+									<option {% if row == myRow %}selected{% endif %} value='{{ myRow }}'>{{ myRow }}</option>
+								{% endfor %}
+							</select>/
+							<!--<input type="text" id="row" name="row" size="2" title="Row Number" tabindex="15" value="{{ row }}">-->
+							<select name="rack" id="rack" tabindex="16">
+								{% for myRack in racks %}
+									<option {% if rack == myRack %}selected{% endif %} value='{{ myRack }}'>{{ myRack }}</option>
+								{% endfor %}
+							</select>/
+							<!--<input type="text" id="rack" name="rack" size="2" title="Rack Number" tabindex="16" value="{{ rack }}">/-->
+							<input style="height:20px;width:50px;display:inline-block" id="pos" name="pos" title="Position" tabindex="17" value="{{ pos }}" type="number" min="1" class="form-control input-sm">
 						</td>
 					</tr>
 					<tr style="height:31px;">
@@ -298,16 +318,18 @@ if('{{ createReport }}'!=''){
 				</table>
 			</div>
 		</div>
-		<input type="hidden" name="debugInterface" value="" />
-		<input type="hidden" name="credList" value="" />
-		<div align="center">
-			{% if update != "" %}
-				<div class="btn-group btn-group" data-toggle="tooltip" title="Update Current Bench values" role="group">
-						<button type="button" class="btn btn-default btn-info" onclick="saveValues('update');"><span class="glyphicon glyphicon-save" aria-hidden="true"></span> Update</button>
+		<div class="panel panel-info col-sm-12" style="padding-right:unset; padding-left:unset;">
+			<input type="hidden" name="debugInterface" value="" />
+			<input type="hidden" name="credList" value="" />
+			<div align="center">
+				{% if update != "" %}
+					<div class="btn-group btn-group" data-toggle="tooltip" title="Update Current Bench values" role="group">
+							<button type="button" class="btn btn-default btn-info" onclick="saveValues('update');"><span class="glyphicon glyphicon-save" aria-hidden="true"></span> Update</button>
+					</div>
+				{% endif %}
+				<div class="btn-group btn-group" data-toggle="tooltip" title="Create New Bench" role="group">
+					<button type="button" class="btn btn-default btn-info" onclick="saveValues('create');"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Create</button>
 				</div>
-			{% endif %}
-			<div class="btn-group btn-group" data-toggle="tooltip" title="Create New Bench" role="group">
-				<button type="button" class="btn btn-default btn-info" onclick="saveValues('create');"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Create</button>
 			</div>
 		</div>
 	</form>

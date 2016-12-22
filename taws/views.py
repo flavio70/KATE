@@ -1322,6 +1322,12 @@ def add_bench(request):
 	myRecordSet.execute("SELECT distinct(name) as product FROM T_EQUIP_TYPE")
 	products=[row["product"] for row in myRecordSet]
 
+	myRecordSet.execute("SELECT distinct(row) as row FROM T_LOCATION order by row")
+	rows=[row["row"] for row in myRecordSet]
+
+	myRecordSet.execute("SELECT distinct(rack) as rack FROM T_LOCATION order by rack")
+	racks=[row["rack"] for row in myRecordSet]
+
 	myRecordSet.execute("SELECT distinct(description) as scope FROM T_SCOPE")
 	scopes=[row["scope"] for row in myRecordSet]
 
@@ -1359,6 +1365,8 @@ def add_bench(request):
 		'families':families,
 		'site':site,
 		'room':room,
+		'rows':rows,
+		'racks':racks,
 		'product':product,
 		'scope':scope,
 		'row':rowID,
