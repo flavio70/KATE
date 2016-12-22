@@ -2443,7 +2443,7 @@ def createScheduledTasks(request):
 		scheduled.append({'id_powerSchedule':str(row["idT_POWER_SCHEDULE"]),
 			'start_time':str(row["start_time"]),
 			'stop_time':str(row["stop_time"]),
-			'interval':row["interval"]
+			'interval':str(int(row["interval"])/1440)
 		})
 
 	context_dict={'login':request.session['login'],
