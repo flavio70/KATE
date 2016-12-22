@@ -2226,6 +2226,25 @@ def getScheduledTasks(request):
 	print('Get Scheduled Task')
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
 
+def pingIP(request):
+	
+	import json, os
+	
+	#context = RequestContext(request)
+	myIP=request.POST.get('myIP')
+	
+	response = os.system("ping -c 1 " + myIP)  
+	if response == 0:
+		pingStatus='OK'
+	else:
+		pingStatus='KO'		
+
+	context_dict={'login':request.session['login'],
+		'myIP':myIP,
+		'pingStatus':pingStatus
+	}
+	print('Ping '+myIP+' '+pingStatus)
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
 
 def getRackLog(request):
 	
@@ -2271,7 +2290,7 @@ def getRackDetails(request):
 	myRecordSet.execute(SQL)
 	row=myRecordSet.fetchone()
 	
-	SQL="select *,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName from T_EQUIPMENT join T_LOCATION on(T_LOCATION_id_location=id_location) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where site='"+row['site']+"' and room='"+row['room']+"' and rack='"+row['rack']+"' order by pos"
+	SQL="select *,T_EQUIP_TYPE.name as type,T_EQUIPMENT.name as benchName from T_EQUIPMENT join T_LOCATION on(T_LOCATION_id_location=id_location) join T_EQUIP_TYPE on(id_type=T_EQUIP_TYPE_id_type) join T_NET on(id_equipment=T_EQUIPMENT_id_equipment) where site='"+row['site']+"' and room='"+row['room']+"' and row='"+str(row['row'])+"' and rack='"+row['rack']+"' order by pos"
 	myRecordSet.execute(SQL)
 	bench=[]
 	for benches in myRecordSet:
@@ -2282,7 +2301,7 @@ def getRackDetails(request):
 		#	pingStatus='OK'
 		#else:
 		#	pingStatus='KO'		
-		bench.append({'bench':benches["benchName"],'owner':benches['owner'],'type':benches['type'],'pingStatus':pingStatus})
+		bench.append({'bench':benches["benchName"],'owner':benches['owner'],'type':benches['type'],'pingStatus':pingStatus,'IP':benches['IP']})
 		
 	SQL="SELECT * FROM auth_user where first_name is not null order by username"
 	myRecordSet.execute(SQL)
@@ -2434,6 +2453,90 @@ def createScheduledTasks(request):
 	print('Create Scheduled Task')
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
 
+def setRackStatus(request):
+
+	import xmlrpc.client
+	import json
+	import mysql.connector
+	
+	context = RequestContext(request)
+	rackList=request.POST.get('rackList').split('#')
+	modifier=request.POST.get('modifier')
+	newStatus=request.POST.get('newStatus')
+	rackStatus=request.POST.get('rackStatus')
+	print('Change '+rackStatus+' Status on '+str(rackList))
+	
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+
+	if rackStatus == "power_status":
+		for myRack in rackList:
+			SQL="SELECT ip,pin FROM T_POWER_MNGMT join T_NET using(T_EQUIPMENT_id_equipment) join (select * from (select * from T_POWER_STATUS order by last_change desc) as yourTable group by T_POWER_MNGMT_id_powerMngmt) as myTable on(T_POWER_MNGMT_id_powerMngmt=id_powerMngmt) where manual_status=0 and id_powerMngmt="+myRack
+			myRecordSet.execute(SQL)
+			for row in myRecordSet:
+	
+				proxy = xmlrpc.client.ServerProxy("http://"+row['ip']+":8080/")
+				switchReport = proxy.setGPIO([{'gpio':row['pin'],'status':newStatus,'idPowerMngmt':myRack,'modifier':modifier}])
+
+	if rackStatus == "manual_status":
+		for myRack in rackList:
+			
+			newStatusStr="Manual"
+			if newStatus == "1": newStatusStr="Auto"
+			
+			SQL="insert into T_POWER_STATUS (select "+myRack+",power_status,null,'"+modifier+"','Change Rack Mode to "+newStatusStr+"',"+newStatus+" from T_POWER_STATUS where T_POWER_MNGMT_id_powerMngmt="+myRack+" order by last_change desc limit 1)"
+			
+			myRecordSet.execute(SQL)
+			dbConnection.commit()
+
+	context_dict={}
+	print('Change '+rackStatus+' Status on '+str(rackList))
+	return HttpResponse(json.dumps(context_dict),content_type="application/json")
+	#return {'switchReport':switchReport}
+
+def power_management_table(request):
+	
+	import mysql.connector
+
+	context_dict={'nothing':'nothing'}
+	powerLevel=request.GET.get('powerLevel','')
+
+	context = RequestContext(request)
+	if 'login' not in request.session:
+		fromPage = request.META.get('HTTP_REFERER')
+		context_dict={'fromPage':'power_management'}
+		return render_to_response('taws/login.html',context_dict,context)
+
+	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'],port=settings.DATABASES['default']['PORT'])
+	myRecordSet = dbConnection.cursor(dictionary=True)
+	
+	SQL="select row,site,room,id_powerMngmt,ucase(powerTable.owner) as owner,manual_status,pin,rack,T_EQUIPMENT.name,id_equipment,id_location,ip,power_status from (select *,1 as log from (SELECT * FROM T_POWER_MNGMT left join T_POWER_STATUS on(id_powerMngmt=T_POWER_MNGMT_id_powerMngmt) order by last_change desc) as myTable group by T_EQUIPMENT_id_equipment,pin) as powerTable join T_EQUIPMENT on(id_equipment=T_EQUIPMENT_id_equipment) join T_LOCATION on(id_location=powerTable.T_LOCATION_id_location) join T_NET on(id_equipment=T_NET.T_EQUIPMENT_id_equipment) left join (select * from (select * from T_POWER_SCHEDULE order by start_time) as mytable group by T_POWER_MNGMT_id_powerMngmt) as scheduleTable on(id_powerMngmt=scheduleTable.T_POWER_MNGMT_id_powerMngmt) order by site,room,row,rack"
+	myRecordSet.execute(SQL)
+	
+	benches=[]
+	for row in myRecordSet:
+		benches.append({'rack':row["rack"],
+			'room':row["room"],
+			'site':row["site"],
+			'row':row["row"],
+			'id_powerMngmt':row['id_powerMngmt'],
+			'manual_status':row['manual_status'],
+			'name':row["name"],
+			'ip':row["ip"],
+			'pin':row["pin"],
+			'owner':row["owner"],
+			'id_equipment':row["id_equipment"],
+			'id_location':row["id_location"],
+			'power_status':row["power_status"]
+		})
+
+	context_dict={'login':request.session['login'],
+		'role':request.session['role'],
+		'benches':benches,
+		'powerLevel':powerLevel
+	}
+	return render_to_response('taws/power_management_table.html',context_dict,context)
+
 def power_management(request):
 	
 	import mysql.connector
@@ -2545,7 +2648,7 @@ def power_management(request):
 			'powerLevel':powerLevel
 		}
 		return render_to_response('taws/power_management.html',context_dict,context)
-
+	
 def getUserRepoBranch(userId):
 	from git import Repo
 	import re
