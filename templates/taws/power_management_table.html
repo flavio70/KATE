@@ -250,6 +250,41 @@ var getScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jq
 };
 
 
+function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
+	if(confirm('Are you sure?')){
+		$.ajax({
+			type: "POST",
+			url: '/taws/deleteScheduledTasks/',
+			data: {
+				csrfmiddlewaretoken:'{{ csrf_token }}',
+				idPowerSchedule: idPowerSchedule,
+				idPowerMngmt: idPowerMngmt
+				},
+			success: deleteScheduledTasksExit,
+			error: function(xhr, textStatus, errorThrown) {
+					console.log(xhr.status+':'+xhr.responseText);
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+}
+
+var deleteScheduledTasksExit = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+	console.log('success');
+	scheduleList=sersverResponse_data['scheduled'];
+	idPowerMngmt=sersverResponse_data['idPowerMngmt'];
+	scheduleTable='';
+	for(myIndex in scheduleList){
+		scheduleTable+='<tr><td>'+scheduleList[myIndex]['start_time']+'</td><td>'+scheduleList[myIndex]['stop_time']+'</td><td>'+scheduleList[myIndex]['interval']+' days</td><td>';
+		scheduleTable+='<button type="button" id="" onclick="deleteScheduledTasks('+scheduleList[myIndex]['id_powerSchedule']+','+idPowerMngmt+')" class="btn btn-primary">';
+		scheduleTable+='<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
+	}
+	document.getElementById('scheduleBody').innerHTML=scheduleTable;
+	//alert(String(sersverResponse_data['scheduled']));
+	//window.location.reload();
+};
+
+
 
 function getSelectedLines(){
 	rowNum=benchTable.rows('.info').data().length;
