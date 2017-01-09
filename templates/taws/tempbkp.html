@@ -1,0 +1,361 @@
+{% extends "taws/test_template.html" %}
+{% block body %}
+{% load static %}
+
+<!--<link rel="stylesheet" type="text/css" href="{% static "css/suiteCreator.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/ios-switch-k.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/testDevelopment.css" %}" />
+<script type="text/javascript" src="{% static "js/dataTables.rowReorder.min.js" %}"></script>-->
+
+<script type="text/javascript" src="{% static "js/jquery-1.11.3.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/bootstrap.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/moment.js" %}"></script>
+<script type="text/javascript" src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
+
+<link rel="stylesheet"  href="{% static "font-awesome-4.4.0/css/font-awesome.min.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.css" %}" />
+<script>
+
+
+var dataSetExample = [
+    [ "Tiger Nixon", "System Brchitect", "Edinburgh", "5421", "2011/04/25", "$320,800" ],
+    [ "Garrett Winters", "Bccountant", "Tokyo", "8422", "2011/07/25", "$170,750" ],
+    [ "Bshton Cox", "Junior Technical Buthor", "San Francisco", "1562", "2009/01/12", "$86,000" ]
+    ];
+
+//var testSetExample = [
+//    ["1","", "1", "TPS1", "Test1", "Lab1", "rev1"],
+//    ["2","", "2", "TPS2", "Test2", "Lab2", "rev2"],
+//    ["3","", "3", "TPS3", "Test3", "Lab3", "rev3"]
+//      ];
+
+
+var testSetExample = [
+                      ["1","", "TPS1", "test1", "lab1", "rev1", "t1","top1","<input type=\"checkbox\" checked>","s2","s3","s4","s5","id1","dep1","metr1","","user1","descr1","","upd1","str1"],
+                      ["2","", "TPS2", "test2", "lab2", "rev2", "t2","top2","s1","<input type=\"checkbox\" checked>","s3","s4","s5","id2","dep2","metr2","","user2","descr2","","upd2","str2"],
+                      ["3","", "TPS3", "test3", "lab3", "rev3", "t3","top3","s1","s2","<input type=\"checkbox\" checked>","s4","s5","id3","dep3","metr3","","user3","descr3","","upd3","str3"]
+
+                      ];
+
+
+
+
+
+$(document).ready(function() {
+	var table = $('#example').DataTable( {
+        rowReorder: {
+            selector: 'tr'
+        },
+        columnDefs: [
+            { targets: 0, visible: true }
+        ],
+        data: dataSetExample,
+        columns: [
+            { title: "Name" },
+            { title: "Position" },
+            { title: "Office" },
+            { title: "Extn." },
+            { title: "Start date" },
+            { title: "Salary" }
+        ]
+    } );
+  var testTable1 = $('#testTable1').DataTable({
+		dom:'<"row"<"col-sm-2"l><"col-sm-7"<"testBction">><"col-sm-3"f>>\
+				<"row"<"col-sm-12"tr>>\
+				<"row"<"col-sm-3"<"totTests">><"col-sm-3"<"totTPS">><"col-sm-3"<"totTime">><"col-sm-3"<"totMetric">>>\
+				<"row"<"col-sm-2"i><"col-sm-5"><"col-sm-5"p>>\
+				<"row"<"col-sm-4"><"col-sm-4"B><"col-sm-4">>',
+		buttons: [ { extend: 'copy', text: '<i class="fa fa-files-o fa-lg"></i>', titleBttr: 'Copy to Clipboard' },
+		{extend: 'csv', text: '<i class="fa fa-file-text-o fa-lg"></i>', titleBttr: 'Save to CSV file'},
+		{extend: 'excel', text: '<i class="fa fa-file-excel-o fa-lg"></i>', titleBttr: 'Save to Excel file'},
+		{extend: 'pdf', text: '<i class="fa fa-file-pdf-o fa-lg"></i>', titleBttr: 'Save to PDF file'},
+		{extend: 'print', text: '<i class="fa fa-print fa-lg"></i>', titleBttr: 'Print table'}, ],
+		rowReorder: {
+            selector: 'tr'
+        },
+        columnDefs: [
+                     { targets: 0, visible: false }
+                 ],
+        data: testSetExample,
+		scrollY:'380px',
+		scrollCollapse:true,
+		columns: [
+		{title: "Pos" },
+		{title:"",
+				"className":      'details-control',
+				"orderable":      false,
+				"defaultContent": 'aaa'
+		},	
+		{title: "TPS", className: "dt-center"},
+		{title: "Test", className: "dt-center"},
+		{title: "Lab",className: "dt-center"},
+		{title: "Rev",className: "dt-center"},
+		{title: "Time",className: "dt-center"},
+		{title: "Tpgy",className: "dt-center"},
+		{title: "DUT Setup",className: "dt-center"},
+		{title: "Test Setup",className: "dt-center"},
+		{title: "Test Body",className: "dt-center"},
+		{title: "Test CleanUp",className: "dt-center"},
+		{title: "DUT CleanUp",className: "dt-center"},
+		{title: "testId","visible": false },
+		{title: "dependency","visible": false },
+		{title: "metric","visible": false },
+		{title: "assignment","visible": false },
+		{title: "author","visible": false },
+		{title: "description","visible": false },
+		{title: "relDate","visible": false },
+		{title: "lastUpdate","visible": false },
+		{title: "testString","visible": false }
+]
+	});
+
+
+
+
+	$('#myModal1').on('hidden.bs.modal', function (e) {
+	  console.log('Modal1 nascosto');
+	  $('#myModal2').modal('show');
+	});
+
+
+   $('.onoffswitchV-checkbox').click(function(event) {
+        currId = event.target.id;
+        res = currId.split("-");
+        locId=res[1];
+        if($("#"+currId).is(':checked')){
+        	$("#rack-"+locId).addClass("label-success");
+        	$("#rack-"+locId).removeClass("label-danger");
+        	console.log(locId + " ON")
+   
+        
+        } else {
+        	$("#rack-"+locId).removeClass("label-success");
+        	$("#rack-"+locId).addClass("label-danger");
+        	console.log(locId + " OFF")
+        
+        }
+        
+    });
+    
+    
+      $('.onoffswitchR-checkbox').click(function(event) {
+        currId = event.target.id;
+        res = currId.split("-");
+        locId=res[1];
+        if($("#"+currId).is(':checked')){
+        	$("#rack-"+locId).addClass("btn-success");
+        	$("#rack-"+locId).removeClass("btn-danger");
+        	console.log(locId + " ON from navbar")
+   
+        
+        } else {
+        	$("#rack-"+locId).removeClass("btn-success");
+        	$("#rack-"+locId).addClass("btn-danger");
+        	console.log(locId + " OFF from navbar")
+        
+        }
+        
+    });
+
+
+
+$(function () {
+                $('#datetimepicker1').datetimepicker();
+            });
+
+
+    
+} );
+
+</script>
+<!--<style>
+
+table.dt-rowReorder-float{position:absolute !important;opacity:0.8;table-layout:static;outline:2px solid #888;outline-offset:-2px;z-index:2001}tr.dt-rowReorder-moving{outline:2px solid #555;outline-offset:-2px}body.dt-rowReorder-noOverflow{overflow-x:hidden}table.dataTable td.reorder{text-align:center;cursor:move}
+
+
+</style>-->
+
+
+
+<!--<div id="testContainer" style="overflow-y:auto;width:94%;position:fixed;left:3%;height:550px;margin-top:30px;background-color:white;z-index:10;">
+	
+	<table class="display table table-striped table-hover table-condensed" cellspacing="0" id="testTable1" style="width:100%">
+		<thead>       
+			<tr>     
+				<th style="width:20px" rowspan="2">Pos</th>        
+				<th style="width:20px" rowspan="2"></th>
+				<th style="width:115px" rowspan="2">TPS</th>
+				<th rowspan="2">Test</th>
+				<th style="width:33px" rowspan="2">Lab</th>
+				<th style="width:50px" rowspan="2">Rev</th>
+				<th style="width:40px" rowspan="2">Time</th>
+				<th style="width:30px" rowspan="2">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+			<tr>     
+				<th style="width:20px">DUT<br>Setup</th>
+				<th style="width:20px">Test<br>Setup</th>
+				<th style="width:20px">Test<br>Body</th>
+				<th style="width:20px">Test<br>CleanUp</th>
+				<th style="width:20px">DUT<br>CleanUp</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>     
+		</thead>     
+		<tfoot>       
+			<tr>
+				<th style="width:20px">Pos</th>         
+				<th style="width:20px" title="Pos"></th>
+				<th style="width:115px" title="TPS">TPS</th>
+				<th title="Test">Test</th>
+				<th style="width:33px" title="Lab">Lab</th>
+				<th style="width:50px" title="Rev">Rev</th>
+				<th style="width:40px" title="Time">Time</th>
+				<th style="width:30px" title="Tpgy">Tpgy</th>
+				<th colspan="5">Sect</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</tr>
+		</tfoot>
+		<!--<tbody>
+			<tr>
+				<td>1</td>
+				<td>2</td>
+				<td>3</td>
+				<td>4</td>
+				<td>5</td>
+				<td>6</td>
+				<td>7</td>
+				<td>8</td>
+				<td>9</td>
+				<td>10</td>
+				<td>11</td>
+				<td>12</td>
+				<td>13</td>
+				<td>14</td>
+				<td>15</td>
+				<td>16</td>
+				<td>17</td>
+				<td>18</td>
+				<td>19</td>
+				<td>20</td>
+				<td>21</td>
+				<td>22</td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td>a2</td>
+				<td>a3</td>
+				<td>a4</td>
+				<td>a5</td>
+				<td>a6</td>
+				<td>a7</td>
+				<td>a8</td>
+				<td>a9</td>
+				<td>a10</td>
+				<td>a11</td>
+				<td>a12</td>
+				<td>a13</td>
+				<td>a14</td>
+				<td>a15</td>
+				<td>a16</td>
+				<td>a17</td>
+				<td>a18</td>
+				<td>a19</td>
+				<td>a20</td>
+				<td>a21</td>
+				<td>a22</td>
+			</tr>
+		</tbody>-->
+		
+
+	<!--</table>-->
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h3 class="panel-title">Room Lab 2 Row 22</h3>
+  </div>
+  <div class="panel-body">
+   
+
+  </div><!--/.panel body -->
+</div><!--/.panel-->
+
+
+
+<!--
+	
+	<div class="wrap" style="margin-left:-15px;">
+		<label>
+		     <input name="ManualBCT" type="checkbox" class="ios-switch" value="True" id="chkManBct" onclick="">
+		     <div><div></div></div>
+		</label>
+	</div>
+
+-->
+
+
+
+
+
+<h3 id="minimum-setup">Minimum Setup</h3>
+<div class="container">
+    <div class="row">
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            $(function () {
+                $('#datetimepicker1').datetimepicker();
+            });
+        </script>
+    </div>
+</div>
+
+
+
+
+
+
+
+</div>
+
+{% endblock %}
+

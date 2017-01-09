@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^taws/', include('taws.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^gitapp/', include('GitApp.urls')),
+    url(r'^powerManagement/', include('powerManagement.urls')),
 ]

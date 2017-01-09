@@ -39,7 +39,7 @@ function Events_Validate(){
 function changeOwner(idPowerMngmt){
 	$.ajax({
 		type: "POST",
-		url: '/taws/changeRackOwner/',
+		url: '/powerManagement/changeRackOwner/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt,
@@ -64,7 +64,7 @@ function ping(myIP){
 	document.getElementById(myIP).style.width='37px';
 	$.ajax({
 		type: "POST",
-		url: '/taws/pingIP/',
+		url: '/powerManagement/pingIP/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			myIP: myIP,
@@ -99,7 +99,7 @@ function getRackLog(myObj){
 	document.getElementById('modalLogHeader').innerHTML+=' Rack '+myObj.closest('tr').cells[3].innerText;
 	$.ajax({
 		type: "POST",
-		url: '/taws/getRackLog/',
+		url: '/powerManagement/getRackLog/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt
@@ -124,7 +124,7 @@ function getRackDetails(myObj){
 	document.getElementById('createScheduleId').value=idPowerMngmt;
 	$.ajax({
 		type: "POST",
-		url: '/taws/getRackDetails/',
+		url: '/powerManagement/getRackDetails/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt
@@ -173,7 +173,7 @@ function createScheduledTasks(){
 	alert(document.getElementById('txtInterval').value);*/
 	$.ajax({
 		type: "POST",
-		url: '/taws/createScheduledTasks/',
+		url: '/powerManagement/createScheduledTasks/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: document.getElementById('createScheduleId').value,
@@ -218,7 +218,7 @@ function getScheduledTasks(myObj){
 	document.getElementById('createScheduleId').value=idPowerMngmt;
 	$.ajax({
 		type: "POST",
-		url: '/taws/getScheduledTasks/',
+		url: '/powerManagement/getScheduledTasks/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt
@@ -254,7 +254,7 @@ function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
 	if(confirm('Are you sure?')){
 		$.ajax({
 			type: "POST",
-			url: '/taws/deleteScheduledTasks/',
+			url: '/powerManagement/deleteScheduledTasks/',
 			data: {
 				csrfmiddlewaretoken:'{{ csrf_token }}',
 				idPowerSchedule: idPowerSchedule,
@@ -300,7 +300,7 @@ function setRackStatus(rackStatus,newStatus){
 	//if(rackList.length()!=0){
 		$.ajax({
 			type: "POST",
-			url: '/taws/setRackStatus/',
+			url: '/powerManagement/setRackStatus/',
 			data: {
 				csrfmiddlewaretoken:'{{ csrf_token }}',
 				rackStatus: rackStatus,
@@ -326,7 +326,7 @@ var setRackStatusExit = function(sersverResponse_data, textStatus_ignored,jqXHR_
 
 $(document).ready(function() {
 
-	document.getElementById('mainTitle').innerHTML='<span class="glyphicon glyphicon-th" title="GRID VIEW" aria-hidden="true" onclick="window.location.href=\'/taws/powerManagement/\'"></span> Power Management';
+	document.getElementById('mainTitle').innerHTML='<span class="glyphicon glyphicon-th" title="GRID VIEW" aria-hidden="true" onclick="window.location.href=\'/powerManagement/\'"></span> Power Management';
 	
 
 	benchTable = $('#suiteTable').DataTable({
