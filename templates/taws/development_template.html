@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 {% load static %}
+{% load rpi_extra %}
 
 <html>
 
@@ -37,7 +38,7 @@
 						<li><a href="#">Resource Overview <span class="caret"></span></a>
 			  				<ul class="dropdown-menu">
 			 					<li><a href="/taws/bench/">Bench List</a></li>
-			 					<li><a href="/taws/powerManagement/">Power Management</a></li>
+			 					{%if "powerManagement"|has_app %}<li><a href="/powerManagement/">Power Management</a></li>{% endif %}
 			 					<li><a href="/gitapp/gitTagShow/">Git Tags</a></li>
 			  				</ul>
 						</li>

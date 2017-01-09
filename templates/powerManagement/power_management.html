@@ -146,7 +146,7 @@ function Manual_Change(rackName,curr_status){
 	//myDiv.children[0].disabled=true;
 	$.ajax({
 		type: "POST",
-		url: '/taws/changeManualStatus/',
+		url: '/powerManagement/changeManualStatus/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt,
@@ -189,7 +189,7 @@ function changeStatus(rackName){
 	});*/
 	$.ajax({
 		type: "POST",
-		url: '/taws/changePowerStatus/',
+		url: '/powerManagement/changePowerStatus/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt,
@@ -208,7 +208,7 @@ function changeStatus(rackName){
 function changeOwner(idPowerMngmt){
 	$.ajax({
 		type: "POST",
-		url: '/taws/changeRackOwner/',
+		url: '/powerManagement/changeRackOwner/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt,
@@ -233,7 +233,7 @@ function ping(myIP){
 	document.getElementById(myIP).style.width='37px';
 	$.ajax({
 		type: "POST",
-		url: '/taws/pingIP/',
+		url: '/powerManagement/pingIP/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			myIP: myIP,
@@ -257,7 +257,7 @@ function getRackDetails(rackName){
 	document.getElementById('createScheduleId').value=idPowerMngmt;
 	$.ajax({
 		type: "POST",
-		url: '/taws/getRackDetails/',
+		url: '/powerManagement/getRackDetails/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt
@@ -280,7 +280,7 @@ function getRackLog(rackName){
 	document.getElementById('modalLogHeader').innerHTML='Log for Rack '+myRack;
 	$.ajax({
 		type: "POST",
-		url: '/taws/getRackLog/',
+		url: '/powerManagement/getRackLog/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt
@@ -306,7 +306,7 @@ function getScheduledTasks(rackName){
 	document.getElementById('createScheduleId').value=idPowerMngmt;
 	$.ajax({
 		type: "POST",
-		url: '/taws/getScheduledTasks/',
+		url: '/powerManagement/getScheduledTasks/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: idPowerMngmt
@@ -328,7 +328,7 @@ function createScheduledTasks(){
 	alert(document.getElementById('txtInterval').value);*/
 	$.ajax({
 		type: "POST",
-		url: '/taws/createScheduledTasks/',
+		url: '/powerManagement/createScheduledTasks/',
 		data: {
 			csrfmiddlewaretoken:'{{ csrf_token }}',
 			idPowerMngmt: document.getElementById('createScheduleId').value,
@@ -350,7 +350,7 @@ function deleteScheduledTasks(idPowerSchedule,idPowerMngmt){
 	if(confirm('Are you sure?')){
 		$.ajax({
 			type: "POST",
-			url: '/taws/deleteScheduledTasks/',
+			url: '/powerManagement/deleteScheduledTasks/',
 			data: {
 				csrfmiddlewaretoken:'{{ csrf_token }}',
 				idPowerSchedule: idPowerSchedule,
@@ -470,7 +470,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 };
 
 
-	document.getElementById('mainTitle').innerHTML='<span class="glyphicon glyphicon-th-list" aria-hidden="true" title="TABLE VIEW" onclick="window.location.href=\'/taws/powerManagementTable/\'"></span> Power Management';
+	document.getElementById('mainTitle').innerHTML='<span class="glyphicon glyphicon-th-list" aria-hidden="true" title="TABLE VIEW" onclick="window.location.href=\'/powerManagement/powerManagementTable/\'"></span> Power Management';
 
 
 </script>
@@ -494,7 +494,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
         <div class="row">
 		{% if powerLevel == '' %}
 			{% for lab in labs %}
-		        	<div class="col-sm-4" onclick="powerManager.action='/taws/powerManagement/?powerLevel=row';powerManager.lab.value='{{ lab.room }}';powerManager.submit();" id='{{ lab.room }}'>
+		        	<div class="col-sm-4" onclick="powerManager.action='/powerManagement/?powerLevel=row';powerManager.lab.value='{{ lab.room }}';powerManager.submit();" id='{{ lab.room }}'>
 		                <div class="bs-component">
 		                   <div class="panel panel-primary">
 		                    <div class="panel-heading">
@@ -518,7 +518,7 @@ var changePowerStatus = function(sersverResponse_data, textStatus_ignored,jqXHR_
 		{% endif %}
 		{% if powerLevel == 'row' %}
 			{% for row in rows %}
-		        	<div class="col-sm-2" onclick="powerManager.action='/taws/powerManagement/?powerLevel=rack';powerManager.lab.value='{{ row.lab }}';powerManager.row.value='{{ row.row }}';powerManager.submit();" id='{{ lab.room }}'>
+		        	<div class="col-sm-2" onclick="powerManager.action='/powerManagement/?powerLevel=rack';powerManager.lab.value='{{ row.lab }}';powerManager.row.value='{{ row.row }}';powerManager.submit();" id='{{ lab.room }}'>
 		                <div class="bs-component">
 		                   <div class="panel panel-primary">
 		                    <div class="panel-heading">
