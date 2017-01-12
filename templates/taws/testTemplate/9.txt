@@ -84,9 +84,9 @@ if __name__ == "__main__":
 
     #initializing all local variable and constants used by Test object
     NE1 = Eqpt1850TSS320('NE1', CTEST.kenvironment)
-    NE1_S1=NE.get_preset("S1")
-    NE1_S2=NE.get_preset("S2")
-    NE1_S3=NE.get_preset("S3")
+    NE1_S1=NE1.get_preset("S1")
+    NE1_S2=NE1.get_preset("S2")
+    NE1_S3=NE1.get_preset("S3")
     ONT1=InstrumentONT('ONT1', CTEST.kenvironment)
     ONT1_P1="P1"
     ONT1_P2="P2"
