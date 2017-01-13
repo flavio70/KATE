@@ -419,18 +419,18 @@ function showalert(message,alerttype) {
 					found=true;break;
 				}else{
 					if(choice==''){
-						if(tuningString!=''){tuningString+='?';}
-						tuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k];
+						//if(tuningString!=''){tuningString+='?';}
+						tuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k]+'?';
 					}else{
-						tempTuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k];
+						tempTuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k]+'?';
 					}
 				}
 			}
 			if(found==false){
 				availableTopology+='*'+topologies[i][0]+'*';
 				if(choice=='manager'){
-					if(tuningString!=''){tuningString+='?';}
-					tuningString+=tempTuningString;
+					//if(tuningString!=''){tuningString+='?';}
+					tuningString+=tempTuningString.slice(0,-1);
 				}
 			}
 		}
@@ -440,6 +440,7 @@ function showalert(message,alerttype) {
 			//alert('Some fields are missing...');
 			tuningString='';
 		}
+		if(tuningString.substr(tuningString.length-1,1)=='?'){tuningString=tuningString.slice(0,-1);}
 		return tuningString;
 	}
 

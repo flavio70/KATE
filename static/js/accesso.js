@@ -411,6 +411,10 @@ function doAccess(myAction){
 		});
 	}
 	if(myAction=='savePreset'){
+		alert(myAction);
+		alert(myValues);
+		alert(presetID);
+		alert(presetSelection);
 		$.ajax({
 			type: "POST",
 			dataType: 'json',
