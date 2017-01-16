@@ -220,6 +220,7 @@ function deletePreset(){
 			dom:'<"row"<"col-sm-12"tr>>',
 			scrollY:'380px',
 			"bSort" : false,
+			bPaginate:false,
 			scrollCollapse:true,"columns": [
 				{
 					"data": "label", 
@@ -430,7 +431,7 @@ function showalert(message,alerttype) {
 				availableTopology+='*'+topologies[i][0]+'*';
 				if(choice=='manager'){
 					//if(tuningString!=''){tuningString+='?';}
-					tuningString+=tempTuningString.slice(0,-1);
+					tuningString+=tempTuningString;
 				}
 			}
 		}
