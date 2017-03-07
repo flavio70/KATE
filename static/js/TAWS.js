@@ -1013,6 +1013,7 @@ function addRecordToTable(testString,tableName,lineNumber){
 		"test": tempField[6],
 		"lab" : tempField[19],
 		"rev" : revStr,
+		"tag" : tempField[21],
 		"time": tempField[7],
 		"topo": tempField[9],
 		"sect1": sect1,
@@ -1090,22 +1091,23 @@ function modRecordToTable(testString,lineNumber,tableName){
 	oTable.fnUpdate(tempField[6],lineNumber,3,false);
 	oTable.fnUpdate(tempField[19],lineNumber,4,false);
 	//oTable.fnUpdate(revStr,lineNumber,5,true);
-	oTable.fnUpdate(tempField[7],lineNumber,6,false);
-	oTable.fnUpdate(tempField[9],lineNumber,7,false);
-	oTable.fnUpdate(sect1,lineNumber,8,false);
-	oTable.fnUpdate(sect2,lineNumber,9,false);
-	oTable.fnUpdate(sect3,lineNumber,10,false);
-	oTable.fnUpdate(sect4,lineNumber,11,false);
-	oTable.fnUpdate(sect5,lineNumber,12,false);
-	oTable.fnUpdate(tempField[0],lineNumber,13,false);
-	oTable.fnUpdate(tempField[12],lineNumber,14,false);
-	oTable.fnUpdate(tempField[8],lineNumber,15,false);
-	oTable.fnUpdate('',lineNumber,16,false);
-	oTable.fnUpdate(tempField[14],lineNumber,17,false);
-	oTable.fnUpdate(tempField[15],lineNumber,18,false);
-	oTable.fnUpdate('',lineNumber,19,false);
-	oTable.fnUpdate(tempField[16],lineNumber,20,false);
-	oTable.fnUpdate(testString,lineNumber,21,false);
+	oTable.fnUpdate(tempField[21],lineNumber,6,false);
+	oTable.fnUpdate(tempField[7],lineNumber,7,false);
+	oTable.fnUpdate(tempField[9],lineNumber,8,false);
+	oTable.fnUpdate(sect1,lineNumber,9,false);
+	oTable.fnUpdate(sect2,lineNumber,10,false);
+	oTable.fnUpdate(sect3,lineNumber,11,false);
+	oTable.fnUpdate(sect4,lineNumber,12,false);
+	oTable.fnUpdate(sect5,lineNumber,13,false);
+	oTable.fnUpdate(tempField[0],lineNumber,14,false);
+	oTable.fnUpdate(tempField[12],lineNumber,15,false);
+	oTable.fnUpdate(tempField[8],lineNumber,16,false);
+	oTable.fnUpdate('',lineNumber,17,false);
+	oTable.fnUpdate(tempField[14],lineNumber,18,false);
+	oTable.fnUpdate(tempField[15],lineNumber,19,false);
+	oTable.fnUpdate('',lineNumber,20,false);
+	oTable.fnUpdate(tempField[16],lineNumber,21,false);
+	oTable.fnUpdate(testString,lineNumber,22,false);
 	//oTable.fnUpdate(revision,lineNumber,22,false);
 	/*testTable.row(myRow).data().tps=tempField[5];
 	testTable.row(myRow).data().test=tempField[6];
@@ -1142,18 +1144,26 @@ function fillButtons(values,nextItem,selection,currButton){
 		document.getElementById('domain').innerHTML='Domain <span class="caret"></span>';
 		document.getElementById('area-dropdown').innerHTML='';
 		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		document.getElementById('tag').innerHTML='Tags <span class="caret"></span>';
 		nextSelection='domain';
 		document.getElementById('domain').disabled=true;
 		document.getElementById('area').disabled=true;
+		document.getElementById('tag').disabled=true;
 	}
 	if(nextItem=='domain'){
 		document.getElementById('domain').innerHTML='Domain <span class="caret"></span>';
 		document.getElementById('area-dropdown').innerHTML='';
 		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		document.getElementById('tag').innerHTML='Tags <span class="caret"></span>';
 		nextSelection='area';
 		document.getElementById('area').disabled=true;
+		document.getElementById('tag').disabled=true;
 	}
-	if(nextItem=='area'){document.getElementById('area').innerHTML='Area <span class="caret"></span>';}
+	if(nextItem=='area'){
+		document.getElementById('area').innerHTML='Area <span class="caret"></span>';
+		document.getElementById('tag').innerHTML='Tags <span class="caret"></span>';
+		document.getElementById('tag').disabled=false;
+	}
 	document.getElementById(currButton).innerHTML=selection+' <span class="caret"></span>';
 	document.getElementById(nextItem).disabled=false;
 	tempAry1=values.split('@');
@@ -1164,7 +1174,7 @@ function fillButtons(values,nextItem,selection,currButton){
 		if(tempAry2.length>1){nextValues=tempAry2[1].replace(/#/g,'?').replace(/%/g,'@').replace(/\|/g,'%')}
 		newDropDown+='<li><a onclick="fillButtons(\''+nextValues+'\',\''+nextSelection+'\',\''+tempAry2[0]+'\',\''+nextItem+'\');">'+tempAry2[0]+'</a></li>';
 	}
-	if(currButton=='area'){queryDB();}
+	if(currButton=='area'||currButton=='tag'){queryDB();}
 		else{document.getElementById(nextItem+'-dropdown').innerHTML=newDropDown;}
 }
 

@@ -10,6 +10,7 @@ from django.conf import settings
 # Create your views here.
 
 from django.http import HttpResponse
+from sphinx import domains
 
 def get_testinfo(testpath):
 	""" 
@@ -153,8 +154,11 @@ def suite_creator(request):
 		myRecordSet.execute("SET group_concat_max_len = 200000")
 		dbConnection.commit()
 		#myRecordSet.execute("select product,CONVERT(group_concat(concat(areaConcat,'$',sw_rel_name) order by sw_rel_name desc separator '@') using utf8) as productConcat from (select product,sw_rel_name,group_concat(concat(area_name,'!',area_name) order by area_name separator '#') as areaConcat from T_DOMAIN join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name order by product asc,sw_rel_name desc) as tableArea group by product")
-		myRecordSet.execute("select product,group_concat(release_scope_area separator '@') as productConcat from (select product,concat(sw_rel_name,'?',group_concat(scope_area separator '%')) as release_scope_area from (select product,sw_rel_name,concat(T_SCOPE.description,'#',group_concat(area_name order by area_name separator '|')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name,T_SCOPE.description order by product asc,sw_rel_name desc,T_SCOPE.description asc) as release_scope_area group by product,sw_rel_name order by product asc,sw_rel_name desc) as product_release_scope_area group by product order by product asc")
-		productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
+		#myRecordSet.execute("select product,group_concat(release_scope_area separator '@') as productConcat from (select product,concat(sw_rel_name,'?',group_concat(scope_area separator '%')) as release_scope_area from (select product,sw_rel_name,concat(T_SCOPE.description,'#',group_concat(area_name order by area_name separator '|')) as scope_area from T_DOMAIN join T_SCOPE on(T_SCOPE_id_scope=id_scope) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(T_PROD_id_prod=id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) group by product,sw_rel_name,T_SCOPE.description order by product asc,sw_rel_name desc,T_SCOPE.description asc) as release_scope_area group by product,sw_rel_name order by product asc,sw_rel_name desc) as product_release_scope_area group by product order by product asc")
+		#productAry=[{'product':row["product"],'productConcat':row["productConcat"]} for row in myRecordSet]
+
+		myRecordSet.execute("SELECT id_prod,product from T_PROD where id_prod<>0 order by product")
+		productAry=[{'prodName':row["product"],'prodID':row["id_prod"]} for row in myRecordSet]
 
 		userSuiteAry = ''
 		sharedSuiteAry = ''
@@ -2342,8 +2346,9 @@ def accesso(request):
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,area_name,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
-		myRecordSet.execute("select *,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
-		myStr="select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' and area_name='"+queryArea+"' order by test_id,id_TestRev desc) as myTable group by test_id"
+		#myRecordSet.execute("select *,tag_name,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TEST_TAGS on(T_TEST_TAGS_id_test_tags=id_test_tags) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
+		myRecordSet.execute("select *,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select tag_name,id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,test_description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TEST_TAGS on(T_TEST_TAGS_id_test_tags=id_test_tags) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
+		myStr="SELECT id_test_tags,tag_name FROM T_TEST_REVS join T_TPS on(T_TEST_REVS_id_TestRev=id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area) join T_TEST_TAGS on (id_test_tags=T_TEST_TAGS_id_test_tags) where T_PROD_id_prod=2 and T_SW_REL_id_sw_rel=11 and T_SCOPE_id_scope=2 and T_AREA_id_area=12 group by id_test_tags"
 		rows=myRecordSet.fetchall()
 		testString=''
 		for row in rows:
@@ -2362,16 +2367,17 @@ def accesso(request):
 			row['dependency']+"#"+\
 			row['test_name']+"#"+\
 			row['author']+"#"+\
-			row['description']+"#"+\
+			row['test_description']+"#"+\
 			str(row['last_update'])+"#"+\
 			row['run_section']+"#"+\
 			row['revisions']+"#"+\
 			row['lab']+"#"+\
-			row['revision']+"$")
+			row['revision']+'#'+
+			row['tag_name']+"$")
 
 		dbConnection.close()
 
-		return  JsonResponse({'testString':testString,'myStr':myStr}, safe=False)
+		return  JsonResponse({'testString':testString, 'myStr':myStr}, safe=False)
 
 	if myAction=='saveSuite':
 
@@ -3419,6 +3425,61 @@ def accesso(request):
 		context_dict={'login':request.session['login'],'tuningReport':tempStr,'tuningLabel':tuningLabel,'product':product,'sw_rel':sw_rel,'description':description,'area':area,'excludedTopologies':excludedTopologies,'myIDX':myIDX}
 	
 		return  JsonResponse(context_dict, safe=False)
+
+	if myAction=='getSwRelease':
+
+		#import mysql.connector,json,ast
+
+		prod = request.POST.get('prod','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+
+		myRecordSet.execute("SET group_concat_max_len = 200000")
+		dbConnection.commit()
+
+		myRecordSet.execute("SELECT id_sw_rel,sw_rel_name FROM T_DOMAIN join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where T_PROD_id_prod="+prod+" group by id_sw_rel")
+		SwList=[{'swName':row["sw_rel_name"],'swID':row["id_sw_rel"]} for row in myRecordSet]
+
+		return  JsonResponse(SwList, safe=False)
+
+	if myAction=='getDomain':
+
+		#import mysql.connector,json,ast
+
+		prod = request.POST.get('prod','')
+		swRel = request.POST.get('swRel','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+
+		myRecordSet.execute("SET group_concat_max_len = 200000")
+		dbConnection.commit()
+
+		myRecordSet.execute("SELECT description,id_scope FROM T_DOMAIN join T_SCOPE on(id_scope=T_SCOPE_id_scope) where T_PROD_id_prod="+prod+" and T_SW_REL_id_sw_rel="+swRel+" group by id_scope")
+		domainList=[{'domainName':row["description"],'domainID':row["id_scope"]} for row in myRecordSet]
+
+		return  JsonResponse(domainList, safe=False)
+
+	if myAction=='getArea':
+
+		#import mysql.connector,json,ast
+
+		prod = request.POST.get('prod','')
+		swRel = request.POST.get('swRel','')
+		domain = request.POST.get('domain','')
+
+		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
+		myRecordSet=dbConnection.cursor(dictionary=True)
+
+		myRecordSet.execute("SET group_concat_max_len = 200000")
+		dbConnection.commit()
+
+		#myRecordSet.execute("SELECT description,id_scope FROM T_DOMAIN join T_SCOPE on(id_scope=T_SCOPE_id_scope) where T_PROD_id_prod="+prod+" and T_SW_REL_id_sw_rel="+swRel+" group by id_scope")
+		myRecordSet.execute("SELECT id_area,area_name FROM T_DOMAIN join T_AREA on(id_area=T_AREA_id_area) where T_PROD_id_prod="+prod+" and T_SW_REL_id_sw_rel="+swRel+" and T_SCOPE_id_scope="+domain+" group by id_area")
+		areaList=[{'areaName':row["area_name"],'areaID':row["id_area"]} for row in myRecordSet]
+
+		return  JsonResponse(areaList, safe=False)
 		
 def temp(request):
 	context = RequestContext(request)

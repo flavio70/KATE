@@ -93,17 +93,15 @@ function doAccess(myAction){
 		showalert("Suite correctly saved","alert-success");
 	};
 	var queryDB = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
-		//alert(sersverResponse_data, textStatus_ignored,jqXHR_ignored);
-		//prompt('',sersverResponse_data['myStr']);
 		testListString=String(sersverResponse_data['testString']).split('$');
-		//updateTestTable('testTable',testListString);
 		updateTestTable('testTable',testListString);
-		//alert(sersverResponse_data['testString']);
 		if(myAction=='localBrowsing'||myAction=='job_browsing'){updateTestTable('testBundleTable',sersverResponse_data['localString'].split('$'));}
-		//      //alert(sersverResponse_data['localString']);
-		//  		testBundleString=String(sersverResponse_data['localString']).split('$');
-		//    		  updateTestTable('testBundleTable',testBundleString);
-   		 //}
+		/*for(myItem in sersverResponse_data['tagList']){
+			tempTagList+='<li><a onclick="document.getElementById(\'tag\').innerHTML=\''+sersverResponse_data['tagList'][myItem].tag
+			Name+' <span class=\\\'caret\\\'></span>\';queryDB();">'+sersverResponse_data[myItem].areaName+'</a></li>';
+		}
+		document.getElementById('area').disabled=false;
+		document.getElementById('area-dropdown').innerHTML=tempAreaList;*/
 	};
 	var saveSuite = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		myUserSuite='';
@@ -277,6 +275,47 @@ function doAccess(myAction){
 		document.getElementById('comment').innerHTML=sersverResponse_data['myFile'];
 		//alert(sersverResponse_data);
    		 //window.opener.doAccess('localBrowsing');
+	};
+	var getSwRelease = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		console.log('Get SW Release');
+		console.log(sersverResponse_data);
+		tempSWList='';
+			
+		for(myItem in sersverResponse_data){
+			tempSWList+='<li><a onclick="document.getElementById(\'sw-release\').innerHTML=\''+sersverResponse_data[myItem].swName+' <span class=\\\'caret\\\'></span>\';SWRelease='+sersverResponse_data[myItem].swID+';doAccess(\'getDomain\');">'+sersverResponse_data[myItem].swName+'</a></li>';
+		} 
+		document.getElementById('sw-release').disabled=false;
+		document.getElementById('sw-release-dropdown').innerHTML=tempSWList;
+		document.getElementById('domain').disabled=true;
+		document.getElementById('domain-dropdown').innerHTML='';
+		document.getElementById('area').disabled=true;
+		document.getElementById('area-dropdown').innerHTML='';
+	};
+
+	var getDomain = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		console.log('Get Domain');
+		console.log(sersverResponse_data);
+		tempDomainList='';
+			
+		for(myItem in sersverResponse_data){
+			tempDomainList+='<li><a onclick="document.getElementById(\'domain\').innerHTML=\''+sersverResponse_data[myItem].domainName+' <span class=\\\'caret\\\'></span>\';domainID='+sersverResponse_data[myItem].domainID+';doAccess(\'getArea\');">'+sersverResponse_data[myItem].domainName+'</a></li>';
+		} 
+		document.getElementById('domain').disabled=false;
+		document.getElementById('domain-dropdown').innerHTML=tempDomainList;
+		document.getElementById('area').disabled=true;
+		document.getElementById('area-dropdown').innerHTML='';
+	};
+
+	var getArea = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
+		console.log('Get Area');
+		console.log(sersverResponse_data);
+		tempAreaList='';
+			
+		for(myItem in sersverResponse_data){
+			tempAreaList+='<li><a onclick="document.getElementById(\'area\').innerHTML=\''+sersverResponse_data[myItem].areaName+' <span class=\\\'caret\\\'></span>\';queryDB();">'+sersverResponse_data[myItem].areaName+'</a></li>';
+		}
+		document.getElementById('area').disabled=false;
+		document.getElementById('area-dropdown').innerHTML=tempAreaList;
 	};
 
 //------------------------POST VALUES-----------------------------------------------------------------------------------
@@ -549,8 +588,63 @@ function doAccess(myAction){
 		});
 	}
 	
+	if(myAction=='getSwRelease'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				prod: prod
+				 //topoID: document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value,
+        //presetID: document.getElementById('selectPreset').options[document.getElementById('selectPreset').selectedIndex].value
+				},
+			success: getSwRelease,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
 	
-	
+	if(myAction=='getDomain'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				prod: prod,
+				swRel: SWRelease
+				 //topoID: document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value,
+        //presetID: document.getElementById('selectPreset').options[document.getElementById('selectPreset').selectedIndex].value
+				},
+			success: getDomain,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+
+	if(myAction=='getArea'){
+		$.ajax({
+			type: "POST",
+			dataType: 'json',
+			url: myURL,
+			data: {
+				action: myAction,
+				prod: prod,
+				swRel: SWRelease,
+				domain: domainID
+				 //topoID: document.getElementById('selectTopo').options[document.getElementById('selectTopo').selectedIndex].value,
+        //presetID: document.getElementById('selectPreset').options[document.getElementById('selectPreset').selectedIndex].value
+				},
+			success: getArea,
+			error: function(xhr, textStatus, errorThrown) {
+					alert("Please report this error: "+errorThrown+xhr.status+xhr.responseText);
+				}
+		});
+	}
+
 	
 	
 	
