@@ -52,6 +52,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
+
 ROOT_URLCONF = 'KATE.urls'
 
 TEMPLATES = [
@@ -69,6 +70,40 @@ TEMPLATES = [
         },
     },
 ]
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR + '/logs/Debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'taws': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'GitApp': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },        
+
+    },
+}
+
+
+
 
 WSGI_APPLICATION = 'KATE.wsgi.application'
 
