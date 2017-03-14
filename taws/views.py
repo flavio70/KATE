@@ -6,6 +6,11 @@ from django.contrib import auth
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import JsonResponse
 from django.conf import settings
+import json
+
+import logging,subprocess
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -238,22 +243,97 @@ def tuning(request):
 	sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"],'sharedPresetTitle':row["preset_title"]} for row in myRecordSet]
 
 	if presetChoice == '':
-		myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,name from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) where id_suite="+suiteID)
-		myRecord=myRecordSet.fetchone()
-		fileName=myRecord["name"]
+		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,name from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) where id_suite="+suiteID)
+		#myRecord=myRecordSet.fetchone()
+
+		#myRecordSet.execute("SELECT name,topology as id_topology,group_concat(concat(T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+suiteID+" group by topology")
+
+	
+		#myRecordSet.execute("SELECT title,name,topology as id_topology,group_concat(distinct(concat(T_TEST_REVS.T_TEST_TAGS_id_test_tags,'#',tag_name)) order by T_TEST_REVS.T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_TAGS on(id_test_tags=T_TEST_REVS.T_TEST_TAGS_id_test_tags) join T_TOPOLOGY on(id_topology=topology)  where id_suite="+suiteID+" group by id_topology")
+
+
+		myRecordSet.execute("SELECT topology,group_concat(concat(T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+suiteID+" group by topology")
+
+
+
+
+
+		myRecords=myRecordSet.fetchall()
+		
+		logger.debug('\nTuning Case\n')
+		fileName=myRecords[0]["name"]
+		#fileName=''
 	else:
-		myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct id_topology order by id_topology separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
-		myRecord=myRecordSet.fetchone()
+		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct id_topology order by id_topology separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
+		myRecordSet.execute("SELECT topo_family_id,title,group_concat(concat(T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_TOPOLOGY join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) group by topo_family_id")
+
+		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topo_family_id order by topo_family_id separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
+
+		myRecords=myRecordSet.fetchall()
+		logger.debug('\npreset manager case!\n')
 		fileName=''		
 	#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,suitename from jsuites join jsuiteBody using(jsuiteID) join  Jenkinslist using(JID,livraison) where jsuiteID='"+fileName+"'")
 	
 	suiteOwner='SERVER'
-	myTopologies=myRecord["topologyNeeded"].split('-')
-	topoAry='';
-	for myTopology in myTopologies:
+	#myTopologies=myRecord["topologyNeeded"].split('-')
+	topoStruct=[];
+	logger.debug('\nGet topologies...\n')
+	for myTopology in myRecords:
+		logger.debug('\nTopology group: %s'%myTopology)
+
+		myTags = myTopology['tagNeeded'].split('-')
+		tagStruct=[]		
+		for currTag in myTags:
+			currTagId = str(currTag.split('#')[0])
+			currTagName = currTag.split('#')[1]
+
+
+			myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$')) as dataValues,title from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags)where topo_family_id="+str(myTopology['topo_family_id'])+" and id_test_tags="+currTagId)
+			myrow = myRecordSet.fetchone()
+			dataValues=myrow['dataValues']
+			
+
+			if dataValues != 'topoerror':
+				tempLabels = dataValues.split("$")
+				tagEntities=[]
+				for labelIndex in range(0,len(tempLabels),4):
+		
+					tagEntities.append({'elemname':tempLabels[labelIndex+2],
+						'description':tempLabels[labelIndex],
+						'val0':'',
+						'id':tempLabels[labelIndex+3],
+						'val1':'',
+						'entityname':tempLabels[labelIndex+1]
+					})
+
+				tagStruct.append({'id':currTagId,
+					'name':	currTagName,
+					'entities':tagEntities		
+				})
+				res='OK'
+			else:
+				res='KO'
+
+			logger.debug('\nquery results for topology with TopoFamilyId: %s, tagId: %s ...%s\n%s\n\n'%(str(myTopology['topo_family_id']),currTagId,res,tagEntities))
+		topoStruct.append({'id':str(myTopology['topo_family_id']),
+			'title':myTopology['title'],
+			'tags':tagStruct,
+			'res':res
+
+					
+		})
+		
+
 		#myRecordSet.execute("SELECT if(group_concat(concat(description,'$',label) order by indice separator '$') is null,'topoerror',group_concat(concat(description,'$',label) order by indice separator '$')) as dataValues,numNE from topologyBody join topologies using(topoID) where topoID ='"+myTopology+"'")
-		myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$')) as dataValues,title from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where id_topology="+myTopology)
+		#myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$')) as dataValues,title from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where id_topology="+str(myTopology['id_topology']))
+
+
+
+
+
+
 		#myRecord=myRecordSet.fetchall()
+		'''
 		for myRecord in myRecordSet:
 			dataValues=myRecord['dataValues']
 			topoAry+="topologies.push(new Array());"
@@ -265,6 +345,7 @@ def tuning(request):
 			topoAry+="topologies[topologies.length-1].push(new Array());"
 			topoAry+="topologies[topologies.length-1].push(new Array());"
 			topoAry+="topologies[topologies.length-1].push('"+myRecord['title']+"');"
+
 		if myTopology != '000':
 			if dataValues != 'topoerror':
 				tempLabels = dataValues.split("$")
@@ -279,12 +360,15 @@ def tuning(request):
 				topoAry+="topologies.length=0;"
 				topoAry+="alert('Warning!\nUnable to tune a test case of your suite due to a not registered topology.\nPlease check correct topology insertion or contact TAWS Administration Staff.');"
 				topoAry+="location.href='suitecreator.asp';"
+		'''
+	logger.debug('\nJSON Struct returned\n\n%s\n'%topoStruct)
+	js_data = json.dumps(topoStruct)
 	dbConnection.close()
 	context_dict={"login":request.session['login'],
 		"choice": presetChoice,
 		"userPreset": userPreset,
 		"sharedPreset":sharedPreset,
-		"topoAry":topoAry,
+		"topoAry":js_data,
 		"fileName":fileName,
 		"suiteOwner":suiteOwner,
 		"suiteID":suiteID}
@@ -2281,7 +2365,10 @@ def accesso(request):
 	from django.core import serializers
 	import mysql.connector
 
+
 	myAction=request.POST.get('action','')
+
+	logger.debug('\nEntering accesso function\nAction %s ...\n'%myAction)
 
 	if myAction=='loadSuite':
 
@@ -2559,6 +2646,8 @@ def accesso(request):
 		savingString = request.POST.get('presetBody','')
 		#presetType = request.POST.get('presetType','')
 
+		logger.debug('\nPreset data for preset %s:\n%s\n\n'%(fileName,savingString))
+
 		dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 		myRecordSet=dbConnection.cursor(dictionary=True,buffered=True)
 
@@ -2573,12 +2662,15 @@ def accesso(request):
 		else:
 			presetID = fileName
 
+		logger.debug('\nDeleting T_PST_ENTITY for presetID: %s ...\n'%presetID)
+
 		myRecordSet.execute("DELETE from T_PST_ENTITY where T_PRESETS_id_preset="+str(presetID))
 		dbConnection.commit()
 
 		nibble = savingString.split("?")
 		for myVar in nibble:
 			tempNibble = myVar.split("|")
+			logger.debug('\nsetting value %s to DB...'%myVar)
 			myRecordSet.execute("INSERT into T_PST_ENTITY (T_PRESETS_id_preset,T_TPY_ENTITY_id_entity,pstvalue,T_EQUIPMENT_id_equipment) VALUES ('"+str(presetID)+"','"+tempNibble[0]+"','"+tempNibble[1]+"','"+tempNibble[2]+"')")
 			dbConnection.commit()
 
@@ -2595,6 +2687,13 @@ def accesso(request):
 				
 		dbConnection.close()
 		presetAry=""
+		logger.debug('presetAry: %s'%row['presetBody'])
+		logger.debug('userPreset: %s'%userPreset[:-1])
+		logger.debug('sharedPreset: %s'%sharedPreset[:-1])
+		logger.debug('preset title: %s'%row['preset_title'])
+		logger.debug('preset id: %s'%row['id_preset'])
+		logger.debug('description: %s'%row['description'])
+		logger.debug('owner: %s'%row['owner'])
 
 		return  JsonResponse({'presetAry': row['presetBody'],'userPreset': userPreset[:-1],'sharedPreset': sharedPreset[:-1],'fileName':row['preset_title'],'fileID':row['id_preset'],'fileTitle':row['description'],'owner':row['owner']}, safe=False)
 
