@@ -76,25 +76,32 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
+        'filemain': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR + '/logs/Debug.log',
+            'filename': BASE_DIR + '/logs/Main.log',
         },
+
+	'filegit': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR + '/logs/Git.log',
+        },
+
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['filemain'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'taws': {
-            'handlers': ['file'],
+            'handlers': ['filemain'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'GitApp': {
-            'handlers': ['file'],
+            'handlers': ['filegit'],
             'level': 'DEBUG',
             'propagate': True,
         },        

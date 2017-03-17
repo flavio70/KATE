@@ -265,7 +265,7 @@ def tuning(request):
 		#fileName=''
 	else:
 		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct id_topology order by id_topology separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
-		myRecordSet.execute("SELECT topo_family_id,title,group_concat(concat(T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_TOPOLOGY join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) group by topo_family_id")
+		myRecordSet.execute("SELECT topo_family_id,title,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_TOPOLOGY join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) group by topo_family_id")
 
 		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topo_family_id order by topo_family_id separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
 
@@ -284,8 +284,9 @@ def tuning(request):
 		myTags = myTopology['tagNeeded'].split('-')
 		tagStruct=[]		
 		for currTag in myTags:
-			currTagId = str(currTag.split('#')[0])
-			currTagName = currTag.split('#')[1]
+			currTpgyId = str(currTag.split('#')[0])
+			currTagId = str(currTag.split('#')[1])
+			currTagName = currTag.split('#')[2]
 
 
 			myRecordSet.execute("SELECT if(group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$') is null,'topoerror',group_concat(concat(elemDescription,'$',entityName,'$',elemName,'$',id_entity) order by id_entity separator '$')) as dataValues,title from T_TPY_ENTITY join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags)where topo_family_id="+str(myTopology['topo_family_id'])+" and id_test_tags="+currTagId)
@@ -307,6 +308,7 @@ def tuning(request):
 					})
 
 				tagStruct.append({'id':currTagId,
+					'tpgy_id':currTpgyId,
 					'name':	currTagName,
 					'entities':tagEntities		
 				})
@@ -1588,7 +1590,7 @@ def createNewTest(request):
 		fromPage = request.META.get('HTTP_REFERER')
 		context_dict={'fromPage':'createNewTest'}
 		return render_to_response('taws/login.html',context_dict,context)
-		
+	logger.debug('\nCalling CreateNewTest function...')
 	test_name=request.GET.get('testName')
 	username=request.session['login']
 	phase=request.POST.get('phase','')
@@ -1602,8 +1604,25 @@ def createNewTest(request):
 	queryRes=runPhase[phase](myRecordSet,request)
 	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='"+request.session['login']+"' group by id_preset")
 	userPreset=[{'userPresetName':row["description"],'userPresetID':row["id_preset"]} for row in myRecordSet]
-	myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) order by T_SCOPE.description")
-	topoAry=[{'topoID':row["id_topology"],'topoName':row["title"]} for row in myRecordSet]
+	#myRecordSet.execute("SELECT * from T_TOPOLOGY join T_SCOPE on(T_SCOPE_id_scope=id_scope) order by T_SCOPE.description")
+	#topoAry=[{'topoID':row["id_topology"],'topoName':row["title"]} for row in myRecordSet]
+
+	myRecordSet.execute("SELECT topo_family_id,title,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '***') as tagInfo from T_TOPOLOGY join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) group by topo_family_id")
+	topoAry=[]	
+	for row in myRecordSet:
+		topoName = row['title']
+		familyID = row['topo_family_id']
+		taginfo = row['tagInfo'].split('***')
+		tagAry = []
+		for myItem in taginfo:
+			topoId = myItem.split('#')[0]
+			tagId = myItem.split('#')[1]
+			tagName = myItem.split('#')[2]
+			tagAry.append({'topoId':topoId,'tagId':tagId,'tagName':tagName})
+
+		topoAry.append({'topoName':topoName,'familyId':familyID,'tagsInfo':tagAry})
+	
+
 
 	context_dict={'login':request.session['login'],
 				'phase':phase,
@@ -1611,6 +1630,8 @@ def createNewTest(request):
 				'topoAry':topoAry,
 				'queryRes':queryRes}
 
+	logger.debug('\tReturned Value:\n\t%s'%context_dict)
+	logger.debug('\nExit CreateNewTest function...')
 	return HttpResponse(json.dumps(context_dict),
             content_type="application/json"
         )

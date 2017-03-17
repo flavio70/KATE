@@ -283,12 +283,20 @@ function showalert(message,alerttype) {
 
 	$(document).on('click', '#ulTopoTags li a', function () {		
 		console.log("Tag Selected:"+$(this).text());
-		if(this.text=='NONE'){
+		
+		if(choice=='manager'){		
+			if(this.text=='NONE'){
+				document.getElementById('btnTags').disabled = true;
+				$('#btnTags').hide();
+			}else{
+				document.getElementById('btnTags').disabled = false;
+				$('#btnTags').show();	
+			}
+			
+		}else{
 			document.getElementById('btnTags').disabled = true;
 			$('#btnTags').hide();
-		}else{
-			document.getElementById('btnTags').disabled = false;
-			$('#btnTags').show();		
+
 		}
 		
 		document.getElementById('btnTags').innerHTML= this.text + ' <span class="caret"></span>';
@@ -316,7 +324,7 @@ function showalert(message,alerttype) {
 		topoName=topologies[topoIndex].id;
 		valueTable.clear().draw();
 
-		document.getElementById('topoTitle').innerHTML="<h3><b>" + topologies[topoIndex].title + "</b> [ID : <b>" + topoName + "</b>]</h3>";
+		document.getElementById('topoTitle').innerHTML="<h3><b>" + topologies[topoIndex].title + "</b> [GID: <b>" + topoName + "</b>]</h3>";
 		
 		fillTags(topoIndex);
 
@@ -339,6 +347,14 @@ function showalert(message,alerttype) {
 		currentTopology=topoIndex;
 		currentLabel='';
 		valueTable.clear().draw();
+
+		if(choice=='manager'){
+			document.getElementById('topoTitle').innerHTML="<h3><span><b>" + topologies[topoIndex].title + "</b></span><span style='font-size:11.0pt';> [GID: <b>" + topoName + "</b>][ID: <b>"+topologies[topoIndex].tags[tagIndex]['tpgy_id']+"</b>]</span></h3>";
+		}else{
+document.getElementById('topoTitle').innerHTML="<h3><span><b>" + topologies[topoIndex].title + "</b></span><span style='font-size:11.0pt';> [GID: <b>" + topoName + "</b>]</span></h3>";
+
+		}
+		
 
 		for(i=0;i<topologies[topoIndex].tags[tagIndex].entities.length;i++){
 					if(topologies[topoIndex].tags[tagIndex].entities[i]['elemname'].indexOf('#')<0){
@@ -517,8 +533,9 @@ function showalert(message,alerttype) {
 		tuningString='';
 		availableTopology='';
 		for(i=0;i<topologies.length;i++){
-			if(choice=='manager'){found=false;tempTuningString='';}
+			
 			for(j=0;j<topologies[i].tags.length;j++){
+				if(choice=='manager'){found=false;tempTuningString='';}
 				for(k=0;k<topologies[i].tags[j].entities.length;k++){
 					if(topologies[i].tags[j].entities[k]['val0']==''){
 						found=true;break;

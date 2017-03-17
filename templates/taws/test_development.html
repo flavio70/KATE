@@ -97,6 +97,66 @@ function setGIT(branch){
 
 
 
+function fillTag(topoFamilyId,topoList){
+	//filling selectTag dropdow with tag values belonging to selected topology group
+	//topoFamilyId: topology group Id
+	//topoLis: array with full topologies structure
+	console.log('calling fillTag function...')
+
+	//cleaning actual dropdown fields
+	while(document.getElementById('selectTag').hasChildNodes()){
+		document.getElementById('selectTag').removeChild(document.getElementById('selectTag').lastChild);
+				
+	}
+	document.getElementById('selectTagbutton').innerHTML= 'Select Tag <span class="caret"></span>';
+	document.getElementById('selectTagbutton').disabled=true;
+	$('#selectTagbutton').hide();
+	document.getElementById("preview").style["height"] = "358px";
+	
+	//iterating all topology struct array foundinf the selected group Id
+	for (myTopo in topoList) {
+		if(topoList[myTopo].familyId==topoFamilyId){
+			//found selected group
+			console.log('\tfound topology '+myTopo+' matching topology group Id '+topoFamilyId+'...')
+			//iterating all tags belonging to selected group			
+			for (myItem in topoList[myTopo].tagsInfo) { 
+				var li = document.createElement("li");
+				var link = document.createElement("a");             
+				var text = document.createTextNode(topoList[myTopo].tagsInfo[myItem].tagName);
+				console.log('\tadding tag '+topoList[myTopo].tagsInfo[myItem].tagName+' to tag selection...')
+				link.appendChild(text);
+				link.href = "#";
+				link.id = topoList[myTopo].tagsInfo[myItem].topoId;
+				link.onclick = function() {
+					fillPreset(this.id); 
+					document.getElementById('selectTagbutton').innerHTML= this.text + ' <span class="caret"></span>'
+				};
+				li.appendChild(link);
+				document.getElementById('selectTag').appendChild(li);    
+			
+			}
+		//...
+		if (topoList[myTopo].tagsInfo.length > 1) {
+			document.getElementById('selectTagbutton').disabled=false;
+			$('#selectTagbutton').show();
+			document.getElementById("preview").style["height"] = "388px";
+		} else {
+			if(topoList[myTopo].tagsInfo[0].tagName=="NONE"&&topoList[myTopo].tagsInfo[0].tagId=="1"){
+				//no tags for selected topology
+				console.log("\tNo tags present (only NONE), filling preset...");
+				fillPreset(topoList[myTopo].tagsInfo[0].topoId);
+			}
+		}
+		break;//ending main topology struct iteration
+		}
+	} 
+		
+
+
+	console.log('...end fillTag')
+}
+
+
 
 
 function fillPreset(myId){
@@ -285,12 +345,16 @@ function refreshTestModalBodyN(phase,json) {
 			
 			
 			
-				// reset topology optons
+				// reset topology options
 				while(document.getElementById('selectTopo').hasChildNodes()){
 					document.getElementById('selectTopo').removeChild(document.getElementById('selectTopo').lastChild);
 				}
 				document.getElementById('selectTopobutton').innerHTML= 'Select Topology <span class="caret"></span>';
-				
+
+
+
+
+			
 				while(document.getElementById('selectPreset').hasChildNodes()){
 					document.getElementById('selectPreset').removeChild(document.getElementById('selectPreset').lastChild);
 				}
@@ -309,8 +373,11 @@ function refreshTestModalBodyN(phase,json) {
 					
 					link2.appendChild(text2);
 					link2.href = "#";
-					link2.id = json.topoAry[myItem].topoID;
-					link2.onclick = function() { fillPreset(this.id); document.getElementById('selectTopobutton').innerHTML= this.text + ' <span class="caret"></span>'};
+					link2.id = json.topoAry[myItem].familyId;
+					link2.onclick = function() { 
+						fillTag(this.id,json.topoAry); 
+						document.getElementById('selectTopobutton').innerHTML= this.text + ' <span class="caret"></span>'
+					};
 					li2.appendChild(link2);
 					document.getElementById('selectTopo').appendChild(li2);    
 					
@@ -1281,7 +1348,19 @@ $(document).on('click', '#Area li a', function () {
 										<button id = "selectTopobutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											Select Topology <span class="caret"></span>
 										</button>
+									
 										<ul class="dropdown-menu" id="selectTopo"></ul>
+
+									</div>
+									<div class="btn-group">
+
+											<button id = "selectTagbutton" type="button" class="btn btn-default dropdown-toggle dropdown-menu-fixed" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Select Tag <span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" id="selectTag"></ul>
+
+
+
 									</div>
 							
 								
@@ -1299,7 +1378,7 @@ $(document).on('click', '#Area li a', function () {
 							<div class="form-group col-md-8">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">Preset View</span>
-									<textarea value="" style="font-size : 8pt;width:100%;height:358px;" id="preview" onchange="checkFields();"></textarea>															
+									<textarea value="" style="font-size : 8pt;width:100%;height:388px;" id="preview" onchange="checkFields();"></textarea>															
 								</div>
 							</div>
 							
