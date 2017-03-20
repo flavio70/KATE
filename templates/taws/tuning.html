@@ -7,8 +7,8 @@
 <script>
 	var suiteowner='{{ suiteOwner }}';
 	tuneFile='{{ fileName }}';
-	if(topologies){topologies.length=0;}
-		else{var topologies = new Array();}
+	//if(topologies){topologies.length=0;}
+	//	else{var topologies = new Array();}
 
 	popBoxWaitImage.src = "{% static 'images/spinner40.gif' %}";
 	popBoxRevertImage = "{% static 'images/magminus.gif' %}";
@@ -16,10 +16,11 @@
 	var personalPreset = new Array();
 	var sharedPreset = new Array();
 
-	{% autoescape off %}
-		{{ topoAry }}
-	{% endautoescape %}
-	
+	//{% autoescape off %}
+	//	{{ topoAry }}
+	//{% endautoescape %}
+	var topologies = JSON.parse('{{ topoAry|safe }}');
+	console.log(topologies);
 	owner='{{ login }}';
 	var myURL = "{% url 'accesso' %}";
 	var valueTable;
@@ -129,7 +130,8 @@ function deletePreset(){
 	</div>
 	
 	<div id="div_topology_table" class="col-sm-6">
-		<div id='topoTitle'>Title</div>
+		<div id='topoTitle' class="col-sm-8">Title</div>
+		<div id='topoTags' class="col-sm-4" style="padding-top: 0.5em;">Tags</div>
 		<table class="display table table-striped table-hover table-condensed" id="showedTable" style="width:100%">
 			<thead>
 				<tr>
@@ -277,10 +279,142 @@ function showalert(message,alerttype) {
 		show(0);
 	}
 
+
+
+	$(document).on('click', '#ulTopoTags li a', function () {		
+		console.log("Tag Selected:"+$(this).text());
+		
+		if(choice=='manager'){		
+			if(this.text=='NONE'){
+				document.getElementById('btnTags').disabled = true;
+				$('#btnTags').hide();
+			}else{
+				document.getElementById('btnTags').disabled = false;
+				$('#btnTags').show();	
+			}
+			
+		}else{
+			document.getElementById('btnTags').disabled = true;
+			$('#btnTags').hide();
+
+		}
+		
+		document.getElementById('btnTags').innerHTML= this.text + ' <span class="caret"></span>';
+	});
+
+
+
+
+
+	function fillTags(topoIndex){
+		listr='';
+		for(i=0;i<topologies[topoIndex].tags.length;i++){
+			listr+='<li><a id="liTag-'+ i +'" name="'+topologies[topoIndex].tags[i].id+'" onclick="showItems('+topoIndex+','+i+')"</a>' + topologies[topoIndex].tags[i].name + "</li>";
+		}
+		combostr='<button class="btn btn-default dropdown-toggle navbar-btn" type="button" id="btnTags" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">TopoTags<span class="caret"></span></button>\
+		<ul class="dropdown-menu" id="ulTopoTags">'+listr+"</ul>";
+
+		document.getElementById('topoTags').innerHTML= combostr;
+
+		document.getElementById('liTag-0').click();
+
+	}
+
 	function show(topoIndex){
-		topoName=topologies[topoIndex][0];
+		topoName=topologies[topoIndex].id;
 		valueTable.clear().draw();
-		document.getElementById('topoTitle').innerHTML="<h3><b>" + topologies[topoIndex][7] + "</b> [ID : <b>" + topoName + "</b>]</h3>";
+
+		document.getElementById('topoTitle').innerHTML="<h3><b>" + topologies[topoIndex].title + "</b> [GID: <b>" + topoName + "</b>]</h3>";
+		
+		fillTags(topoIndex);
+
+		document.getElementById('prevBtn').onclick = function(){show(topoIndex-1);}
+		document.getElementById('nextBtn').onclick = function(){show(topoIndex+1);}
+		if(topoIndex==0){document.getElementById('prevBtn').onclick = function(){show(topologies.length-1);}}
+		if(topoIndex==topologies.length-1){document.getElementById('nextBtn').onclick = function(){show(0);}}
+		if(topoName.isNaN){document.getElementById('topologyImage').src='/static/images/topologies/' + topoName.substr(0,topoName.length-1) + '.jpg';}
+		else{document.getElementById('topologyImage').src='/static/images/topologies/' + topoName + '.jpg';}
+		//colorTable('showedTable');
+
+
+
+
+
+	}
+	
+	function showItems(topoIndex,tagIndex){
+		console.log('TopologyId '+topoIndex+' TagId '+tagIndex+' selected');
+		currentTopology=topoIndex;
+		currentLabel='';
+		valueTable.clear().draw();
+
+		if(choice=='manager'){
+			document.getElementById('topoTitle').innerHTML="<h3><span><b>" + topologies[topoIndex].title + "</b></span><span style='font-size:11.0pt';> [GID: <b>" + topoName + "</b>][ID: <b>"+topologies[topoIndex].tags[tagIndex]['tpgy_id']+"</b>]</span></h3>";
+		}else{
+document.getElementById('topoTitle').innerHTML="<h3><span><b>" + topologies[topoIndex].title + "</b></span><span style='font-size:11.0pt';> [GID: <b>" + topoName + "</b>]</span></h3>";
+
+		}
+		
+
+		for(i=0;i<topologies[topoIndex].tags[tagIndex].entities.length;i++){
+					if(topologies[topoIndex].tags[tagIndex].entities[i]['elemname'].indexOf('#')<0){
+						if(i==topologies[topoIndex].tags[tagIndex].entities.length){
+							createElement(topologies[topoIndex].tags[tagIndex].entities[i]['elemname'],topologies[topoIndex].tags[tagIndex].entities[i]['description'],i,'bottom','',topologies[topoIndex].tags[tagIndex].entities[i]['id'],tagIndex);
+						}else{
+							createElement(topologies[topoIndex].tags[tagIndex].entities[i]['elemname'],topologies[topoIndex].tags[tagIndex].entities[i]['description'],i,'none','',topologies[topoIndex].tags[tagIndex].entities[i]['id'],tagIndex);
+						}
+					}else{
+						createElement(topologies[topoIndex].tags[tagIndex].entities[i]['entityname'],topologies[topoIndex].tags[tagIndex].entities[i]['description'],i,'top',topologies[topoIndex].tags[tagIndex].entities[i]['elemname'].replace('#',''),topologies[topoIndex].tags[tagIndex].entities[i]['id'],tagIndex);
+						currentLabel=topologies[topoIndex].tags[tagIndex].entities[i]['entityname'];
+					}
+				}	
+
+
+
+
+	}
+
+	function createElement(name,description,progressiveID,borderType,eqptType,idEntity,tagIndex){
+		console.log("Current Topology:"+currentTopology+" tagindex:"+tagIndex);
+		if(borderType=='top'){
+			buttonText='...';
+			if(topologies[currentTopology].tags[tagIndex].entities[progressiveID]['val0']!=''){buttonText=topologies[currentTopology].tags[tagIndex].entities[progressiveID]['val0']}
+			valueID=progressiveID+'$'+eqptType+'$'+idEntity;
+			choiceStr='';
+			if(choice=='viewer'){choiceStr='disabled';}
+			value='<button '+choiceStr+' onclick="$(\'#showedTable tr td button\').removeClass(\'selected\');$(this).addClass(\'selected\');window.open(\'/taws/selectEqpt/?myVars=\'+valueTable.row($(this).closest(\'tr\')).data().valueID,\'viewReportTrunk\',\'height=600,width=1000,resizable=1\');">'+buttonText+'</button>';
+		}else{
+			valueID=progressiveID;
+			if(topologies[currentTopology].tags[tagIndex].entities[progressiveID]['val0']!=""){
+				myValue=topologies[currentTopology].tags[tagIndex].entities[progressiveID]['val0'];
+				
+			}else{
+				myValue="";
+				
+			}
+			
+			value='<input '+choiceStr+' id="'+progressiveID+'" type="text" onchange="setEntityValue('+currentTopology+','+tagIndex+','+progressiveID+',this.value);" value="'+myValue+'">';
+			
+		}
+		//myCell = myRow.insertCell();
+		//myCell.appendChild(flagsInput);
+		valueTable.row.add({
+			"label" : name,
+			"description" : description,
+			"labelID" : name,
+			"value" : value,
+			"valueID" : valueID
+		}).draw( false );
+	}
+
+
+	function setEntityValue(currentTopology,tagIndex,entityId,val){
+		console.log('setEntityValueId: '+entityId+ ' to '+val)
+		topologies[currentTopology].tags[tagIndex].entities[entityId]['val0']=val;
+
+	}
+
+	function showItemsold(topoIndex){
 		currentTopology=topoIndex;
 		currentLabel='';
 		for(i=0;i<topologies[topoIndex][1].length;i++){
@@ -304,17 +438,8 @@ function showalert(message,alerttype) {
 		//colorTable('showedTable');
 	}
 
-	function createElement(name,description,progressiveID,borderType,eqptType,idEntity){
-		//myTable=document.getElementById('showedTable');
-		//var myRow=myTable.insertRow();
-		//if(borderType=='top'){myRow.style.borderTop='3px solid black';}
-		//if(borderType=='bottom'){myRow.style.borderBottom='3px solid black';}
-		//var myCell = myRow.insertCell();
-		//textNode = document.createElement ('p');
-		//textNode.setAttribute("title",description)
-		//textNode.appendChild (document.createTextNode (name));
-		//myCell.appendChild(textNode);
-		//var flagsInput = document.createElement("input");
+	function createElementold(name,description,progressiveID,borderType,eqptType,idEntity){
+		
 		if(borderType=='top'){
 			buttonText='...';
 			if(topologies[currentTopology][3][progressiveID]!=''){buttonText=topologies[currentTopology][3][progressiveID]}
@@ -339,13 +464,7 @@ function showalert(message,alerttype) {
 		}).draw( false );
 	}
 
-	function removeAllChild(){
-		myTable=document.getElementById('showedTable');
-		numRows=myTable.rows.length;
-		for(i=1;i<numRows;i++){
-			myTable.deleteRow(1);
-		}
-	}
+
 
 	function jsendTuning(){
 		//alert(document.getElementById('localTesting').value);
@@ -414,24 +533,27 @@ function showalert(message,alerttype) {
 		tuningString='';
 		availableTopology='';
 		for(i=0;i<topologies.length;i++){
-			if(choice=='manager'){found=false;tempTuningString='';}
-			for(k=0;k<topologies[i][1].length;k++){
-				if(topologies[i][3][k]==''){
-					found=true;break;
-				}else{
-					if(choice==''){
-						//if(tuningString!=''){tuningString+='?';}
-						tuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k]+'?';
+			
+			for(j=0;j<topologies[i].tags.length;j++){
+				if(choice=='manager'){found=false;tempTuningString='';}
+				for(k=0;k<topologies[i].tags[j].entities.length;k++){
+					if(topologies[i].tags[j].entities[k]['val0']==''){
+						found=true;break;
 					}else{
-						tempTuningString+=topologies[i][4][k]+"|"+topologies[i][3][k]+"|"+topologies[i][5][k]+'?';
+						if(choice==''){
+							//if(tuningString!=''){tuningString+='?';}
+							tuningString+=topologies[i].tags[j].entities[k]['id']+"|"+topologies[i].tags[j].entities[k]['val0']+"|"+topologies[i].tags[j].entities[k]['val1']+'?';
+						}else{
+							tempTuningString+=topologies[i].tags[j].entities[k]['id']+"|"+topologies[i].tags[j].entities[k]['val0']+"|"+topologies[i].tags[j].entities[k]['val1']+'?';
+						}
 					}
 				}
-			}
-			if(found==false){
-				availableTopology+='*'+topologies[i][0]+'*';
-				if(choice=='manager'){
-					//if(tuningString!=''){tuningString+='?';}
-					tuningString+=tempTuningString;
+				if(found==false){
+					availableTopology+='*'+topologies[i].id+'*';
+					if(choice=='manager'){
+						//if(tuningString!=''){tuningString+='?';}
+						tuningString+=tempTuningString;
+					}
 				}
 			}
 		}
@@ -447,6 +569,7 @@ function showalert(message,alerttype) {
 
 	function checkSave(presetType){
 		myValues=getTuningValues();
+		//myValues=JSON.stringify(topologies);	
 		if(myValues){
 			overWrite=false;
 			saveText='';
@@ -542,23 +665,28 @@ function showalert(message,alerttype) {
 	}
 
 	function loadPreset(target,preset){
+		console.log('Calling loadPreset function...')
+		console.log('\ttarget: '+target+'\n\tpreset: '+preset)
 		tempPreset = preset.split('?');
 		for(i=0;i<tempPreset.length;i++){
 			tempPresetValue = tempPreset[i].split('|');
 			//found=false;
 			for(k=0;k<topologies.length;k++){
-				for(z=0;z<topologies[k][1].length;z++){
-					if(tempPresetValue[0]==topologies[k][4][z]){
-						topologies[k][3][z]=tempPresetValue[2];
-						topologies[k][5][z]=tempPresetValue[1];
-						//found=true;
-						//break;
+				for(y=0;y<topologies[k].tags.length;y++){
+					for(z=0;z<topologies[k].tags[y].entities.length;z++){
+						if(tempPresetValue[0]==topologies[k].tags[y].entities[z]['id']){
+							topologies[k].tags[y].entities[z]['val0']=tempPresetValue[2];
+							topologies[k].tags[y].entities[z]['val1']=tempPresetValue[1];
+							//found=true;
+							//break;
+						}
 					}
+					//if(found==true){break;}
 				}
-				//if(found==true){break;}
 			}
 		}
 		show(0);
+		console.log('...exit function!!')
 		//if(target!='SHARED'){changeScript.sharedPreset.selectedIndex=0;}
 		//	else{changeScript.personalPreset.selectedIndex=0;}
 	}

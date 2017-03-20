@@ -3,7 +3,7 @@
 TestCase template for K@TE test developers
 
 :field Description:
-:field Topology: 8
+:field Topology: 4
 :field Dependency:
 :field Lab: 
 :field TPS: 
