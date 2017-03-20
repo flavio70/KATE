@@ -75,17 +75,28 @@ TEMPLATES = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s]\t%(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+    },
+
     'handlers': {
         'filemain': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': BASE_DIR + '/logs/Main.log',
+            'maxBytes':50000,
+            'backupCount':4,
+            'formatter':'standard',
         },
 
 	'filegit': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': BASE_DIR + '/logs/Git.log',
+            'formatter':'standard',
         },
 
     },
@@ -136,6 +147,13 @@ JENKINS = {
     'HOST': 'http://151.98.52.72:7001',
     'SUITEFOLDER': '/tools/jksadmin/SERVER_POOL/JEN001/jobs/',
     'JOB_STRUCT': '/workspace/'
+ 
+}
+
+GIT = {
+    'USERLIBS_REPO_NAME': 'KATE-USERS-LIBS',
+    'USERLIBS_REPO_NAME_PATH' : '/tools/jksadmin/GITREPOS/'
+
 }
 
 
