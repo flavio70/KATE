@@ -364,6 +364,7 @@ def getgittag(request):
 
 	username=request.session['login']
 	#phase=request.POST.get('phase','')
+	logger.debug('getgittag function...\n')
 	
 	res=get_DB_git_show(username)
 	last = TGitActivity.objects.last()
@@ -371,6 +372,13 @@ def getgittag(request):
 		ctag=last.tag
 		cstatus=last.status
 		cdata=last.data
+		logger.debug('\tDB query successful')
+	else:
+		ctag=''
+		cstatus=''
+		cdata=''
+		logger.debug('\tDB query failed')
+
 		
 	context_dict={'login':request.session['login'], 
 							'tag':ctag,
@@ -380,6 +388,8 @@ def getgittag(request):
 
 
 	#return render(request,'taws/createNewTest.html',context_dict)
+	logger.debug('\treturned values: %s\n'%context_dict)
+	logger.debug('... exit getgittag function\n')
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
 
 
