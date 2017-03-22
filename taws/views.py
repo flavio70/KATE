@@ -440,7 +440,7 @@ def tuningEngine(request):
 		context_dict={'fromPage':'tuningEngine'}
 		return render_to_response('taws/login.html',context_dict,context)
 
-
+	logger.debug('\nCalling tuning Engine...')
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
@@ -477,6 +477,9 @@ def tuningEngine(request):
 
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
+	logger.debug('\tSuite Name:%s'%suiteName)
+	logger.debug('\tSuite Folder:%s'%suiteFolder)
+
 	from jenkinsapi.jenkins import Jenkins
 	server = Jenkins(settings.JENKINS['HOST'],username=request.session['login'],password=request.session['password'])
 	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
@@ -488,8 +491,10 @@ def tuningEngine(request):
 		tempStr+='Check Job '+suiteName+' not present...\n'
 		if os.path.exists(suiteFolder+suiteName):
 			tempStr+='Job '+suiteName+' already present,deleting workspace...'
+			logger.debug('\tJenkins Job:%s already present, deleeting workspace...'%suiteName)
 			shutil.rmtree(suiteFolder+suiteName)
 			tempStr+='DONE!\n'
+			logger.debug('\t...Done!!')
 		if not (server.has_job(suiteName)):
 			tempStr+='Job '+suiteName+' creating...'
 			tempProperties=''
@@ -504,8 +509,10 @@ def tuningEngine(request):
 			out_file.close()
 			#job_instance.update_config(templateXML)
 			#job_instance.update_config(job_instance.get_config())
+			logger.debug('\tCreating Job:%s on Jenkins Server:%s ...'%(suiteName,settings.JENKINS['HOST']))
 			server.create_job(suiteName,templateXML)
 			tempStr+='DONE!\n'
+			logger.debug('\t...Done!!')
 			#job_instance = server.get_job(suiteName)
 			#tempStr+='Disabling Jenkins Job : '+suiteName+' ...'
 			#job_instance.disable()
@@ -519,13 +526,15 @@ def tuningEngine(request):
 		#server.build_job(suiteName)
 		#server.stop(suiteName)
 		#os.chmod(suiteFolder+suiteName,511)
+		logger.debug('\tmaking %s%s%s directory...'%(suiteFolder,suiteName,settings.JENKINS['JOB_STRUCT']))
 		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
 		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
 		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
+		logger.debug('\tmaking test/reports directory...')
 		os.makedirs(suiteFolder+suiteName+'/workspace/test-reports')
 		os.chmod(suiteFolder+suiteName+'/workspace/test-reports',511)
-
+		logger.debug('\t...Done!!')
 
 	myIDX=1
 	tempStr+=tune_suite(presetID,suiteID,localTesting,suiteName,request.session['login'],'off',myIDX)
@@ -542,6 +551,7 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 	import os
 	import mysql.connector,ntpath,shutil,json,ast
 	from git import Repo
+	logger.debug('calling tune_suite function...')
 	
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 	
@@ -570,6 +580,7 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 				out_file.write(git.show(row['revision']+':'+row['test_name']))
 				out_file.close()
 				os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name,511)
+				logger.debug('\tGetting test %s%s%s%s from git'%(suiteFolder,suiteName,settings.JENKINS['JOB_STRUCT'],test_name))
 		else:
 			tempStr+='CREATING LINK FOR '+test_name+'...'
 			if os.path.exists(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name):
@@ -579,6 +590,7 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 			localPath=suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name
 			remotePath='/users/'+username+settings.GIT_REPO_PATH + settings.GIT_REPO_NAME+'/'+row['test_name']
 			os.symlink(remotePath,localPath)
+			logger.debug('\tMaking sym link %s'%localPath)
 		if preview=='off':
 			with open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',"w") as out_file:
 				#tempStr+=row["presets"]
@@ -586,6 +598,7 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 				#json.dump(row["presets"],out_file,ensure_ascii=False,indent=4,separators=(',',':'))
 			out_file.close()
 			os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+test_name+'.prs',511)
+			logger.debug('\tMaking json test file %s%s%s%s.prs'%(suiteFolder,suiteName,settings.JENKINS['JOB_STRUCT'],test_name))
 		myIDX+=1
 		runSection=row["run_section"]
 		runSectonStr=''
@@ -605,12 +618,14 @@ def tune_suite(presetID,suiteID,localTesting,suiteName,username,preview,currIDX)
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
 		tempStr+='DONE!\n\n'
 	tempStr+=create_node_list(presetID,suiteFolder,suiteName)
+	logger.debug('...tune_suite Done!')
 
 	return {'tuningReport':tempStr,'myIDX':myIDX}
 
 def create_node_list(presetID,suiteFolder,suiteName):
 
 	import mysql.connector
+	logger.debug('\tcalling create_node_list function...')
 	
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
@@ -620,17 +635,21 @@ def create_node_list(presetID,suiteFolder,suiteName):
 	myRecordSet.execute("SELECT group_concat(distinct T_EQUIPMENT_id_equipment order by T_EQUIPMENT_id_equipment asc) as nodeList FROM T_PST_ENTITY join T_TPY_ENTITY on(T_TPY_ENTITY_id_entity=id_entity) join T_PROD on(replace(elemName,'#','')=T_PROD.product) where T_PRESETS_id_preset="+str(presetID)+" and elemName like '%#%' group by T_EQUIPMENT_id_equipment")
 	nodeList=myRecordSet.fetchone()['nodeList']
 
+	logger.debug('\t\t...content of nodeList.info file: %s'%nodeList)
+
 	out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'nodeList.info',"w")
 	out_file.write(nodeList)
 	out_file.close()
 
 	tempStr+='DONE!\n'
+	logger.debug('\t...create_node_list Done!')
 	
 	return tempStr
 
 def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,description):
 	import shutil,os
 	from jenkinsapi.jenkins import Jenkins
+	logger.debug('calling createJenkinsENV function...')
 	server = Jenkins(settings.JENKINS['HOST'],username=username,password=password)
 	#server = Jenkins('151.98.52.72:7001',username=request.session['login'],password=request.session['password'])
 	
@@ -645,8 +664,13 @@ def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,descript
 		tempStr+='Check Job '+suiteName+' presence...\n'
 		if os.path.exists(suiteFolder+suiteName):
 			tempStr+='Job '+suiteName+' already present,deleting workspace...'
+			logger.debug('\tJob %s already present, deleting workspace...'%suiteName)
 			shutil.rmtree(suiteFolder+suiteName)
 			tempStr+='DONE!\n'
+			if (server.has_job(suiteName)):
+				logger.debug('\tDeleting Job %s...'%suiteName)
+				server.delete_job(suiteName)
+			
 		if not (server.has_job(suiteName)):
 			tempStr+='Job '+suiteName+' creating...'
 			tempProperties=''
@@ -661,6 +685,7 @@ def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,descript
 			out_file.close()
 			#job_instance.update_config(templateXML)
 			#job_instance.update_config(job_instance.get_config())
+			logger.debug('\tCreating Jenkins Job %s...'%suiteName)
 			server.create_job(suiteName,templateXML)
 			tempStr+='DONE!\n'
 			#job_instance = server.get_job(suiteName)
@@ -677,21 +702,25 @@ def createJenkinsENV(suiteName,username,password,localTesting,sharedJob,descript
 		#server.stop(suiteName)
 		#os.chmod(suiteFolder+suiteName,511)
 		tempStr+='Setting Permission to folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'...'
+		logger.debug('\tCreating folder %s%s%s ...'%(suiteFolder,suiteName,settings.JENKINS['JOB_STRUCT']))
 		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'])
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT'],511)
 		tempStr+='DONE!\n'
 		#os.makedirs(suiteFolder+suiteName+'/workspace/suite')
 		#os.chmod(suiteFolder+suiteName+'/workspace/suite',511)
 		tempStr+='Setting Permission to folder : '+suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'test-reports...'
+		logger.debug('\tCreating folder %s%s%stest-reports ...'%(suiteFolder,suiteName,settings.JENKINS['JOB_STRUCT']))
 		os.makedirs(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'test-reports')
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'test-reports',511)
 		tempStr+='DONE!\n'
 		tempStr+='Creating Test plan...'
+		logger.debug('\tadding empty suite %s%s%ssuite.txt ...'%(suiteFolder,suiteName,settings.JENKINS['JOB_STRUCT']))
 		out_file = open(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',"w+")
 		out_file.write('')
 		out_file.close()
 		os.chmod(suiteFolder+suiteName+settings.JENKINS['JOB_STRUCT']+'suite.txt',511)
 		tempStr+='DONE!\n\n'
+	logger.debug('...createJenkinsENV Done!')
 	
 	return tempStr
 
