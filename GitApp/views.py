@@ -13,6 +13,10 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import re
 
+import logging,subprocess
+
+logger = logging.getLogger(__name__)
+
 # Create your views here.
 
 
@@ -28,7 +32,7 @@ def get_testinfo(testpath):
 	import ast,re
 	res=None
 	#testFullName = os.path.abspath(testpath).decode('ascii')
-	#print('TestFullPath: %s'% testpath)
+	#logger.debug('TestFullPath: %s'% testpath)
 	try:
 		M = ast.parse(testpath)
 		doc=ast.get_docstring(M)
@@ -41,16 +45,16 @@ def get_testinfo(testpath):
 			res['TPS']=''
 			for elem in docre:
 				if (elem[0] == "Description"):
-					#print('Description %s'%elem[1])
+					#logger.debug('Description %s'%elem[1])
 					res['Description'] =  res['Description']  + re.sub('["\']+','',elem[1]) + '\n'
 				elif (elem[0] == "TPS"):
 					res['TPS'] =  res['TPS']  + re.sub('["\']+','',elem[1]) + '*'
 				else:
 					res[elem[0]]=re.sub('["\']+','',elem[1])
-					#print( '%s %s' %(elem[0],elem[1]))
+					#logger.debug( '%s %s' %(elem[0],elem[1]))
 	except Exception as xxx:
-		print('ERROR on get_testinfo')
-		print(str(xxx))
+		logger.debug('ERROR on get_testinfo')
+		logger.debug(str(xxx))
 	
 	return res
 
@@ -66,17 +70,64 @@ def addTestListToDB(testList):
 				res=addTestToDB(myTest)
 				listReport+=res['data']
 				if not res['status']:liststatus = False
-			#print(testList)
+			#logger.debug(testList)
 		return {'status':liststatus,'data':listReport}
 	except Exception as xxx:
-		print('ERROR on addTestListToDB')
-		print(str(xxx))
+		logger.debug('ERROR on addTestListToDB')
+		logger.debug(str(xxx))
 
 
 def push_hook(data):
-	print('Calling push event management...')
-	print(data)
-	return '2B Implemented'
+	from git import Repo, RemoteProgress
+	import os
+
+	class MyProgressPrinter(RemoteProgress):
+		
+		def update(self, op_code, cur_count, max_count=None, message=''):
+			logger.debug('%s , %s, %s, %s, %s'%(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE"))
+
+	logger.debug('Calling push event management...')
+	logger.debug(data)
+	repository = data.get('repository')
+	repository_name = repository.get('name')
+	
+	logger.debug('\nEvent triggered by pushing on repository %s\n'%repository_name)
+	if repository_name == settings.GIT['USERLIBS_REPO_NAME']:
+		repository_path = settings.GIT['USERLIBS_REPO_NAME_PATH']
+		logger.debug('\nUpdating %s%s GIT repository...'%(repository_path,repository_name))
+		local_repo_path = '%s%s'%(repository_path,repository_name)
+
+		#creating Repo object instance
+		myRepo=Repo(local_repo_path)
+		git=myRepo.git
+
+
+		#getting origin
+		origin = myRepo.remotes.origin
+		if not origin.exists(): return {'status':False,'data': "remote origin not found for GIT repository " + local_repo_path + " Please check your GIT Repository configuration"}
+		# checkout on master
+		myRepo.head.ref=myRepo.heads.master
+		# try to fetch from origin
+		logger.debug('Fetching from remote origin...\n')
+	
+		try:
+			for pull_info in origin.pull(progress=MyProgressPrinter()):
+				logger.debug("Updated %s to %s " % (pull_info.ref, pull_info.commit))
+
+			logger.debug('\nRepository Updated\n')
+		
+		except Exception as ex:
+			template = "An exception of type {0} occured. Arguments:\n{1!r}"
+			message = template.format(type(ex).__name__, ex.args)
+			logger.debug(message)
+			logger.debug('\n Ops! fetching problems. Going haead...\n')
+			return {'status':False,'data':'Git Fetching problems'}
+
+
+
+		return {'status':True,'data':'NoData'}
+	else:
+		return {'status':False,'data':'2B Implemented'}
 
 def tag_push_hook(data):
 	from git import Repo, RemoteProgress
@@ -84,11 +135,11 @@ def tag_push_hook(data):
 
 	class MyProgressPrinter(RemoteProgress):
 		def update(self, op_code, cur_count, max_count=None, message=''):
-			print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
+			logger.debug('%s , %s, %s, %s, %s'%(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE"))
 	# end
 	
-	print('Calling Tag push event management...\n')
-	print(data)
+	logger.debug('Calling Tag push event management...\n')
+	logger.debug(data)
 	repository = data.get('repository')
 	repository_name = repository.get('name')
 	repository_url = repository.get('url')
@@ -100,12 +151,12 @@ def tag_push_hook(data):
 	currentTag = reflist[len(reflist)-1]
 	result=[]
 
-	print('\ncheckout sha: %s\n' % checkout_sha)
-	print('Current TAG value: %s \n' % currentTag)
+	logger.debug('\ncheckout sha: %s\n' % checkout_sha)
+	logger.debug('Current TAG value: %s \n' % currentTag)
 
 	if not checkout_sha:return {'status':False,'data':"Are we deleting tag?... Nothing to do. Stopping execution..."}
 
-	print('\nchecking current TAG: %s Format...' % currentTag)
+	logger.debug('\nchecking current TAG: %s Format...' % currentTag)
 	'''
 	TAG FORMAT Expected coming from branch xxxxx: XXXXX@abcd
 	'''
@@ -115,7 +166,7 @@ def tag_push_hook(data):
 	tagBranchu=tagSplit[0]
 	tagBranchl=tagBranchu.lower()
 	tagVal=tagSplit[1]
-	print('\nOK TAG is in the correct format: branch %s Tag Separator %s  tag version %s \n' % (tagBranchl,settings.TAG_SPLIT,tagVal))
+	logger.debug('\nOK TAG is in the correct format: branch %s Tag Separator %s  tag version %s \n' % (tagBranchl,settings.TAG_SPLIT,tagVal))
 	
 	
 	local_repo_dir=settings.BASE_DIR + settings.GIT_REPO_PATH
@@ -126,7 +177,7 @@ def tag_push_hook(data):
 	
 	if not os.path.isdir(local_repo_path):
 		#in this case we assume we have to clone the repository from remote url
-		print('Cloning remote repo %s from: %s to %s \n' % (repository_name, repository_url, local_repo_dir) )
+		logger.debug('Cloning remote repo %s from: %s to %s \n' % (repository_name, repository_url, local_repo_dir) )
 		Repo.clone_from(repository_url, local_repo_path)
 	#crating Repo object instance
 	myRepo=Repo(local_repo_path)
@@ -138,76 +189,76 @@ def tag_push_hook(data):
 	# checkout on master
 	myRepo.head.ref=myRepo.heads.master
 	# try to fetch from origin
-	print('Fetching from remote origin...\n')
+	logger.debug('Fetching from remote origin...\n')
 	
 	try:
 		for fetch_info in origin.fetch(progress=MyProgressPrinter()):
-			print("Updated %s to %s " % (fetch_info.ref, fetch_info.commit))
+			logger.debug("Updated %s to %s " % (fetch_info.ref, fetch_info.commit))
 
-		print('\nRepository Updated\n')
+		logger.debug('\nRepository Updated\n')
 		
 	except Exception as ex:
 		template = "An exception of type {0} occured. Arguments:\n{1!r}"
 		message = template.format(type(ex).__name__, ex.args)
-		print(message)
-		print('\n Ops! fetching problems. Going haead...\n')
+		logger.debug(message)
+		logger.debug('\n Ops! fetching problems. Going haead...\n')
 		
 	#trying to checkout the tag release branch
 	try:
 		myRepo.head.ref = myRepo.remotes.origin.refs[tagBranchl]
-		print("Repo head set to %s" % tagBranchl)
+		logger.debug("Repo head set to %s" % tagBranchl)
 	except:
 		return {'status':False,'data':"Failed to chekout to branch " + tagBranchl + " exiting..."}
 
-	print('Getting commits and tags...')
+	logger.debug('Getting commits and tags...')
 	commitList=list(myRepo.iter_commits())
 	tagList=sorted(myRepo.tags, key=lambda t: t.commit.committed_date)
 	
-	print("\nRepo Tags(%s):\n %s \n" % (len(tagList),tagList))
+	logger.debug("\nRepo Tags(%s):\n %s \n" % (len(tagList),tagList))
 	
 	tagListf=[elem for elem in tagList if tagBranchu + settings.TAG_SPLIT in elem.name]
 	
-	print("\nRepo Tags filterd by branch %s (%s): \n %s" % (tagBranchu,len(tagListf),tagListf))
+	logger.debug("\nRepo Tags filterd by branch %s (%s): \n %s" % (tagBranchu,len(tagListf),tagListf))
 	
 	firstCommit = commitList[len(commitList)-1].hexsha
-	print("\nFirst GIT Commit hexsha for branch %s : %s \n" % (tagBranchl,firstCommit))
+	logger.debug("\nFirst GIT Commit hexsha for branch %s : %s \n" % (tagBranchl,firstCommit))
 	
 	
 	#getting the commit related to the previous tag for selected branch
 	if (len(tagListf) ==1):
 		#is the first tag for the branch
 		before = firstCommit
-		print("Setting before commit value to first commit: %s" % before)
+		logger.debug("Setting before commit value to first commit: %s" % before)
 	else:
 		before=tagListf[len(tagListf)-2].tag.hexsha
-		print("Setting before commit value to commit: %s" % before)
+		logger.debug("Setting before commit value to commit: %s" % before)
 	
 	
 	beforeCommit = myRepo.commit(before)
-	#print("\nBefore commit: %s, TAG commit: %s \n" % (beforeCommit.hexsha,checkout_sha))
+	#logger.debug("\nBefore commit: %s, TAG commit: %s \n" % (beforeCommit.hexsha,checkout_sha))
 	
 	tagdiff=beforeCommit.diff(checkout_sha)
-	print("\nTAG Differences...\n")
+	logger.debug("\nTAG Differences...\n")
 	
 	try:
 		for litem in tagdiff:
-			#print('\n' + litem)
+			#logger.debug('\n' + litem)
 			if litem.new_file:
 				#new file
 				#getting file content "litem.b_blob.data_stream.read()" and parsing the doc_string content
 				if not re.match('.*__.+__\.py',litem.b_path):
 					if re.match('.*.py',litem.b_path):
-						print('TestCase %s Added. Getting metadata ...'%litem.b_path)
+						logger.debug('TestCase %s Added. Getting metadata ...'%litem.b_path)
 						tinfo=get_testinfo(litem.b_blob.data_stream.read())
-						print('\n TestCase Metadata:\n %s \n'%tinfo)
+						logger.debug('\n TestCase Metadata:\n %s \n'%tinfo)
 						res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'A', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
 						result.append(res)
 			elif litem.deleted_file:
-				print('Deleted file %s . Not yet managed in DB Export')
+				logger.debug('Deleted file %s . Not yet managed in DB Export')
 				#deleted file
 				#res={'fullPath': litem.a_path,'tag': currentTag, 'diff': 'D', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
 			elif litem.renamed:
-				print('Renamed file %s . Not yet managed in DB Export')
+				logger.debug('Renamed file %s . Not yet managed in DB Export')
 				#renamed file
 				#res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'R', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
 			else:
@@ -215,18 +266,18 @@ def tag_push_hook(data):
 				#getting file content "litem.b_blob.data_stream.read()" and parsing the doc_string content
 				if not re.match('.*__.+__\.py',litem.b_path):
 					if re.match('.*.py',litem.b_path):
-						print('TestCase %s Modified. Getting metadata'%litem.b_path)
+						logger.debug('TestCase %s Modified. Getting metadata'%litem.b_path)
 						tinfo=get_testinfo(litem.b_blob.data_stream.read())
-						print('\n TestCase Metadata:\n %s \n'%tinfo)
+						logger.debug('\n TestCase Metadata:\n %s \n'%tinfo)
 						res={'fullPath': litem.b_path,'tag': currentTag, 'diff': 'M', 'dependency':tinfo['Dependency'], 'author':tinfo['Author'], 'lab':tinfo['Lab'], 'description':tinfo['Description'], 'topology':tinfo['Topology'], 'run_section':tinfo['RunSections'], 'tps':tinfo['TPS']}
 						result.append(res)
 	except Exception as eee:
-		print(str(eee))
+		logger.debug(str(eee))
 		return {'status':False,'data':str(eee)}
 	
 	try:
-		#print(result)
-		print('\nAdding testcases to K@TE MySQL DB...\n')
+		#logger.debug(result)
+		logger.debug('\nAdding testcases to K@TE MySQL DB...\n')
 		finalres=addTestListToDB(result)
 		
 		swrel=TSwRel.objects.get(sw_rel_name=tagBranchu)
@@ -239,32 +290,36 @@ def tag_push_hook(data):
 		#return{'status':'ppp','data':'xxx'}
 		return {'status':finalres['status'],'data':finalres['data']}
 	except Exception as eee:
-		print(str(eee))
+		logger.debug(str(eee))
 		return {'status':False,'data':str(eee)}
 
 def issue_hook(data):
-	print('Calling Issue event management...')
-	print(data)
+	logger.debug('Calling Issue event management...')
+	logger.debug(data)
 	return '2B Implemented'
 
 def note_hook(data):
-	print('Calling note event management...')
-	print(data)
+	logger.debug('Calling note event management...')
+	logger.debug(data)
 	return '2B Implemented'
 
 def merge_request_hook(data):
-	print('Calling merge request event management...')
-	print(data)
+	logger.debug('Calling merge request event management...')
+	logger.debug(data)
 	return '2B Implemented'
+
+
+
+
 
 @csrf_exempt
 def gitlab_webhook(request):
 	if request.method == 'POST' and request.body:
 		http_x_gitlab_event = request.META.get('HTTP_X_GITLAB_EVENT', '')
-		print('x_gitlab_event: %s' % http_x_gitlab_event)
+		logger.debug('x_gitlab_event: %s' % http_x_gitlab_event)
 		req_decoded=request.body.decode('ascii')
 		json_data = json.loads(req_decoded)
-		#print('json data: %s ' % json_data)
+		#logger.debug('json data: %s ' % json_data)
 		object_kind = json_data.get('object_kind', '')
 		project_id = json_data.get('project_id', '')
 		repo_data = json_data.get('repository', '')
@@ -272,25 +327,25 @@ def gitlab_webhook(request):
 		user_name = json_data.get('user_name', '')
 		user_email = json_data.get('user_email', '')
 		
-		print('Object Kind: %s' % object_kind)
-		print('Project Id: %s' % project_id)
-		print('Repo Data: %s' % repo_data)
-		print('User Id: %s' % user_id)
-		print('User Name: %s' % user_name)
-		print('User email: %s' % user_email)
+		logger.debug('Object Kind: %s' % object_kind)
+		logger.debug('Project Id: %s' % project_id)
+		logger.debug('Repo Data: %s' % repo_data)
+		logger.debug('User Id: %s' % user_id)
+		logger.debug('User Name: %s' % user_name)
+		logger.debug('User email: %s' % user_email)
 		
 		
 		if repo_data:
 			repo_name = repo_data.get('name', '')
 			repo_url = repo_data.get('url', '')
-			print('	Repository Name: %s' % repo_name)
-			print('	Repository URL: %s' % repo_url)
+			logger.debug('	Repository Name: %s' % repo_name)
+			logger.debug('	Repository URL: %s' % repo_url)
 			
 			
 			runPhase = {'Push Hook': push_hook, 'Tag Push Hook' : tag_push_hook, 'Issue Hook' : issue_hook, 'Note Hook' : note_hook, 'Merge Request Hook' : merge_request_hook}
 			queryRes=runPhase[http_x_gitlab_event](json_data)
 			
-			print('\n\n TAG PUSH HOOK Results: %s\n\n%s\n\n'%(queryRes['status'],queryRes['data']))
+			logger.debug('\n\n %s Results: %s\n\n%s\n\n'%(http_x_gitlab_event,queryRes['status'],queryRes['data']))
 			
 			
 			return HttpResponse(queryRes)
@@ -309,6 +364,7 @@ def getgittag(request):
 
 	username=request.session['login']
 	#phase=request.POST.get('phase','')
+	logger.debug('getgittag function...\n')
 	
 	res=get_DB_git_show(username)
 	last = TGitActivity.objects.last()
@@ -316,6 +372,13 @@ def getgittag(request):
 		ctag=last.tag
 		cstatus=last.status
 		cdata=last.data
+		logger.debug('\tDB query successful')
+	else:
+		ctag=''
+		cstatus=''
+		cdata=''
+		logger.debug('\tDB query failed')
+
 		
 	context_dict={'login':request.session['login'], 
 							'tag':ctag,
@@ -325,6 +388,8 @@ def getgittag(request):
 
 
 	#return render(request,'taws/createNewTest.html',context_dict)
+	logger.debug('\treturned values: %s\n'%context_dict)
+	logger.debug('... exit getgittag function\n')
 	return HttpResponse(json.dumps(context_dict),content_type="application/json")
 
 
@@ -361,25 +426,25 @@ def gitTagShow(request):
 	AuthUser.objects.filter(username=curruser).update(git_usershow=0)
 	alltags = TGitActivity.objects.all()
 	for tag in reversed(alltags):
-		print('tag %s'%tag.tag)
-		print('tag Status:%s'%tag.status)
+		logger.debug('tag %s'%tag.tag)
+		logger.debug('tag Status:%s'%tag.status)
 		
 		treeView+="{text: '"+tag.tag+"',"
 		treeView+="href: '#"+tag.tag+"',"
 		
 		if tag.status=='True':
-			print('Tag OK')
+			logger.debug('Tag OK')
 			treeView+="tags: [],"
 		else:
-			print('Tag KO')
+			logger.debug('Tag KO')
 			treeView+="tags: ['1'],"
 		
 		res=re.findall('TestCases(.*)?',tag.data,re.MULTILINE)	
-		print('%s items in current tag'%len(res))
+		logger.debug('%s items in current tag'%len(res))
 		if len(res)>0:
 			treeView+="nodes:["
 			for mytest in res:
-				print(mytest)
+				logger.debug(mytest)
 				treeView+="{text: '"+mytest+"',"
 				treeView+="href: '#"+mytest+"',"
 				treeView+="tags: [],},"
@@ -416,6 +481,7 @@ def setDevGIT(request):
 	
 	
 	return  JsonResponse({'creationReportTitle':creationReportTitle,'creationReport':creationReport,'creationReportType':creationReportType,'creationReportFooter':creationReportFooter,'userBranch':userBranch['current'],'userBranchList':userBranch['list']}, safe=False)
+
 
 
 

@@ -454,6 +454,12 @@ function doAccess(myAction){
 		//alert(myValues);
 		//alert(presetID);
 		//alert(presetSelection);
+		console.log('calling savePreset from accesso.js...');
+		console.log('Ajax POST to '+myURL);
+		console.log('action: '+myAction);
+		console.log('presetBody: ' + myValues);
+		console.log('presetName: ' + presetID);
+		console.log('presetType: ' + presetSelection);
 		$.ajax({
 			type: "POST",
 			dataType: 'json',

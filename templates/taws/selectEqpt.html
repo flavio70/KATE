@@ -4,31 +4,43 @@
 <head>
 	<script>
 		function selectEquip(myID,myName,myVars){
+			window.opener.console.log('Calling selectEqpt function...')
 			myObj=myVars.split('$');
 			window.opener.$('.selected')[0].innerHTML=myName;
 			//window.opener.document.getElementById(myVars).value=myName;
 			myTopologyID='null';
+			myTagID='null';
 			for(i=0;i<window.opener.topologies.length;i++){
-				for(k=0;k<window.opener.topologies[i][1].length;k++){
-					if(window.opener.topologies[i][4][k]==myObj[2]){
-						window.opener.topologies[i][3][myObj[0]]=myName;
-						window.opener.topologies[i][5][myObj[0]]=myID;
+				for (j=0;j<window.opener.topologies[i].tags.length;j++){
+					for(k=0;k<window.opener.topologies[i].tags[j].entities.length;k++){
+						if(window.opener.topologies[i].tags[j].entities[k]['id']==myObj[2]){
+							window.opener.topologies[i].tags[j].entities[k]['val0']=myName;
+							window.opener.topologies[i].tags[j].entities[k]['val1']=myID;
+							//myTopologyID=i;
+							myTagID=j;
+							myEntity=window.opener.topologies[i].tags[j].entities[k]['entityname'];
+							window.opener.console.log('/tsetting topology '+i+' tag '+j+' entity '+k+' id '+myObj[2]+'.'+' val0 = '+myName+' ,val1 = '+myID)
+							break;
+							//window.close();
+						}
+					}
+					if(myTagID!='null'){
 						myTopologyID=i;
-						myEntity=window.opener.topologies[i][6][myObj[0]];
 						break;
-						//window.close();
 					}
 				}
 				if(myTopologyID!='null'){break;}
 			}
 			if(myTopologyID!='null'){
-				for(k=0;k<window.opener.topologies[myTopologyID][1].length;k++){
-					if(window.opener.topologies[myTopologyID][6][k]==myEntity){
-						window.opener.topologies[myTopologyID][5][k]=myID;
+				for(k=0;k<window.opener.topologies[myTopologyID].tags[myTagID].entities.length;k++){
+					if(window.opener.topologies[myTopologyID].tags[myTagID].entities[k]['entityname']==myEntity){
+						window.opener.topologies[myTopologyID].tags[myTagID].entities[k]['val1']=myID;
+						window.opener.console.log('/tsetting topology '+myTopologyID+' tag '+myTagID+' entity '+k+' val1 = '+myID)
 					}
 				}
 				window.close();
 			}
+			window.opener.console.log('...exit function!!')
 		}
 
 		$(document).ready(function() {
