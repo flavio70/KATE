@@ -1,3 +1,4 @@
+
 from django.shortcuts import render
 from django.template import RequestContext
 from django.shortcuts import render_to_response
@@ -243,6 +244,9 @@ def tuning(request):
 	sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"],'sharedPresetTitle':row["preset_title"]} for row in myRecordSet]
 
 	if presetChoice == '':
+
+		logger.debug('\nTuning Case for suiteId %s\n'%suiteID)
+
 		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topology separator '-') using utf8) as topologyNeeded,name from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) where id_suite="+suiteID)
 		#myRecord=myRecordSet.fetchone()
 
@@ -252,7 +256,7 @@ def tuning(request):
 		#myRecordSet.execute("SELECT title,name,topology as id_topology,group_concat(distinct(concat(T_TEST_REVS.T_TEST_TAGS_id_test_tags,'#',tag_name)) order by T_TEST_REVS.T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_TAGS on(id_test_tags=T_TEST_REVS.T_TEST_TAGS_id_test_tags) join T_TOPOLOGY on(id_topology=topology)  where id_suite="+suiteID+" group by id_topology")
 
 
-		myRecordSet.execute("SELECT topology,group_concat(concat(T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+suiteID+" group by topology")
+		myRecordSet.execute("SELECT topology,title,topo_family_id,name,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+suiteID+" group by topology")
 
 
 
@@ -260,8 +264,8 @@ def tuning(request):
 
 		myRecords=myRecordSet.fetchall()
 		
-		logger.debug('\nTuning Case\n')
 		fileName=myRecords[0]["name"]
+		logger.debug('\nSuite Name: %s\n'%fileName)
 		#fileName=''
 	else:
 		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct id_topology order by id_topology separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
@@ -283,7 +287,7 @@ def tuning(request):
 
 		myTags = myTopology['tagNeeded'].split('-')
 		tagStruct=[]		
-		for currTag in myTags:
+		for currTag in set(myTags):
 			currTpgyId = str(currTag.split('#')[0])
 			currTagId = str(currTag.split('#')[1])
 			currTagName = currTag.split('#')[2]
