@@ -1149,6 +1149,9 @@ def createRunJenkins(request):
 	job_name=request.POST.get('jobName')
 	action=request.POST.get('azione')
 	target=request.POST.get('target','')
+	logger.debug('\n\nCalling CreateRunJenkins...\n')
+	logger.debug('JobName: %s, action: %s, Target:%s'%(job_name,action,target))
+
 	swRelMatrix=[]
 	runID=''
 	reportPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']+'test-reports/'
@@ -1156,16 +1159,25 @@ def createRunJenkins(request):
 	
 	suiteFolder=settings.JENKINS['SUITEFOLDER']
 
-	in_file = open(suiteFolder+job_name+'/workspace/nodeList.info',"r")
-	nodeFile=in_file.read()
-	in_file.close()
 
-	tempFile=nodeFile.split(',')
+	if job_name != request.session['login']+'_Development':
+		logger.debug('\nWe are supposing to process a tuned job containing a valid nodeList file\n')
+		in_file = open(suiteFolder+job_name+'/workspace/nodeList.info',"r")
+		nodeFile=in_file.read()
+		in_file.close()
+
+		tempFile=nodeFile.split(',')
+	else:
+		logger.debug('\nWe are supposing to process a Development Job\nTrying to build nodeinfo from json files...')
+		tempFile=getNodeListfromJson(job_name)
+		logger.debug('EQPT nodes present: %s'%str(tempFile)) 
+
+
 
 	sqlStr=''
 	for myFile in tempFile:
 		if sqlStr != '':sqlStr+=' OR '
-		sqlStr+='id_equipment='+myFile
+		sqlStr+='id_equipment='+str(myFile)
 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
@@ -3574,6 +3586,36 @@ def accesso(request):
 		context_dict={'login':request.session['login'],'tuningReport':tempStr,'tuningLabel':tuningLabel,'product':product,'sw_rel':sw_rel,'description':description,'area':area,'excludedTopologies':excludedTopologies,'myIDX':myIDX}
 	
 		return  JsonResponse(context_dict, safe=False)
+
+
+def getNodeListfromJson(job_name):
+	"""
+	Getting all Eqpt nodes id from json files
+	"""	
+	import os	
+	from taws.presetUtil import Preset
+	res=[]
+
+	jobPath=settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']
+	#for file in os.listdir(settings.JENKINS['SUITEFOLDER']+job_name+settings.JENKINS['JOB_STRUCT']):
+	with open(jobPath+'suite.txt') as f:
+		for line in f:
+			file = line.split('--')[0].rstrip()	
+	
+			p=Preset(file+'.prs')
+			id_list=p.get_all_ids_family('EQPT')
+			for elem in id_list:
+				if elem not in res:
+					res.append(elem)
+
+
+	#close(jobPath+'suite.txt')	
+	return res
+
+
+
+
+
 		
 def temp(request):
 	context = RequestContext(request)
