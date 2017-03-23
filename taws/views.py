@@ -756,7 +756,9 @@ def runJenkins(request):
 	jobMatrix=[]
 	for j in server.get_jobs():
 		job_instance=server.get_job(j[0])
-		jobMatrix.append({'name':job_instance.name,'description':job_instance.get_description(),'status':job_instance.is_running(),'enabled':job_instance.is_enabled()})
+		devjob = False
+		if job_instance.name.find('_Development') != -1: devjob = True		
+		jobMatrix.append({'name':job_instance.name,'description':job_instance.get_description(),'status':job_instance.is_running(),'enabled':job_instance.is_enabled(),'forDevelopment':devjob})
 
 	context_dict={'login':request.session['login'],'jobMatrix':jobMatrix}
 

@@ -259,12 +259,14 @@ function runCurrentJob() {
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="STOP JOB" data-content="STOP Job execution immediatly. Take care of misconfigurations." role="group">
 								<button type="button" onclick="jobAction.value='stopJob';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-warning"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>
 							</div>
+							{% if job.forDevelopment != True %}
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="DELETE JOB" data-content="Permanently DELETE JOB." role="group">
 								<button type="button" onclick="jobAction.value='deleteJob';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 							</div>
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="CONFIGURE JOB" data-content="Set JOB running parameters and EDIT test cases suite." role="group">
 								<button type="button" onclick="runTest.action='/taws/modify_job/?jobName='+$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-primary"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></button>
 							</div>
+							{% endif %}
 							<div class="btn-group btn-group-xs" data-toggle="popover" title="CURRENT JOB BUILD" data-content="Get Current JOB results." role="group">
 								<button type="button" onclick="runTest.action='/taws/getCurrentBuild/';jobName.value=$(this).closest('tr')[0].id;submit();" class="btn btn-default-xs btn-warning"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
 							</div>
