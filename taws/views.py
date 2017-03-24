@@ -1161,16 +1161,17 @@ def createRunJenkins(request):
 
 
 	if job_name != request.session['login']+'_Development':
-		logger.debug('\nWe are supposing to process a tuned job containing a valid nodeList file\n')
-		in_file = open(suiteFolder+job_name+'/workspace/nodeList.info',"r")
-		nodeFile=in_file.read()
-		in_file.close()
-
-		tempFile=nodeFile.split(',')
-	else:
-		logger.debug('\nWe are supposing to process a Development Job\nTrying to build nodeinfo from json files...')
+		logger.debug('\nWe are supposing to process a tuned job\nTrying to get node used from json files...')
+		#in_file = open(suiteFolder+job_name+'/workspace/nodeList.info',"r")
+		#nodeFile=in_file.read()
+		#in_file.close()
+		#tempFile=nodeFile.split(',')
 		tempFile=getNodeListfromJson(job_name)
-		logger.debug('EQPT nodes present: %s'%str(tempFile)) 
+	else:
+		logger.debug('\nWe are supposing to process a Development Job\nTrying to get node used from json files...')
+		tempFile=getNodeListfromJson(job_name)
+		
+	logger.debug('\tEQPT nodes present: %s'%str(tempFile)) 
 
 
 
@@ -1179,6 +1180,7 @@ def createRunJenkins(request):
 		if sqlStr != '':sqlStr+=' OR '
 		sqlStr+='id_equipment='+str(myFile)
 
+	logger.debug('\tstring for sql query: %s'%str(sqlStr)) 
 	dbConnection=mysql.connector.connect(user=settings.DATABASES['default']['USER'],password=settings.DATABASES['default']['PASSWORD'],host=settings.DATABASES['default']['HOST'],database=settings.DATABASES['default']['NAME'])
 	myRecordSet = dbConnection.cursor(dictionary=True)
 
@@ -1186,7 +1188,7 @@ def createRunJenkins(request):
 	dbConnection.commit()
 
 	#myRecordSet.execute("select *,group_concat(piddu) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,concat(sw_rel_name,'#',group_concat(concat(T_PACKAGES.label_ref,'|',id_pack) separator '%')) as piddu,T_EQUIPMENT.name as eqptName,owner,T_EQUIPMENT.description,T_PACKAGES.label_ref from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where id_equipment=1 or id_equipment=3 or id_equipment=4 or id_equipment=6 group by T_PROD.product,sw_rel_name) as mytable group by prodName")
-	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.label_ref,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.label_ref from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where "+sqlStr+" group by T_PROD.product,sw_rel_name) as mytable group by prodName")
+	myRecordSet.execute("select *,group_concat(packList) as packList ,group_concat(sw_rel_name) as swRelList from (select id_equipment,T_EQUIP_TYPE.name as prodName,sw_rel_name,group_concat(concat(T_PACKAGES.label_ref,'|',id_pack) separator '%') as packList,T_EQUIPMENT.name as eqptName,owner,T_PACKAGES.label_ref from T_EQUIPMENT join T_EQUIP_TYPE on(T_EQUIP_TYPE_id_type=id_type) left join T_PROD on(T_EQUIP_TYPE.name=T_PROD.product) left join T_PACKAGES on(T_PROD.id_prod=T_PACKAGES.T_PROD_id_prod) left join T_SW_REL on(id_sw_rel=T_SW_REL_id_sw_rel) where "+sqlStr+" group by T_PROD.product,sw_rel_name) as mytable group by id_equipment")
 
 	for row in myRecordSet:
 		if str(row['swRelList'])!='None':
