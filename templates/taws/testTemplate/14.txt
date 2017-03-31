@@ -3,7 +3,7 @@
 TestCase template for K@TE test developers
 
 :field Description:
-:field Topology: 5
+:field Topology: 14
 :field Dependency:
 :field Lab: 
 :field TPS: 
@@ -85,14 +85,28 @@ if __name__ == "__main__":
     #initializing all local variable and constants used by Test object
     NE1 = Eqpt1850TSS320('NE1', CTEST.kenvironment)
     NE1_S1=NE1.get_preset("S1")
-    NE1_S2=NE1.get_preset("S2")
-    NE1_S3=NE1.get_preset("S3")
+    NE1_WORK=NE1.get_preset("WORK")
+    NE1_PROT=NE1.get_preset("PROT")
+    NE1_S1_RATE=NE1.get_preset("S1_RATE")
+    
+    NE2 = Eqpt1850TSS320('NE2', CTEST.kenvironment)
+    NE2_S1=NE2.get_preset("S1")
+    NE2_WORK=NE2.get_preset("WORK")
+    NE2_PROT=NE2.get_preset("PROT")
+    NE2_S1_RATE=NE2.get_preset("S1_RATE")
+    
     ONT1=InstrumentONT('ONT1', CTEST.kenvironment)
     ONT1_P1="P1"
-    ONT1_P2="P2"
-    ONT1_P3="P3"
+    
+    ONT2=InstrumentONT('ONT2', CTEST.kenvironment)
+    ONT2_P1="P1"
+    
+    MSP_RATE="STM16_24XANYMR"
+    
     CTEST.add_eqpt(NE1)
+    CTEST.add_eqpt(NE2)
     CTEST.add_eqpt(ONT1)
+    CTEST.add_eqpt(ONT2)
 
     # Run Test main flow
     # Please don't touch this code

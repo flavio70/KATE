@@ -91,6 +91,7 @@ if __name__ == "__main__":
     ONT1_P1="P1"
     ONT1_P2="P2"
     CTEST.add_eqpt(NE1)
+    CTEST.add_eqpt(ONT1)
 
     # Run Test main flow
     # Please don't touch this code
