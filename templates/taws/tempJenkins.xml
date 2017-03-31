@@ -37,6 +37,13 @@ ${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite.txt $
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>logs/*.log</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.8">
       <testResults>test-reports/*.XML</testResults>
       <keepLongStdio>false</keepLongStdio>
