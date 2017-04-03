@@ -27,10 +27,7 @@ Leave empty for local Building</description>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export PYTHONUNBUFFERED=1
-export PYTHONPATH=${JENKINS_HOME}/KateRepo
-export PYTHONPATH=${PYTHONPATH}:${JENKINS_HOME}/kateUsrLibs
-echo &quot;PYTHONPATH: &quot; ${PYTHONPATH}
+      <command>echo &quot;PYTHONPATH: &quot; ${PYTHONPATH}
 echo &quot;workspace is: &quot; ${WORKSPACE}
 echo &quot;running suite&quot;
 ${JENKINS_HOME}/KateRepo/FRAMEWORK/scripts/kautotest.py ${WORKSPACE}/suite.txt ${JOB_NAME} ${BUILD_NUMBER} ${KateRunId} --UserId ${BUILD_USER_ID}</command>
