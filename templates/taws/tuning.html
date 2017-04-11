@@ -68,7 +68,7 @@ function deletePreset(){
 						</div><!-- end btn_group-->
 						<div class="btn-group btn-group-sm" role="group">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 					</ul>
-					{% if choice == '' %}
+					{% if choice == 'tuning' %}
 					<ul class="nav navbar-btn navbar-left">
 						<div class="btn-group btn-group-sm" role="group">
 							<button type="button" data-toggle="modal" title="Bulid the selected Jenkins Project" data-target="#tuneModal" class="btn btn-info navbar-btn"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Let's Go Tune</button>
@@ -282,7 +282,7 @@ function showalert(message,alerttype) {
 
 
 	$(document).on('click', '#ulTopoTags li a', function () {		
-		console.log("Tag Selected:"+$(this).text());
+		console.log("Tag Selected:"+$(this).text()+ " choice " + choice);
 		
 		if(choice=='manager'){		
 			if(this.text=='NONE'){
@@ -293,7 +293,18 @@ function showalert(message,alerttype) {
 				$('#btnTags').show();	
 			}
 			
-		}else{
+		}
+		if(choice=='tuning'){		
+			if(this.text=='NONE'){
+				document.getElementById('btnTags').disabled = true;
+				$('#btnTags').hide();
+			}else{
+				document.getElementById('btnTags').disabled = false;
+				$('#btnTags').show();	
+			}
+			
+		}
+		if(choice=='viewer'){
 			document.getElementById('btnTags').disabled = true;
 			$('#btnTags').hide();
 
@@ -307,6 +318,7 @@ function showalert(message,alerttype) {
 
 
 	function fillTags(topoIndex){
+		console.log('fillTags for topology '+topoIndex)
 		listr='';
 		for(i=0;i<topologies[topoIndex].tags.length;i++){
 			listr+='<li><a id="liTag-'+ i +'" name="'+topologies[topoIndex].tags[i].id+'" onclick="showItems('+topoIndex+','+i+')"</a>' + topologies[topoIndex].tags[i].name + "</li>";
@@ -540,7 +552,7 @@ document.getElementById('topoTitle').innerHTML="<h3><span><b>" + topologies[topo
 					if(topologies[i].tags[j].entities[k]['val0']==''){
 						found=true;break;
 					}else{
-						if(choice==''){
+						if(choice=='tuning'){
 							//if(tuningString!=''){tuningString+='?';}
 							tuningString+=topologies[i].tags[j].entities[k]['id']+"|"+topologies[i].tags[j].entities[k]['val0']+"|"+topologies[i].tags[j].entities[k]['val1']+'?';
 						}else{

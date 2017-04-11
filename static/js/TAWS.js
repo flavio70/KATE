@@ -886,7 +886,7 @@ function jtuneSuite(){
 			alert('No suites selected!');
 	}*/
 	selectTest.savingName.value=suiteID;
-	selectTest.action='/taws/tuning/';
+	selectTest.action='/taws/tuning/?choice=tuning';
 	if(testBundleTable.rows().data().length!=0){
 		if(suiteChanged){
 			if(confirm('File seems to be changed since loaded,\nwanna save it now for tuning?')){jsaveFile('TestBundle',suiteName);}

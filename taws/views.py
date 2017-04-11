@@ -256,7 +256,7 @@ def tuning(request):
 		#myRecordSet.execute("SELECT title,name,topology as id_topology,group_concat(distinct(concat(T_TEST_REVS.T_TEST_TAGS_id_test_tags,'#',tag_name)) order by T_TEST_REVS.T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST_TAGS on(id_test_tags=T_TEST_REVS.T_TEST_TAGS_id_test_tags) join T_TOPOLOGY on(id_topology=topology)  where id_suite="+suiteID+" group by id_topology")
 
 
-		myRecordSet.execute("SELECT topology,title,topo_family_id,name,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+suiteID+" group by topology")
+		myRecordSet.execute("SELECT topology,title,topo_family_id,name,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '$') as tagNeeded from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+suiteID+" group by topology")
 
 
 
@@ -269,7 +269,7 @@ def tuning(request):
 		#fileName=''
 	else:
 		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct id_topology order by id_topology separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
-		myRecordSet.execute("SELECT topo_family_id,title,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '-') as tagNeeded from T_TOPOLOGY join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) group by topo_family_id")
+		myRecordSet.execute("SELECT topo_family_id,title,group_concat(concat(id_topology,'#',T_TEST_TAGS_id_test_tags,'#',tag_name) order by T_TEST_TAGS_id_test_tags separator '$') as tagNeeded from T_TOPOLOGY join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) group by topo_family_id")
 
 		#myRecordSet.execute("SELECT convert(GROUP_CONCAT(distinct topo_family_id order by topo_family_id separator '-') using utf8) as topologyNeeded from T_TOPOLOGY")
 
@@ -285,7 +285,7 @@ def tuning(request):
 	for myTopology in myRecords:
 		logger.debug('\nTopology group: %s'%myTopology)
 
-		myTags = myTopology['tagNeeded'].split('-')
+		myTags = myTopology['tagNeeded'].split('$')
 		tagStruct=[]		
 		for currTag in set(myTags):
 			currTpgyId = str(currTag.split('#')[0])
