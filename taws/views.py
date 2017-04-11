@@ -243,7 +243,7 @@ def tuning(request):
 	myRecordSet.execute("select concat(T_PRESETS.preset_title,'[',convert(group_concat(distinct id_topology separator ',') using utf8),']') as description,id_preset,preset_title from T_PRESETS join T_PST_ENTITY on(id_preset=T_PRESETS_id_preset) join T_TPY_ENTITY on(id_entity=T_TPY_ENTITY_id_entity) join T_TOPOLOGY on(id_topology=T_TOPOLOGY_id_topology) where owner='SHARED' group by id_preset")
 	sharedPreset=[{'sharedPresetName':row["description"],'sharedPresetID':row["id_preset"],'sharedPresetTitle':row["preset_title"]} for row in myRecordSet]
 
-	if presetChoice == '':
+	if presetChoice == 'tuning':
 
 		logger.debug('\nTuning Case for suiteId %s\n'%suiteID)
 
