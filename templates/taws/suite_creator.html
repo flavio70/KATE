@@ -12,6 +12,7 @@
 	SECT[0]="{% static 'images/sect0.gif' %}";
 	myProduct="";
 	myLab="";
+	myTag="";
 	myUserSuite="";
 	mySharedSuite="";
 	suiteID='';
@@ -29,12 +30,17 @@
 {% endfor %}
 
 {% for myItem in productAry %}
-    <script>myProduct+='<li><a onclick="fillButtons(\'{{ myItem.productConcat }}\',\'sw-release\',\'{{ myItem.product }}\',\'product\');">{{ myItem.product }}</a></li>';</script>
+    <script>myProduct+='<li><a onclick="document.getElementById(\'product\').innerHTML=\'{{ myItem.prodName }}  <span class=\\\'caret\\\'></span>\';prod=\'{{ myItem.prodID }}\';doAccess(\'getSwRelease\');">{{ myItem.prodName }}</a></li>';</script>
 {% endfor %}
 
 {% for myItem in labAry %}
 	<script>myLab+='<li><a href="queryDB();">{{ myItem.labName }}</a></li>';</script>
 {% endfor %}
+
+{% for myItem in tagAry %}
+	<script>myTag+='<li><a href="queryDB();">{{ myItem.tagName }}</a></li>';</script>
+{% endfor %}
+
 
 <script>
 
@@ -158,6 +164,7 @@ $(document).ready(function() {
 			"className": "dt-center"
 		},
 		{ "data": "rev" },
+		{ "data": "tag" },
 		{
 			"data": "time", 
 			"className": "dt-center"
@@ -435,6 +442,7 @@ $(document).ready(function() {
 							"className": "dt-center"
 						},
 						{ "data": "rev" },
+						{ "data": "tag" },
 						{
 							"data": "time", 
 							"className": "dt-center"
@@ -708,6 +716,7 @@ $(document).keyup(function (e) {
 				<th rowspan="2">Test</th>
 				<th style="width:33px" rowspan="2">Lab</th>
 				<th style="width:50px" rowspan="2">Rev</th>
+				<th style="width:50px" rowspan="2">Tag</th>
 				<th style="width:40px" rowspan="2">Time</th>
 				<th style="width:30px" rowspan="2">Tpgy</th>
 				<th colspan="5">Sect</th>
@@ -746,6 +755,7 @@ $(document).keyup(function (e) {
 				<th title="Test">Test</th>
 				<th style="width:33px" title="Lab">Lab</th>
 				<th style="width:50px" title="Rev">Rev</th>
+				<th style="width:50px" title="Rev">Tag</th>
 				<th style="width:40px" title="Time">Time</th>
 				<th style="width:30px" title="Tpgy">Tpgy</th>
 				<th colspan="5">Sect</th>
@@ -774,6 +784,7 @@ $(document).keyup(function (e) {
 					<th rowspan="2">Test</th>
 					<th style="width:33px" rowspan="2">Lab</th>
 					<th style="width:50px" rowspan="2">Rev</th>
+					<th style="width:50px" rowspan="2">Tag</th>
 					<th style="width:40px" rowspan="2">Time</th>
 					<th style="width:30px" rowspan="2">Tpgy</th>
 					<th colspan="5">Sect</th>
@@ -812,6 +823,7 @@ $(document).keyup(function (e) {
 					<th>Test</th>
 					<th style="width:33px">Lab</th>
 					<th style="width:50px">Rev</th>
+					<th style="width:50px">Tag</th>
 					<th style="width:40px">Time</th>
 					<th style="width:30px">Tpgy</th>
 					<th colspan="5">Sect</th>
