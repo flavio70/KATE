@@ -32,9 +32,13 @@ def get_testinfo(testpath):
 	#testFullName = os.path.abspath(testpath).decode('ascii')
 	#testFullname = testpath
 	try:
-		if not os.path.exists(testpath):return res
+		if not os.path.exists(testpath):
+			logger.error('testPath %s not found'%testpath)
+			return res
 		M = ast.parse(''.join(open(testpath)))
+		logger.debug('after ast parse')
 		doc=ast.get_docstring(M)
+		logger.debug('after get_docstring')
 			
 		if doc is not None:
 			docre = re.findall(':field (.*)?',doc,re.MULTILINE)
@@ -53,8 +57,8 @@ def get_testinfo(testpath):
 					res[elem[0]]=re.sub('["\']+','',elem[1].strip())
 					#print( '%s %s' %(elem[0],elem[1]))
 	except Exception as xxx:
-		print('ERROR on get_testinfo')
-		print(str(xxx))
+		logger.error('ERROR on get_testinfo')
+		logger.error(str(xxx))
 	return res
 
 
@@ -2839,12 +2843,12 @@ def accesso(request):
 				#tempTest = open(f,"r")
 				#myFile=tempTest.read()
 				if os.path.exists(f):
-					print('Testcase %s found'%f)
+					logger.info('Testcase %s found'%f)
 					res=get_testinfo(f)
 					check_testinfo_format(f,res)
-					print('docinfo for %s: %s'%(f,res))
+					logger.info('docinfo for %s: %s'%(f,res))
 					if check_testinfo_format(f,res):
-						print('docinfo format ok for file %s'%f)
+						logger.info('docinfo format ok for file %s'%f)
 					
 						description=res['Description']
 						topology=res['Topology']
