@@ -525,12 +525,13 @@ function changePerspective(){
 }
 
 function format ( myRow ) {
+    console.log('calling format with '+myRow)
     return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
         '<tr>'+
             '<td>TEST ID:</td>'+
             '<td>'+myRow.testId+'</td>'+
             '<td rowspan="6">TOPOLOGY</td>'+
-            '<td rowspan="6"><img class="img-responsive" width="300px" src="/static/images/topologies/'+myRow.topo+'.jpg"</img></td>'+
+            '<td rowspan="6"><img class="img-responsive" width="300px" src="/static/images/topologies/'+myRow.topoFamily+'.jpg"</img></td>'+
         '</tr>'+
         '<tr>'+
             '<td>Dependency:</td>'+

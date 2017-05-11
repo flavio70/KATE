@@ -339,9 +339,10 @@ class TTestRevs(models.Model):
 
 class TTopology(models.Model):
     id_topology = models.AutoField(primary_key=True)
+    topo_family_id = models.IntegerField(blank=False, null=True)
     t_scope_id_scope = models.ForeignKey(TScope, db_column='T_SCOPE_id_scope')  # Field name made lowercase.
     title = models.CharField(unique=True, max_length=45)
-    description = models.TextField(blank=True, null=True)
+    topology_Description = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False

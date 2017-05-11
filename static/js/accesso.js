@@ -94,6 +94,7 @@ function doAccess(myAction){
 	};
 	var queryDB = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		testListString=String(sersverResponse_data['testString']).split('$');
+		console.log('call doAccess function, action='+myAction+' ...')
 		updateTestTable('testTable',testListString);
 		if(myAction=='localBrowsing'||myAction=='job_browsing'){updateTestTable('testBundleTable',sersverResponse_data['localString'].split('$'));}
 		/*for(myItem in sersverResponse_data['tagList']){

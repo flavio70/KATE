@@ -7,6 +7,7 @@ from django.contrib import auth
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import JsonResponse
 from django.conf import settings
+from taws.models import TTopology
 import json
 
 import logging,subprocess
@@ -36,9 +37,9 @@ def get_testinfo(testpath):
 			logger.error('testPath %s not found'%testpath)
 			return res
 		M = ast.parse(''.join(open(testpath)))
-		logger.debug('after ast parse')
+		#logger.debug('after ast parse')
 		doc=ast.get_docstring(M)
-		logger.debug('after get_docstring')
+		#logger.debug('after get_docstring')
 			
 		if doc is not None:
 			docre = re.findall(':field (.*)?',doc,re.MULTILINE)
@@ -56,6 +57,12 @@ def get_testinfo(testpath):
 				else:
 					res[elem[0]]=re.sub('["\']+','',elem[1].strip())
 					#print( '%s %s' %(elem[0],elem[1]))
+							
+			topofamily = TTopology.objects.get(id_topology=int(res['Topology'])).topo_family_id
+			logger.debug('Topology Family for ID %s = %s'%(str(res['Topology']),str(topofamily)))
+			res['topoFamily'] = topofamily
+
+				
 	except Exception as xxx:
 		logger.error('ERROR on get_testinfo')
 		logger.error(str(xxx))
@@ -2510,11 +2517,13 @@ def accesso(request):
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		#myRecordSet.execute("select *,group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,area_name,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		#myRecordSet.execute("select *,tag_name,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TEST_TAGS on(T_TEST_TAGS_id_test_tags=id_test_tags) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
-		myRecordSet.execute("select *,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select tag_name,id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,dependency,author,test_description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(T_TEST_TAGS_id_test_tags=id_test_tags) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
+		myRecordSet.execute("select *,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select tag_name,id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,topo_family_id,dependency,author,test_description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(T_TEST_TAGS_id_test_tags=id_test_tags) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
+		#logger.info("select *,group_concat(distinct concat(revision,'|',id_TestRev) separator '!') as revisions from (select tag_name,id_TestRev,product,sw_rel_name,run_section,area_name,tps,test_name,duration,metric,topology,topo_family_id,dependency,author,test_description,last_update,revision,lab,test_id from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select tps,T_DOMAIN_id_domain ,T_TEST_REVS_id_TestRev from T_TPS join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as myTest using(T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) where area_name='"+queryArea+"') as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(T_TEST_TAGS_id_test_tags=id_test_tags) where product='"+queryProduct+"' and sw_rel_name='"+querySW+"' order by test_id,id_TestRev desc) as myTable group by test_id")
 		myStr="SELECT id_test_tags,tag_name FROM T_TEST_REVS join T_TPS on(T_TEST_REVS_id_TestRev=id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(id_area=T_AREA_id_area) join T_TEST_TAGS on (id_test_tags=T_TEST_TAGS_id_test_tags) where T_PROD_id_prod=2 and T_SW_REL_id_sw_rel=11 and T_SCOPE_id_scope=2 and T_AREA_id_area=12 group by id_test_tags"
 		rows=myRecordSet.fetchall()
 		testString=''
 		for row in rows:
+			#logger.info(row)
 			testString+=(str(row['id_TestRev'])+"#"+\
 			row['product']+"#"+\
 			row['sw_rel_name']+"#"+\
@@ -2535,7 +2544,8 @@ def accesso(request):
 			row['run_section']+"#"+\
 			row['revisions']+"#"+\
 			row['lab']+"#"+\
-			row['revision']+'#'+
+			row['revision']+'#'+\
+			str(row['topo_family_id'])+'#'+\
 			row['tag_name']+"$")
 
 		dbConnection.close()
@@ -2852,6 +2862,7 @@ def accesso(request):
 					
 						description=res['Description']
 						topology=res['Topology']
+						topoFamily=res['topoFamily']
 						dependency=res['Dependency']
 						lab=res['Lab']
 						#tps=metaInfo[1].replace(',','<br>')
@@ -2861,6 +2872,7 @@ def accesso(request):
 					else:
 						description="NA"
 						topology="NA"
+						topoFamily="NA"
 						dependency="NA"
 						lab="NA"
 						tps="NA"
@@ -2868,13 +2880,14 @@ def accesso(request):
 						author="NA"
 				
 					if(runsection.isdigit()==False):runsection='00000'
-					print('Description %s' % description)
-					print('topology %s' % topology)
-					print('Dependency %s' % dependency)
-					print('Lab %s' % lab)
-					print('tps %s' % tps)
-					print('runsections %s' % runsection)
-					print('author %s' % author)
+					logger.debug('Description %s' % description)
+					logger.debug('topology %s' % topology)
+					logger.debug('topology Family %s' % topoFamily)
+					logger.debug('Dependency %s' % dependency)
+					logger.debug('Lab %s' % lab)
+					logger.debug('tps %s' % tps)
+					logger.debug('runsections %s' % runsection)
+					logger.debug('author %s' % author)
 					#tempTest.close()
 					testString+=f+"#"+\
 					"NA#"+\
@@ -2895,7 +2908,10 @@ def accesso(request):
 					"NA#"+\
 					runsection+"#"+\
 					"NA#"+\
-					lab+"$"
+					lab+"#"+\
+					"NA#"+\
+					str(topoFamily)+\
+					"$"
 					
 		if os.path.isfile(localPath+'suite.txt'):
 			localSuite = open(localPath+'suite.txt',"r")
@@ -2910,6 +2926,7 @@ def accesso(request):
 						print('docinfo format ok for file %s'%tempLine[0]+'.py')
 						description=res['Description']
 						topology=res['Topology']
+						topoFamily=res['topoFamily']
 						dependency=res['Dependency']
 						lab=res['Lab']
 						#tps=metaInfo[1].replace(',','<br>')
@@ -2919,6 +2936,7 @@ def accesso(request):
 					else:
 						description="NA"
 						topology="NA"
+						topoFamily="NA"
 						dependency="NA"
 						lab="NA"
 						tps="NA"
@@ -2954,11 +2972,14 @@ def accesso(request):
 					"NA#"+\
 					''.join(tempSection)+"#"+\
 					"NA#"+\
-					lab+"$"
+					lab+"#"+\
+					"NA#"+\
+					str(topoFamily)+\
+					"$"
 			
 
 			localSuite.close()
-		print('testString\n%s\nlocalString\n%s\n'%(testString,localString))
+		logger.debug('testString\n%s\nlocalString\n%s\n'%(testString,localString))
 		return  JsonResponse({'testString':testString,'localString':localString,'debug':localString}, safe=False)
 
 	if myAction=='job_browsing':

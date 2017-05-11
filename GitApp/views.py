@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.conf import settings
 
 from GitApp.models import *
+from taws.models import TTopology
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -52,6 +53,12 @@ def get_testinfo(testpath):
 				else:
 					res[elem[0]]=re.sub('["\']+','',elem[1])
 					#logger.debug( '%s %s' %(elem[0],elem[1]))
+
+			topofamily = TTopology.objects.get(id_topology=int(res['Topology'])).topo_family_id
+			logger.debug('Topology Family for ID %s = %s'%(str(res['Topology']),str(topofamily)))
+			res['topoFamily'] = topofamily
+
+
 	except Exception as xxx:
 		logger.debug('ERROR on get_testinfo')
 		logger.debug(str(xxx))
