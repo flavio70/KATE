@@ -90,7 +90,7 @@ function doAccess(myAction){
 		testListString=String(sersverResponse_data['testString']).split('$');
 		updateTestTable('testBundleTable',testListString);
 		suiteChanged=false;
-		showalert("Suite correctly saved","alert-success");
+		showalert("Suite correctly loaded","alert-success");
 	};
 	var queryDB = function(sersverResponse_data, textStatus_ignored,jqXHR_ignored)  {
 		testListString=String(sersverResponse_data['testString']).split('$');

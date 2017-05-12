@@ -2493,7 +2493,8 @@ def accesso(request):
 			"[MY_REVISIONS]#"+\
 			row['lab']+"#"+\
 			row['revision']+'#'+\
-			row['tag_name']+'$')
+			str(row['topo_family_id'])+'#'+\
+			row['tag_name']+"$")
 
 			myRecordSet.execute("select group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where T_TEST_test_id="+str(row['T_TEST_test_id'])+" group by T_TEST_test_id")
 			testString=testString.replace('[MY_REVISIONS]',myRecordSet.fetchone()['revisions'])
@@ -2602,7 +2603,7 @@ def accesso(request):
 		sharedSuiteAry=[{'suiteName':row["name"],'suiteID':row["id_suite"],'suiteDesc':row["description"]} for row in myRecordSet]
 
 		#myRecordSet.execute("select *,T_SUITES_BODY.run_section as section from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_TEST_COMPATIBILITY on(id_TestRev=T_TEST_COMPATIBILITY.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_TEST_COMPATIBILITY.T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
-		myRecordSet.execute("select *,T_SUITES_BODY.run_section as section,T_SUITES.name as suiteName from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
+		myRecordSet.execute("select *,T_SUITES_BODY.run_section as section,T_SUITES.name as suiteName from T_SUITES join T_SUITES_BODY on(id_suite=T_SUITES_id_suite) join T_TEST_REVS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_TEST on(test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '<br>') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TPS.T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) join T_TOPOLOGY on(topology=id_topology) join T_TEST_TAGS on(id_test_tags=T_TEST_TAGS_id_test_tags) where id_suite="+str(suiteID)+" group by id_TestRev,TCOrder order by TCOrder")
 		rows=myRecordSet.fetchall()
 
 		testString=''
@@ -2627,7 +2628,9 @@ def accesso(request):
 			row['section']+"#"+\
 			"[MY_REVISIONS]#"+\
 			row['lab']+"#"+\
-			row['revision']+'$')
+			row['revision']+'#'+\
+			str(row['topo_family_id'])+'#'+\
+			row['tag_name']+"$")
 			
 			myRecordSet.execute("select group_concat(concat(revision,'|',id_TestRev) separator '!') as revisions from T_TEST join T_TEST_REVS on (test_id=T_TEST_test_id) join (select T_TEST_REVS_id_TestRev,group_concat(concat(area_name,'-',tps_reference) order by id_tps separator '!') as tps,T_DOMAIN_id_domain from T_TPS join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on (id_area=T_AREA_id_area) group by T_TEST_REVS_id_TestRev) as T_TPS on(id_TestRev=T_TEST_REVS_id_TestRev) join T_DOMAIN on(id_domain=T_DOMAIN_id_domain) join T_AREA on(T_AREA_id_area=id_area) join T_PROD on(id_prod=T_PROD_id_prod) join T_SW_REL on(T_SW_REL_id_sw_rel=id_sw_rel) where T_TEST_test_id="+str(row['T_TEST_test_id'])+" group by T_TEST_test_id")
 			testString=testString.replace('[MY_REVISIONS]',myRecordSet.fetchone()['revisions'])
