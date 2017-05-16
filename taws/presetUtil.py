@@ -16,6 +16,11 @@ import json
 from taws.models import TEquipment
 #from django.db import connection
 
+import logging,subprocess
+
+logger = logging.getLogger('taws')
+
+
 
 
 class Preset():
@@ -32,9 +37,9 @@ class Preset():
         preset_file = open(json_file_name)
 
         self.__json = json.load(preset_file)
-        print("-- JSON VALUES ----------------")
-        print(self.__json)
-        print("-------------------------------------\n")
+        logger.debug("-- JSON VALUES for file %s"%json_file_name)
+        logger.debug(self.__json)
+        logger.debug("-------------------------------------\n")
 
 
     def get_all_ids(self):
@@ -44,7 +49,7 @@ class Preset():
 
         for key in self.__json:
             id_list.append(self.get_id(key))
-
+        logger.debug('get_all_ids function --> %s'%id_list)
         return id_list
 
 
@@ -55,9 +60,10 @@ class Preset():
         try:
             res = self.get_elem(equip_name, "ID")
         except Exception:
-            res = ""
-
-        return int(res)
+            logger.error('get_id function Fail')
+            return 'None'
+        logger.debug('get_id function --> %s'%str(res))
+        return str(res)
 
 
     def get_type(self, equip_name):
@@ -90,10 +96,13 @@ class Preset():
 
     def __check_id_Family(self, id_eqpt,family):
         """ INTERNAL USAGE """
-        if TEquipment.objects.get(id_equipment=id_eqpt).t_equip_type_id_type.family == family:
-            return True
-        return False
-
+        try:
+            if TEquipment.objects.get(id_equipment=id_eqpt).t_equip_type_id_type.family == family:
+                return True
+            return False
+        except Exception:
+            logger.error('Check Id family for id_eqpt = \'%s\' Fail!!'%id_eqpt) 
+            return False
 
     def get_all_ids_family(self,family):
         """ Return a list of ID for current preset file matching family type (i.e. 'EQPT')
